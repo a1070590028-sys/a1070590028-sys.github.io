@@ -1,13 +1,94 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>我的网站</title>
-    <!-- Favicon 图标引用 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frey 的个人博客</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
+
+    <!-- 简洁现代的样式 -->
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+            background: #f6f8fa;
+            color: #333;
+        }
+
+        header {
+            background: #4f6ef7;
+            padding: 40px 20px;
+            text-align: center;
+            color: white;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+
+        header p {
+            opacity: .9;
+            margin: 10px 0 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 0 16px;
+        }
+
+        .post-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 18px 0;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            transition: 0.3s;
+        }
+
+        .post-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+        }
+
+        .post-card h2 {
+            margin: 0 0 10px;
+            color: #4f6ef7;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Hello! 这是我的第一个网站 🎉</h1>
-    <p>由 GitHub Pages 强力驱动！</p>
+    <header>
+        <h1>Frey 的个人博客</h1>
+        <p>记录 · 思考 · 成长</p>
+    </header>
+
+    <div class="container">
+
+        <!-- 文章示例 -->
+        <div class="post-card">
+            <h2>第一篇文章标题示例</h2>
+            <p>这里是文章简介内容…（点击后跳转到文章页）</p>
+        </div>
+
+        <div class="post-card">
+            <h2>未来内容预留区域</h2>
+            <p>你可以添加更多文章和页面！</p>
+        </div>
+
+    </div>
+
+    <footer>
+        © 2025 Frey • 使用 GitHub Pages 构建
+    </footer>
 </body>
 </html>
