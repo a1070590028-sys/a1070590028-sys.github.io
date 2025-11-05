@@ -11,10 +11,36 @@
             height: 100%;
             margin: 0;
             font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-            background: #0f172a; /* Vanta 背景颜色 */
+            background: #0f172a;
             color: #e2e8f0;
             overflow-x: hidden;
         }
+
+        /* 固定悬浮右上角时间卡片 */
+        #time-card {
+            position: fixed;
+            top: 12px;
+            right: 14px;
+            padding: 6px 12px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            text-align: right;
+            font-size: 14px;
+            line-height: 1.3em;
+            color: #60a5fa;
+            text-shadow: 0 0 6px rgba(96,165,250,0.5);
+            z-index: 9999;
+            cursor: default;
+            min-width: 90px;
+        }
+        #time-card .date {
+            font-size: 13px;
+            color: #93c5fd;
+        }
+
         header {
             position: relative;
             z-index: 1;
@@ -39,6 +65,7 @@
             color: #cbd5e1;
             opacity: .85;
         }
+
         .container {
             position: relative;
             z-index: 1;
@@ -46,7 +73,7 @@
             margin: 35px auto;
             padding: 0 16px;
         }
-        .post-card, #time-card {
+        .post-card {
             background: rgba(255,255,255,0.08);
             border: 1px solid rgba(255,255,255,0.08);
             backdrop-filter: blur(5px);
@@ -57,7 +84,7 @@
             transition: .28s ease;
             cursor: pointer;
         }
-        .post-card:hover, #time-card:hover {
+        .post-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 8px 20px rgba(0,0,0,.35);
             border-color: #3b82f6;
@@ -67,17 +94,11 @@
             color: #93c5fd;
             font-size: 22px;
         }
-        .post-card p, #time-card p {
+        .post-card p {
             margin: 0;
             color: #94a3b8;
         }
-        #time-card {
-            text-align: center;
-            font-size: 22px;
-            color: #60a5fa;
-            text-shadow: 0 0 8px rgba(96,165,250,0.5);
-            cursor: default;
-        }
+
         footer {
             position: relative;
             z-index: 1;
@@ -86,22 +107,22 @@
             font-size: 14px;
             color: #64748b;
         }
-        footer span {
-            color: #60a5fa;
-        }
+        footer span { color: #60a5fa; }
     </style>
 </head>
 <body>
+    <!-- ✅ 悬浮北京时间 -->
+    <div id="time-card">
+        <div class="date">0000-00-00</div>
+        <div class="time">--:--:--</div>
+    </div>
+
     <header>
         <h1>Frey 的个人博客</h1>
         <p>记录 · 思考 · 成长 · 前进</p>
     </header>
-    <div class="container">
-        <!-- 北京时间毛玻璃卡片 -->
-        <div id="time-card">
-            --:--:--
-        </div>
 
+    <div class="container">
         <div class="post-card">
             <h2>第一篇文章标题示例</h2>
             <p>这里是文章简介内容…</p>
@@ -111,11 +132,10 @@
             <p>你可以添加更多文章和独立页面！</p>
         </div>
     </div>
-    <footer>
-        © 2025 <span>Frey</span> • Powered by GitHub Pages
-    </footer>
 
-    <!-- Vanta 动态背景 -->
+    <footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
+
+    <!-- VANTA 动态背景 -->
     <script src="js/three.min.js"></script>
     <script src="js/vanta.net.min.js"></script>
     <script>
@@ -124,8 +144,8 @@
         mouseControls: true,
         touchControls: true,
         gyroControls: false,
-        minHeight: 200.0,
-        minWidth: 200.0,
+        minHeight: 200,
+        minWidth: 200,
         scale: 1.0,
         scaleMobile: 1.0,
         color: 0x60a5fa,
@@ -133,19 +153,26 @@
     });
     </script>
 
-    <!-- 显示北京时间 -->
+    <!-- 北京时间 -->
     <script>
     function updateBeijingTime() {
         const now = new Date();
-        const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-        const beijingTime = new Date(utc + 8 * 3600000);
-        const hours = String(beijingTime.getHours()).padStart(2,'0');
-        const minutes = String(beijingTime.getMinutes()).padStart(2,'0');
-        const seconds = String(beijingTime.getSeconds()).padStart(2,'0');
-        document.getElementById('time-card').textContent = `${hours}:${minutes}:${seconds}`;
+        const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+        const bj = new Date(utc + 8 * 3600000);
+
+        const y = bj.getFullYear();
+        const m = String(bj.getMonth()+1).padStart(2,'0');
+        const d = String(bj.getDate()).padStart(2,'0');
+        const hh = String(bj.getHours()).padStart(2,'0');
+        const mm = String(bj.getMinutes()).padStart(2,'0');
+        const ss = String(bj.getSeconds()).padStart(2,'0');
+
+        document.querySelector('#time-card .date').textContent = `${y}-${m}-${d}`;
+        document.querySelector('#time-card .time').textContent = `${hh}:${mm}:${ss}`;
     }
     updateBeijingTime();
     setInterval(updateBeijingTime, 1000);
     </script>
+
 </body>
 </html>
