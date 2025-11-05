@@ -15,6 +15,17 @@
             color: #e2e8f0;
             overflow-x: hidden;
         }
+        /* 滚动进度条 */
+        #scrollProgress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 4px;
+            background-color: #60a5fa;
+            width: 0%;
+            z-index: 1000;
+            transition: width 0.2s ease-out;
+        }
         header {
             position: relative;
             z-index: 1;
@@ -105,6 +116,9 @@
     </style>
 </head>
 <body>
+    <!-- 滚动进度条 -->
+    <div id="scrollProgress"></div>
+
     <header>
         <h1>Frey 的个人博客</h1>
         <p>记录 · 思考 · 成长 · 前进</p>
@@ -117,6 +131,14 @@
         <div class="post-card">
             <h2>未来内容预留区域</h2>
             <p>你可以添加更多文章和独立页面！</p>
+        </div>
+        <div class="post-card">
+            <h2>更多内容示例</h2>
+            <p>滚动看看进度条和返回顶部按钮效果。</p>
+        </div>
+        <div class="post-card">
+            <h2>文章占位</h2>
+            <p>你可以继续增加文章，让页面更长以测试滚动效果。</p>
         </div>
     </div>
     <footer>
@@ -143,15 +165,25 @@
             backgroundColor: 0x0f172a
         });
 
-        // 返回顶部按钮功能
+        // 返回顶部按钮和滚动进度条功能
         const backToTop = document.getElementById("backToTop");
+        const progressBar = document.getElementById("scrollProgress");
+
         window.onscroll = function() {
+            // 显示/隐藏返回顶部按钮
             if (document.documentElement.scrollTop > 200) {
                 backToTop.style.display = "block";
             } else {
                 backToTop.style.display = "none";
             }
+
+            // 更新滚动进度条
+            const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const scrollPercent = (scrollTop / scrollHeight) * 100;
+            progressBar.style.width = scrollPercent + "%";
         };
+
         backToTop.onclick = function() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
