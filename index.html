@@ -6,14 +6,14 @@
     <title>Frey 的个人博客</title>
     <link rel="icon" href="/favicon.ico" type="image/x-icon">
 
-    <!-- 科技风样式 -->
     <style>
         * { box-sizing: border-box; }
 
-        body {
+        html, body {
+            height: 100%;
             margin: 0;
             font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-            background: #0f172a; /* Vanta 背景覆盖 */
+            background: #0f172a; /* Vanta 背景颜色 */
             color: #e2e8f0;
             overflow-x: hidden;
         }
@@ -128,11 +128,12 @@
       mouseControls: true,
       touchControls: true,
       gyroControls: false,
-      minHeight: 200.00,
-      minWidth: 200.00,
+      minHeight: 200.0,
+      minWidth: 200.0,
       scale: 1.0,
       scaleMobile: 1.0,
-      color: 0x60a5fa
+      color: 0x60a5fa,          // 网格颜色
+      backgroundColor: 0x0f172a // 背景颜色，确保网格可见
     });
     </script>
 </body>
