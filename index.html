@@ -13,11 +13,14 @@
         body {
             margin: 0;
             font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, #1e293b, #0f172a);
+            background: #0f172a; /* 去掉原来的渐变，Vanta 会覆盖 */
             color: #e2e8f0;
+            overflow-x: hidden;
         }
 
         header {
+            position: relative;
+            z-index: 1;
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
             background: rgba(255,255,255,0.04);
@@ -43,6 +46,8 @@
         }
 
         .container {
+            position: relative;
+            z-index: 1;
             max-width: 900px;
             margin: 35px auto;
             padding: 0 16px;
@@ -78,6 +83,8 @@
         }
 
         footer {
+            position: relative;
+            z-index: 1;
             text-align: center;
             padding: 22px;
             font-size: 14px;
@@ -115,5 +122,21 @@
         © 2025 <span>Frey</span> • Powered by GitHub Pages
     </footer>
 
+    <!-- Vanta 动态背景 -->
+    <script src="three.r134.min.js"></script>
+    <script src="vanta.net.min.js"></script>
+    <script>
+    VANTA.NET({
+      el: "body",
+      mouseControls: true,
+      touchControls: true,
+      gyroControls: false,
+      minHeight: 200.00,
+      minWidth: 200.00,
+      scale: 1.00,
+      scaleMobile: 1.00,
+      color: 0x60a5fa // 可根据博客配色调整
+    })
+    </script>
 </body>
 </html>
