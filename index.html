@@ -1,150 +1,241 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>井字棋游戏</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            margin: 0;
-            background: #f4f4f4;
-        }
-        h1 {
-            margin-bottom: 10px;
-        }
-        #board {
-            display: grid;
-            grid-template-columns: repeat(3, 100px);
-            grid-template-rows: repeat(3, 100px);
-            gap: 5px;
-        }
-        .cell {
-            width: 100px;
-            height: 100px;
-            background: #fff;
-            border: 2px solid #000;
-            font-size: 48px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
-        #controls {
-            margin-top: 15px;
-        }
-        #status {
-            margin-top: 12px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frey 的个人博客</title>
+<link rel="icon" href="https://a1070590028-sys.github.io/a1070590028-sys.github.io/favicon.ico" type="image/x-icon">
+<style>
+* { box-sizing: border-box; }
+html, body {
+    height: 100%; margin: 0;
+    font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #0f172a; color: #e2e8f0;
+    overflow-x: hidden;
+}
+
+#time-card {
+    position: fixed; top: 12px; right: 14px;
+    padding: 6px 12px; border-radius: 8px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    text-align: right; font-size: 14px;
+    color: #60a5fa; z-index: 9999;
+}
+
+header {
+    text-align: center; padding: 60px 20px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+header h1 {
+    font-size: 38px;
+    color: #60a5fa; text-shadow: 0 0 8px rgba(96,165,250,0.5);
+}
+header p {
+    font-size: 18px; color: #cbd5e1; opacity: .85;
+}
+
+.container {
+    max-width: 900px;
+    margin: 35px auto;
+    padding: 0 16px;
+}
+
+.post-card {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(6px);
+    border-radius: 14px;
+    padding: 24px;
+    margin: 22px 0;
+    transition: .28s ease;
+}
+.post-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,.35);
+    border-color: #3b82f6;
+}
+.post-card h2 { color: #93c5fd; font-size: 22px; margin: 0 0 12px; }
+.post-card p { color: #94a3b8; margin: 0; }
+
+footer {
+    text-align: center;
+    padding: 22px; font-size: 14px; color: #64748b;
+}
+footer span { color: #60a5fa; }
+
+/* ✅ 国际象棋 UI */
+#chess-container {
+    text-align: center; margin-top: 40px;
+    background: rgba(255,255,255,0.05);
+    padding: 20px; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+}
+#chessCanvas {
+    background: #0f172a;
+    border: 2px solid #3b82f6;
+    border-radius: 6px;
+    box-shadow: 0 0 12px rgba(96,165,250,0.35);
+    cursor: pointer;
+}
+button {
+    background: #1e293b; color: #60a5fa;
+    border: 1px solid #3b82f6;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+button:hover {
+    background: #3b82f6;
+    color: #fff;
+}
+</style>
 </head>
 <body>
 
-    <h1>井字棋</h1>
-    <div id="board"></div>
+<div id="time-card">
+    <div class="date">0000-00-00</div>
+    <div class="time">--:--:--</div>
+</div>
 
-    <div id="controls">
-        <button onclick="startNewGame()">新游戏</button>
+<header>
+    <h1>Frey 的个人博客</h1>
+    <p>记录 · 思考 · 成长 · 前进</p>
+</header>
+
+<div class="container">
+
+    <!-- ✅ 国际象棋模块 -->
+    <div id="chess-container" class="post-card">
+        <h2>在线国际象棋 · 人机对战</h2>
+        <canvas id="chessCanvas" width="480" height="480"></canvas><br><br>
+        <button onclick="newGame()">新游戏</button>
     </div>
 
-    <div id="status">当前玩家：X</div>
+    <div class="post-card">
+        <h2>第一篇文章标题示例</h2>
+        <p>这里是文章简介内容…</p>
+    </div>
 
-    <script>
-        let board = [];
-        let currentPlayer = 'X';
-        let gameOver = false;
+    <div class="post-card">
+        <h2>未来内容预留区域</h2>
+        <p>你可以添加更多文章和独立页面！</p>
+    </div>
 
-        function initBoard() {
-            board = [
-                ['', '', ''],
-                ['', '', ''],
-                ['', '', '']
-            ];
-            currentPlayer = 'X';
-            gameOver = false;
-            updateStatus();
-            renderBoard();
-        }
+</div>
 
-        function renderBoard() {
-            const boardElement = document.getElementById("board");
-            boardElement.innerHTML = ""; // ✅清空后再渲染，否则会叠加
+<footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
 
-            for (let i = 0; i < 3; i++) {
-                for (let j = 0; j < 3; j++) {
-                    const cell = document.createElement("div");
-                    cell.classList.add("cell");
-                    cell.textContent = board[i][j];
-                    cell.onclick = () => handleCellClick(i, j);
-                    boardElement.appendChild(cell);
-                }
+<!-- ✅ VANTA 背景 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta/dist/vanta.net.min.js"></script>
+<script>
+VANTA.NET({
+    el: "body",
+    mouseControls: true,
+    backgroundColor: 0x0f172a,
+    color: 0x60a5fa
+});
+</script>
+
+<!-- ✅ 北京时间修复 -->
+<script>
+function updateBeijingTime() {
+    const now = new Date();
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    const bj = new Date(utc + 8 * 3600000);
+    const y = bj.getFullYear();
+    const m = String(bj.getMonth()+1).padStart(2,'0');
+    const d = String(bj.getDate()).padStart(2,'0');
+    const hh = String(bj.getHours()).padStart(2,'0');
+    const mm = String(bj.getMinutes()).padStart(2,'0');
+    const ss = String(bj.getSeconds()).padStart(2,'0');
+    document.querySelector('#time-card .date').textContent = `${y}-${m}-${d}`;
+    document.querySelector('#time-card .time').textContent = `${hh}:${mm}:${ss}`;
+}
+updateBeijingTime();
+setInterval(updateBeijingTime, 1000);
+</script>
+
+<!-- ✅ 国际象棋（Canvas + 电脑随机） -->
+<script>
+const canvas = document.getElementById("chessCanvas");
+const ctx = canvas.getContext("2d");
+const size = 60;
+
+let board = [];
+let selected = null;
+const piecesInit = [
+    ["r","n","b","q","k","b","n","r"],
+    ["p","p","p","p","p","p","p","p"],
+    [" "," "," "," "," "," "," "," "],
+    [" "," "," "," "," "," "," "," "],
+    [" "," "," "," "," "," "," "," "],
+    [" "," "," "," "," "," "," "," "],
+    ["P","P","P","P","P","P","P","P"],
+    ["R","N","B","Q","K","B","N","R"]
+];
+
+function drawBoard() {
+    for(let y=0;y<8;y++){
+        for(let x=0;x<8;x++){
+            ctx.fillStyle = (x+y)%2 ? "#1e293b" : "#0b1323";
+            ctx.fillRect(x*size, y*size, size, size);
+            let p = board[y][x];
+            if(p !== " ") {
+                ctx.fillStyle = p === p.toUpperCase()? "#fff": "#60a5fa";
+                ctx.font = "34px serif";
+                ctx.fillText(p, x*size+20, y*size+42);
             }
         }
+    }
+}
 
-        function handleCellClick(i, j) {
-            if (board[i][j] !== "" || gameOver) return;
+function newGame(){
+    board = JSON.parse(JSON.stringify(piecesInit));
+    selected = null;
+    drawBoard();
+}
 
-            board[i][j] = currentPlayer;
-            renderBoard();
-            checkWinner();
+// ✅玩家点击落子
+canvas.addEventListener("click", (e)=>{
+    const x = Math.floor(e.offsetX/size);
+    const y = Math.floor(e.offsetY/size);
+    if(!selected) {
+        if(board[y][x] !== " ") selected = {x,y};
+    } else {
+        board[y][x] = board[selected.y][selected.x];
+        board[selected.y][selected.x] = " ";
+        selected = null;
+        drawBoard();
+        setTimeout(aiMove, 300);
+    }
+});
 
-            if (!gameOver) {
-                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-                updateStatus();
-            }
+// ✅电脑随机走子
+function aiMove(){
+    let moves=[];
+    for(let y=0;y<8;y++) for(let x=0;x<8;x++){
+        let p=board[y][x];
+        if(p === p.toLowerCase()){
+            let ny=y+1;
+            if(ny<8 && board[ny][x]==" ") moves.push({fx:x,fy:y,tx:x,ty:ny});
         }
+    }
+    if(moves.length>0){
+        let m = moves[Math.floor(Math.random()*moves.length)];
+        board[m.ty][m.tx]=board[m.fy][m.fx];
+        board[m.fy][m.fx]=" ";
+    }
+    drawBoard();
+}
 
-        function updateStatus() {
-            document.getElementById("status").textContent = `当前玩家：${currentPlayer}`;
-        }
-
-        function checkWinner() {
-            const winPatterns = [
-                // 行
-                [[0,0],[0,1],[0,2]],
-                [[1,0],[1,1],[1,2]],
-                [[2,0],[2,1],[2,2]],
-                // 列
-                [[0,0],[1,0],[2,0]],
-                [[0,1],[1,1],[2,1]],
-                [[0,2],[1,2],[2,2]],
-                // 对角线
-                [[0,0],[1,1],[2,2]],
-                [[0,2],[1,1],[2,0]]
-            ];
-
-            for (const pattern of winPatterns) {
-                const [a,b,c] = pattern;
-                if (board[a[0]][a[1]] &&
-                    board[a[0]][a[1]] === board[b[0]][b[1]] &&
-                    board[a[0]][a[1]] === board[c[0]][c[1]]) {
-                    document.getElementById("status").textContent = `玩家 ${currentPlayer} 获胜！`;
-                    gameOver = true;
-                    return;
-                }
-            }
-
-            // 平局判断
-            if (board.flat().every(cell => cell !== "")) {
-                document.getElementById("status").textContent = "平局！";
-                gameOver = true;
-            }
-        }
-
-        function startNewGame() {
-            initBoard(); // ✅重新初始化 & 重新渲染
-        }
-
-        // ✅ 页面加载完成后立即生成棋盘
-        window.onload = initBoard;
-    </script>
+newGame();
+</script>
 
 </body>
 </html>
