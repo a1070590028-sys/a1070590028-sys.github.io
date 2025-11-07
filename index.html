@@ -1,473 +1,179 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Frey 的个人博客</title>
-  <link rel="icon" href="https://a1070590028-sys.github.io/a1070590028-sys.github.io/favicon.ico" type="image/x-icon">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Frey 的个人博客</title>
+<link rel="icon" href="https://a1070590028-sys.github.io/a1070590028-sys.github.io/favicon.ico" type="image/x-icon">
 
-  <style>
-    * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; font-family: "Segoe UI", Helvetica, Arial, sans-serif; background: #0f172a; color: #e2e8f0; overflow-x: hidden; }
+<!-- ✅ chessboard.js 样式 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard.min.css">
 
-    /* 固定悬浮右上角时间卡片 */
-    #time-card { position: fixed; top: 12px; right: 14px; padding: 6px 12px; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); text-align: right; font-size: 14px; line-height: 1.3em; color: #60a5fa; text-shadow: 0 0 6px rgba(96,165,250,0.4); z-index: 9999; cursor: default; min-width: 110px; }
-    #time-card .date { font-size: 13px; color: #93c5fd; }
-    header { position: relative; z-index: 1; backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); background: rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.04); padding: 40px 20px; text-align: center; }
-    header h1 { margin: 0 0 12px; font-size: 36px; font-weight: 700; letter-spacing: 1px; color: #60a5fa; text-shadow: 0 0 8px rgba(96,165,250,0.4); }
-    header p { margin: 0; font-size: 16px; color: #cbd5e1; opacity: .85; }
+<style>
+* { box-sizing: border-box; }
+html, body {
+    height: 100%;
+    margin: 0;
+    font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    overflow-x: hidden;
+}
+#time-card {
+    position: fixed;
+    top: 12px;
+    right: 14px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.12);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    text-align: right;
+    font-size: 14px;
+    color: #60a5fa;
+    text-shadow: 0 0 6px rgba(96,165,250,0.5);
+    z-index: 9999;
+}
+#time-card .date { font-size: 13px; color: #93c5fd; }
 
-    .container { position: relative; z-index: 1; max-width: 980px; margin: 28px auto; padding: 0 16px; }
+header {
+    backdrop-filter: blur(5px);
+    background: rgba(255,255,255,0.08);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 60px 20px;
+    text-align: center;
+}
+header h1 {
+    margin: 0 0 12px;
+    font-size: 38px;
+    font-weight: 700;
+    color: #60a5fa;
+    text-shadow: 0 0 8px rgba(96,165,250,0.5);
+}
+.container {
+    max-width: 900px;
+    margin: 35px auto;
+    padding: 0 16px;
+}
 
-    .post-card { background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); border-radius: 14px; padding: 20px; margin: 18px 0; transition: .20s ease; cursor: default; }
-
-    .post-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,.35); border-color: #3b82f6; }
-
-    .post-card h2 { margin: 0 0 12px; color: #93c5fd; font-size: 20px; }
-    .post-card p { margin: 0; color: #94a3b8; }
-
-    footer { position: relative; z-index: 1; text-align: center; padding: 22px; font-size: 14px; color: #64748b; }
-    footer span { color: #60a5fa; }
-
-    /* --- 棋盘样式 --- */
-    .game-card { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; justify-content: center; }
-    .board-card { width: 420px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 14px; }
-    .controls-card { min-width: 240px; max-width: 320px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 14px; height: fit-content; }
-
-    .board { width: 100%; aspect-ratio: 1/1; display: grid; grid-template-columns: repeat(8,1fr); border-radius: 8px; overflow: hidden; user-select: none; touch-action: manipulation; }
-    .square { position: relative; display:flex; align-items:center; justify-content:center; font-size:26px; cursor: pointer; transition: background .12s ease; }
-    .square.light { background: rgba(255,255,255,0.03); }
-    .square.dark { background: rgba(0,0,0,0.25); }
-    .square.highlight { outline: 3px solid rgba(96,165,250,0.28); }
-    .square.last-move { box-shadow: inset 0 0 0 3px rgba(99,102,241,0.12); }
-    .coord { position: absolute; font-size: 10px; bottom: 4px; right: 6px; color: rgba(255,255,255,0.18); }
-
-    .controls-card h3 { margin: 0 0 12px; color:#93c5fd;font-size:16px; }
-    .btn { display:inline-block;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02); color:#cfe8ff; cursor:pointer; margin-right:8px; margin-top:8px; }
-    .btn:hover { transform: translateY(-2px); box-shadow:0 8px 18px rgba(0,0,0,0.35); border-color:#60a5fa; }
-    .select, .label-row { display:flex; gap:8px; align-items:center; margin-top:10px; }
-    .small { font-size:13px; color:#94a3b8; }
-
-    /* 适配小屏 */
-    @media (max-width:840px){
-      .game-card { flex-direction:column; align-items:center; }
-      .board-card { width: 92%; }
-      .controls-card { width: 92%; }
-    }
-  </style>
+#chess-section {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 25px;
+    backdrop-filter: blur(6px);
+}
+#board {
+    width: 320px;
+    margin: auto;
+}
+#newgame {
+    display: block;
+    margin: 18px auto 0;
+    background: rgba(96,165,250,0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(96,165,250,0.4);
+    padding: 6px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+#newgame:hover {
+    background: rgba(96,165,250,0.4);
+}
+footer {
+    text-align: center;
+    padding: 22px;
+    font-size: 14px;
+}
+footer span { color: #60a5fa; }
+</style>
 </head>
 <body>
-  <!-- ✅ 悬浮北京时间 -->
-  <div id="time-card">
-    <div class="date">0000-00-00</div>
-    <div class="time">--:--:--</div>
-  </div>
 
-  <header>
-    <h1>Frey 的个人博客</h1>
-    <p>记录 · 思考 · 成长 · 前进 —— 顺便玩局棋？</p>
-  </header>
+<div id="time-card">
+    <div class="date"></div>
+    <div class="time"></div>
+</div>
 
-  <div class="container">
-    <!-- 国际象棋游戏卡片 -->
-    <div class="post-card">
-      <h2>页面内置 — 国际象棋（人机对战）</h2>
-      <p style="margin-top:8px;">点击棋盘选起子——再点目标格下子。AI 使用简单评估与 minimax（深度可调）。</p>
+<header>
+<h1>Frey 的个人博客</h1>
+</header>
 
-      <div class="game-card" style="margin-top:14px;">
-        <div class="board-card post-card" style="padding:12px;">
-          <div id="board" class="board" aria-label="Chess board"></div>
-          <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
-            <div class="small">玩家：<span id="playerSide">白方</span></div>
-            <div class="small">状态：<span id="gameStatus">就绪</span></div>
-          </div>
-        </div>
+<div class="container">
+    <section id="chess-section">
+        <h2 style="text-align:center;color:#93c5fd;">♟ 国际象棋小游戏</h2>
+        <div id="board"></div>
+        <button id="newgame">新游戏</button>
+    </section>
+</div>
 
-        <div class="controls-card post-card" style="padding:12px;">
-          <h3>控制面板</h3>
-          <div class="label-row">
-            <button class="btn" id="newBtn">新游戏</button>
-            <button class="btn" id="undoBtn">悔棋</button>
-            <button class="btn" id="flipBtn">翻转棋盘</button>
-          </div>
+<footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
 
-          <div class="select">
-            <label class="small">难度</label>
-            <select id="depthSelect" class="btn" style="padding:6px 8px;">
-              <option value="1">易（深度1）</option>
-              <option value="2" selected>中（深度2）</option>
-              <option value="3">难（深度3）</option>
-            </select>
-          </div>
+<!-- 背景动画 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta/dist/vanta.net.min.js"></script>
+<script>
+VANTA.NET({
+    el: "body",
+    mouseControls: true,
+    touchControls: true,
+    backgroundColor: 0x0f172a,
+    color: 0x60a5fa
+})
+</script>
 
-          <div class="select" style="margin-top:12px;">
-            <label class="small">先手</label>
-            <select id="sideSelect" class="btn" style="padding:6px 8px;">
-              <option value="white" selected>白（玩家）</option>
-              <option value="black">黑（玩家）</option>
-            </select>
-          </div>
+<!-- ✅ chess.js & chessboard.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0-beta.1/chess.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard.min.js"></script>
 
-          <div style="margin-top:12px;">
-            <div class="small">提示：点击己方棋子查看可落子位置；AI 思考时会有轻微延迟。</div>
-          </div>
+<script>
+let game = new Chess();
+let board = null;
 
-          <div style="margin-top:12px;">
-            <div class="small">当前局面 FEN：<div id="fen" style="word-break:break-all; color:#94a3b8; font-size:12px; margin-top:6px;"></div></div>
-          </div>
-        </div>
-      </div>
-    </div>
+function makeRandomMove() {
+    if (game.game_over()) return;
+    const moves = game.moves();
+    const move = moves[Math.floor(Math.random() * moves.length)];
+    game.move(move);
+    board.position(game.fen());
+}
 
-    <!-- 其余文章卡片 -->
-    <div class="post-card">
-      <h2>第一篇文章标题示例</h2>
-      <p>这里是文章简介内容…</p>
-    </div>
-    <div class="post-card">
-      <h2>未来内容预留区域</h2>
-      <p>你可以添加更多文章和独立页面！</p>
-    </div>
-  </div>
+function onDrop(source, target) {
+    const move = game.move({from: source, to: target, promotion: 'q'});
+    if (!move) return 'snapback';
+    setTimeout(makeRandomMove, 200);
+}
 
-  <footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
+board = Chessboard('board', {
+    draggable: true,
+    position: 'start',
+    onDrop: onDrop,
+    pieceTheme: 'https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/img/chesspieces/wikipedia/{piece}.png'
+});
 
-  <!-- VANTA 动态背景 (HTTPS CDN) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.net.min.js"></script>
-  <script>
-    VANTA.NET({
-      el: "body",
-      mouseControls: true,
-      touchControls: true,
-      gyroControls: false,
-      minHeight: 200,
-      minWidth: 200,
-      scale: 1.0,
-      scaleMobile: 1.0,
-      color: 0x60a5fa,
-      backgroundColor: 0x0f172a
-    });
-  </script>
+document.getElementById("newgame").addEventListener("click", () => {
+    game.reset();
+    board.position('start');
+});
+</script>
 
-  <!-- chess.js (用于规则判断) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0/chess.min.js"></script>
+<!-- ✅ 北京时间：已修正语法 -->
+<script>
+function updateBeijingTime() {
+    const now = new Date();
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    const bj = new Date(utc + 8 * 3600000);
+    const pad = n => String(n).padStart(2, '0');
+    document.querySelector('#time-card .date').textContent =
+        `${bj.getFullYear()}-${pad(bj.getMonth()+1)}-${pad(bj.getDate())}`;
+    document.querySelector('#time-card .time').textContent =
+        `${pad(bj.getHours())}:${pad(bj.getMinutes())}:${pad(bj.getSeconds())}`;
+}
+updateBeijingTime();
+setInterval(updateBeijingTime, 1000);
+</script>
 
-  <!-- 北京时间 -->
-  <script>
-    function updateBeijingTime() {
-      const now = new Date();
-      const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-      const bj = new Date(utc + 8 * 3600000);
-      const y = bj.getFullYear();
-      const m = String(bj.getMonth()+1).padStart(2,'0');
-      const d = String(bj.getDate()).padStart(2,'0');
-      const hh = String(bj.getHours()).padStart(2,'0');
-      const mm = String(bj.getMinutes()).padStart(2,'0');
-      const ss = String(bj.getSeconds()).padStart(2,'0');
-      document.querySelector('#time-card .date').textContent = `${y}-${m}-${d}`;
-      document.querySelector('#time-card .time').textContent = `${hh}:${mm}:${ss}`;
-    }
-    updateBeijingTime();
-    setInterval(updateBeijingTime, 1000);
-  </script>
-
-  <!-- 国际象棋逻辑脚本 -->
-  <script>
-    // Unicode 棋子 (白/黑)
-    const PIECES = {
-      p: '♟', n: '♞', b: '♝', r: '♜', q: '♛', k: '♚',
-      P: '♙', N: '♘', B: '♗', R: '♖', Q: '♕', K: '♔'
-    };
-
-    // 反向映射用于 CSS（不强制）
-    const sqLabels = [];
-    for(let r=8;r>=1;r--){
-      for(let f=0;f<8;f++){
-        sqLabels.push(String.fromCharCode(97+f) + r);
-      }
-    }
-
-    // 游戏状态
-    const game = new Chess();
-    let selectedSquare = null;
-    let legalMoves = [];
-    let flip = false;
-    let playerPlays = 'white'; // 'white' or 'black'
-    let aiThinking = false;
-
-    // DOM refs
-    const boardEl = document.getElementById('board');
-    const gameStatusEl = document.getElementById('gameStatus');
-    const playerSideEl = document.getElementById('playerSide');
-    const fenEl = document.getElementById('fen');
-
-    // 初始化
-    function init(){
-      // setup controls
-      document.getElementById('newBtn').addEventListener('click', newGame);
-      document.getElementById('undoBtn').addEventListener('click', undoMove);
-      document.getElementById('flipBtn').addEventListener('click', ()=>{ flip = !flip; render(); });
-      document.getElementById('depthSelect').addEventListener('change', ()=>{});
-      document.getElementById('sideSelect').addEventListener('change', (e)=>{ playerPlays = e.target.value; playerSideEl.textContent = (playerPlays==='white'?'白方':'黑方'); newGame(); });
-
-      render();
-      updateStatus();
-
-      // 如果玩家选择黑方先走，则让 AI 先下
-      if(playerPlays === 'black'){
-        window.setTimeout(() => { aiMove(); }, 300);
-      }
-    }
-
-    // 渲染棋盘
-    function render(){
-      boardEl.innerHTML = '';
-      const board = game.board();
-      // build squares in view order
-      const squares = [];
-      if(!flip){
-        for(let r=7;r>=0;r--){
-          for(let f=0;f<8;f++){
-            squares.push({ r, f });
-          }
-        }
-      } else {
-        for(let r=0;r<8;r++){
-          for(let f=7;f>=0;f--){
-            squares.push({ r, f });
-          }
-        }
-      }
-
-      squares.forEach(({r,f}, idx) => {
-        const sq = document.createElement('div');
-        sq.className = 'square ' + (((r+f)%2===0)?'light':'dark');
-        const file = String.fromCharCode(97+f);
-        const rank = (r+1);
-        const coord = file + rank;
-        sq.dataset.square = coord;
-
-        // piece rendering
-        const piece = board[r][f];
-        if(piece){
-          const pEl = document.createElement('div');
-          pEl.textContent = PIECES[piece.type.toUpperCase() === piece.type ? piece.type.toUpperCase() : piece.type];
-          pEl.style.pointerEvents = 'none';
-          pEl.style.fontSize = '28px';
-          sq.appendChild(pEl);
-        }
-
-        // coordinate label on bottom-right for orientation
-        const coordEl = document.createElement('div');
-        coordEl.className = 'coord';
-        // show coordinates only on外周两侧小号
-        coordEl.textContent = ( ( !flip && (r===0 || f===0 || r===7 || f===7) ) || ( flip && (r===0 || f===0 || r===7 || f===7) )) ? coord : '';
-        sq.appendChild(coordEl);
-
-        // highlights
-        if(selectedSquare === coord) sq.classList.add('highlight');
-        if(lastMove && (lastMove.from === coord || lastMove.to === coord)) sq.classList.add('last-move');
-
-        sq.addEventListener('click', () => onSquareClick(coord));
-        boardEl.appendChild(sq);
-      });
-
-      // update FEN
-      fenEl.textContent = game.fen();
-    }
-
-    // square click handler
-    let lastMove = null;
-    function onSquareClick(sq){
-      if(aiThinking) return;
-      const turn = game.turn(); // 'w' or 'b'
-      const isPlayersTurn = ( (turn==='w' && playerPlays==='white') || (turn==='b' && playerPlays==='black') );
-      if(!isPlayersTurn) return; // not player's turn
-
-      const piece = game.get(sq);
-      if(selectedSquare){
-        // try move selected -> sq
-        const moves = game.moves({ square: selectedSquare, verbose: true });
-        const candidate = moves.find(m => m.to === sq);
-        if(candidate){
-          game.move({ from: selectedSquare, to: sq, promotion: 'q' }); // 自动升变后选后
-          selectedSquare = null;
-          legalMoves = [];
-          lastMove = { from: candidate.from, to: candidate.to };
-          render();
-          updateStatus();
-
-          // AI move if applicable
-          if(!game.game_over()){
-            // delay a bit so UI updates
-            setTimeout(()=>{ aiMove(); }, 220);
-          }
-          return;
-        }
-      }
-
-      // if clicked on a piece belonging to player, select and show moves
-      if(piece && ((piece.color==='w' && playerPlays==='white') || (piece.color==='b' && playerPlays==='black'))){
-        selectedSquare = sq;
-        legalMoves = game.moves({ square: sq, verbose: true }).map(m => m.to);
-        render();
-        // highlight legal moves visually
-        document.querySelectorAll('.square').forEach(el => {
-          if(legalMoves.includes(el.dataset.square)) el.classList.add('highlight');
-        });
-      } else {
-        // clicked empty or opponent piece: deselect
-        selectedSquare = null;
-        legalMoves = [];
-        render();
-      }
-    }
-
-    function updateStatus(){
-      if(game.in_checkmate()){
-        gameStatusEl.textContent = (game.turn()==='w' ? '黑方胜（将死）' : '白方胜（将死）');
-      } else if(game.in_draw()){
-        gameStatusEl.textContent = '和棋';
-      } else if(game.in_check()){
-        gameStatusEl.textContent = '被将军';
-      } else {
-        gameStatusEl.textContent = (game.turn()==='w' ? '白方行棋' : '黑方行棋');
-      }
-      fenEl.textContent = game.fen();
-    }
-
-    // 新游戏
-    function newGame(){
-      aiThinking = false;
-      game.reset();
-      selectedSquare = null;
-      legalMoves = [];
-      lastMove = null;
-      render();
-      updateStatus();
-      // 如果玩家执黑，AI 先走
-      if(playerPlays === 'black'){
-        setTimeout(()=>{ aiMove(); }, 200);
-      }
-    }
-
-    // 悔棋（撤回一回合玩家和AI各一步）
-    function undoMove(){
-      if(aiThinking) return;
-      game.undo(); // 撤回 AI 的一步或玩家的最后一步
-      // 如果接着需要再撤回（使玩家回到自己的回合），且上一方仍然不是玩家，则再撤回
-      const turn = game.turn();
-      if( (turn==='w' && playerPlays!=='white') || (turn==='b' && playerPlays!=='black') ){
-        game.undo();
-      }
-      selectedSquare = null;
-      legalMoves = [];
-      lastMove = null;
-      render();
-      updateStatus();
-    }
-
-    // AI 主要逻辑（minimax + 简单评分）
-    function aiMove(){
-      if(game.game_over()) return;
-      aiThinking = true;
-      gameStatusEl.textContent = 'AI 思考中...';
-      const depth = parseInt(document.getElementById('depthSelect').value, 10) || 2;
-      // 使用 setTimeout 让 UI 有机会 render "AI 思考中"
-      setTimeout(()=>{
-        const best = getBestMove(game, depth);
-        if(best && best.move){
-          game.move(best.move);
-          lastMove = { from: best.move.from, to: best.move.to };
-        }
-        aiThinking = false;
-        render();
-        updateStatus();
-      }, 80);
-    }
-
-    // 评估函数：简单基于子力价值 + 位置微调
-    const pieceValue = { p:100, n:320, b:330, r:500, q:900, k:20000 };
-    function evaluateBoard(chessInstance){
-      const board = chessInstance.board();
-      let score = 0;
-      for(let r=0;r<8;r++){
-        for(let f=0;f<8;f++){
-          const p = board[r][f];
-          if(p){
-            const val = pieceValue[p.type] || 0;
-            score += (p.color === 'w') ? val : -val;
-          }
-        }
-      }
-      return score;
-    }
-
-    // minimax with alpha-beta
-    function minimax(chessInstance, depth, alpha, beta, isMaximizingPlayer){
-      if(depth === 0 || chessInstance.game_over()){
-        return { score: evaluateBoard(chessInstance) };
-      }
-      const moves = chessInstance.moves({ verbose: true });
-      if(isMaximizingPlayer){
-        let maxEval = -Infinity;
-        let bestMove = null;
-        for(const m of moves){
-          chessInstance.move(m);
-          const evalRes = minimax(chessInstance, depth-1, alpha, beta, false);
-          chessInstance.undo();
-          if(evalRes.score > maxEval){
-            maxEval = evalRes.score;
-            bestMove = m;
-          }
-          alpha = Math.max(alpha, evalRes.score);
-          if(beta <= alpha) break;
-        }
-        return { score: maxEval, move: bestMove };
-      } else {
-        let minEval = Infinity;
-        let bestMove = null;
-        for(const m of moves){
-          chessInstance.move(m);
-          const evalRes = minimax(chessInstance, depth-1, alpha, beta, true);
-          chessInstance.undo();
-          if(evalRes.score < minEval){
-            minEval = evalRes.score;
-            bestMove = m;
-          }
-          beta = Math.min(beta, evalRes.score);
-          if(beta <= alpha) break;
-        }
-        return { score: minEval, move: bestMove };
-      }
-    }
-
-    // 返回最佳着法（根据当前局面AI执子方）
-    function getBestMove(chessInstanceOriginal, depth){
-      // 我们复制棋盘状态（chess.js 没有 clone 接口，但可以用 FEN 复制）
-      const copy = new Chess(chessInstanceOriginal.fen());
-      const turn = copy.turn(); // 'w' AI is white when turn==='w'
-      // For AI we maximize if AI is white (we treat white as positive)
-      const isAIMaximizing = (turn === 'w');
-      const result = minimax(copy, depth, -Infinity, Infinity, isAIMaximizing);
-      // minimax returns move in terms of the copy; move is object with from,to
-      return { move: result.move };
-    }
-
-    // 页面加载完毕后初始化
-    window.addEventListener('load', ()=>{
-      init();
-      // render first time
-      render();
-    });
-
-    // 处理键盘快捷：空格 新局，z 撤回
-    window.addEventListener('keydown', (e)=>{
-      if(e.code === 'Space') { e.preventDefault(); newGame(); }
-      if(e.key === 'z' || e.key === 'Z') { e.preventDefault(); undoMove(); }
-    });
-
-  </script>
 </body>
 </html>
