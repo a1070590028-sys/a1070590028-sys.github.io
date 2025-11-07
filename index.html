@@ -1,241 +1,506 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Frey 的个人博客</title>
 <link rel="icon" href="https://a1070590028-sys.github.io/a1070590028-sys.github.io/favicon.ico" type="image/x-icon">
 <style>
-* { box-sizing: border-box; }
-html, body {
-    height: 100%; margin: 0;
-    font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-    background: #0f172a; color: #e2e8f0;
-    overflow-x: hidden;
-}
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:"Segoe UI",Helvetica,Arial,sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
+  #time-card{position:fixed;top:12px;right:14px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:14px;color:#60a5fa;z-index:9999;text-align:right}
+  #time-card .date{font-size:13px;color:#93c5fd}
+  header{position:relative;z-index:1;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);padding:40px 20px;text-align:center}
+  header h1{margin:0 0 8px;font-size:34px;font-weight:700;color:#60a5fa;text-shadow:0 0 8px rgba(96,165,250,0.35)}
+  header p{margin:0;color:#cbd5e1;opacity:.85}
 
-#time-card {
-    position: fixed; top: 12px; right: 14px;
-    padding: 6px 12px; border-radius: 8px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.12);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    text-align: right; font-size: 14px;
-    color: #60a5fa; z-index: 9999;
-}
+  .container{position:relative;z-index:1;max-width:980px;margin:28px auto;padding:0 16px}
+  .post-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:14px;padding:20px;margin:18px 0}
+  .post-card h2{margin:0 0 10px;color:#93c5fd}
+  .post-card p{margin:0;color:#94a3b8}
 
-header {
-    text-align: center; padding: 60px 20px;
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(6px);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-header h1 {
-    font-size: 38px;
-    color: #60a5fa; text-shadow: 0 0 8px rgba(96,165,250,0.5);
-}
-header p {
-    font-size: 18px; color: #cbd5e1; opacity: .85;
-}
+  footer{position:relative;z-index:1;text-align:center;padding:22px;font-size:14px;color:#64748b}
+  footer span{color:#60a5fa}
 
-.container {
-    max-width: 900px;
-    margin: 35px auto;
-    padding: 0 16px;
-}
+  /* 棋盘卡片 */
+  .chess-card{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;justify-content:center}
+  .board-card{width:520px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px}
+  .controls-card{min-width:240px;max-width:320px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px}
 
-.post-card {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(6px);
-    border-radius: 14px;
-    padding: 24px;
-    margin: 22px 0;
-    transition: .28s ease;
-}
-.post-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(0,0,0,.35);
-    border-color: #3b82f6;
-}
-.post-card h2 { color: #93c5fd; font-size: 22px; margin: 0 0 12px; }
-.post-card p { color: #94a3b8; margin: 0; }
+  /* Canvas */
+  #chessCanvas{display:block;margin:10px auto;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.45);background:linear-gradient(180deg,#071026,#081228)}
+  .btn{display:inline-block;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#cfe8ff;cursor:pointer;margin:6px 6px 0 0}
+  .btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,0.35);border-color:#60a5fa}
+  .select, .label-row{display:flex;gap:8px;align-items:center;margin-top:8px}
+  .small{font-size:13px;color:#94a3b8}
 
-footer {
-    text-align: center;
-    padding: 22px; font-size: 14px; color: #64748b;
-}
-footer span { color: #60a5fa; }
-
-/* ✅ 国际象棋 UI */
-#chess-container {
-    text-align: center; margin-top: 40px;
-    background: rgba(255,255,255,0.05);
-    padding: 20px; border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.08);
-}
-#chessCanvas {
-    background: #0f172a;
-    border: 2px solid #3b82f6;
-    border-radius: 6px;
-    box-shadow: 0 0 12px rgba(96,165,250,0.35);
-    cursor: pointer;
-}
-button {
-    background: #1e293b; color: #60a5fa;
-    border: 1px solid #3b82f6;
-    padding: 8px 14px;
-    border-radius: 8px;
-    cursor: pointer;
-}
-button:hover {
-    background: #3b82f6;
-    color: #fff;
-}
+  /* responsive */
+  @media(max-width:860px){.chess-card{flex-direction:column}.board-card{width:92%}.controls-card{width:92%}}
 </style>
 </head>
 <body>
 
-<div id="time-card">
-    <div class="date">0000-00-00</div>
-    <div class="time">--:--:--</div>
-</div>
+<div id="time-card"><div class="date">0000-00-00</div><div class="time">--:--:--</div></div>
 
-<header>
-    <h1>Frey 的个人博客</h1>
-    <p>记录 · 思考 · 成长 · 前进</p>
-</header>
+<header><h1>Frey 的个人博客</h1><p>记录 · 思考 · 成长 · 前进 —— 顺便下盘棋？</p></header>
 
 <div class="container">
+  <div class="post-card">
+    <h2>页面内置 — 国际象棋（极简线条风）</h2>
+    <p style="margin-top:8px">点击棋子显示合法落点高亮 → 点击落子。AI 使用 Minimax+αβ（默认深度2），可在控制面板调整。</p>
 
-    <!-- ✅ 国际象棋模块 -->
-    <div id="chess-container" class="post-card">
-        <h2>在线国际象棋 · 人机对战</h2>
-        <canvas id="chessCanvas" width="480" height="480"></canvas><br><br>
-        <button onclick="newGame()">新游戏</button>
+    <div style="margin-top:12px" class="chess-card">
+      <div class="board-card post-card" style="padding:12px;">
+        <canvas id="chessCanvas" width="480" height="480"></canvas>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <div class="small">玩家：<span id="playerInfo">白方</span></div>
+          <div class="small">状态：<span id="statusInfo">就绪</span></div>
+        </div>
+      </div>
+
+      <div class="controls-card post-card" style="padding:12px">
+        <h3 style="margin:0 0 8px;color:#93c5fd">控制面板</h3>
+
+        <div class="label-row">
+          <button class="btn" id="newBtn">新游戏</button>
+          <button class="btn" id="undoBtn">悔棋</button>
+          <button class="btn" id="flipBtn">翻转棋盘</button>
+        </div>
+
+        <div class="select">
+          <label class="small">AI 难度</label>
+          <select id="depthSelect" class="btn" style="padding:6px 8px">
+            <option value="0">0 - 随机</option>
+            <option value="1">1 - Minimax 1 层</option>
+            <option value="2" selected>2 - Minimax 2 层</option>
+            <option value="3">3 - Minimax 3 层（较慢）</option>
+          </select>
+        </div>
+
+        <div style="margin-top:10px" class="small">提示：点击己方棋子显示合法落点；AI 思考时會显示“AI 思考中...”</div>
+
+        <div style="margin-top:12px">
+          <div class="small">当前局面 FEN：<div id="fen" style="word-break:break-all;color:#94a3b8;font-size:12px;margin-top:6px"></div></div>
+        </div>
+
+      </div>
     </div>
+  </div>
 
-    <div class="post-card">
-        <h2>第一篇文章标题示例</h2>
-        <p>这里是文章简介内容…</p>
-    </div>
-
-    <div class="post-card">
-        <h2>未来内容预留区域</h2>
-        <p>你可以添加更多文章和独立页面！</p>
-    </div>
-
+  <div class="post-card"><h2>第一篇文章标题示例</h2><p>这里是文章简介内容…</p></div>
+  <div class="post-card"><h2>未来内容预留区域</h2><p>你可以添加更多文章和独立页面！</p></div>
 </div>
 
 <footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
 
-<!-- ✅ VANTA 背景 -->
+<!-- VANTA 背景 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vanta/dist/vanta.net.min.js"></script>
 <script>
-VANTA.NET({
-    el: "body",
-    mouseControls: true,
-    backgroundColor: 0x0f172a,
-    color: 0x60a5fa
-});
+VANTA.NET({ el: "body", mouseControls: true, touchControls: true, gyroControls: false, minHeight:200, minWidth:200, scale:1.0, scaleMobile:1.0, color:0x60a5fa, backgroundColor:0x0f172a });
 </script>
 
-<!-- ✅ 北京时间修复 -->
+<!-- chess.js (规则引擎) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.12.0/chess.min.js"></script>
+
+<!-- 北京时间 -->
 <script>
-function updateBeijingTime() {
-    const now = new Date();
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-    const bj = new Date(utc + 8 * 3600000);
-    const y = bj.getFullYear();
-    const m = String(bj.getMonth()+1).padStart(2,'0');
-    const d = String(bj.getDate()).padStart(2,'0');
-    const hh = String(bj.getHours()).padStart(2,'0');
-    const mm = String(bj.getMinutes()).padStart(2,'0');
-    const ss = String(bj.getSeconds()).padStart(2,'0');
-    document.querySelector('#time-card .date').textContent = `${y}-${m}-${d}`;
-    document.querySelector('#time-card .time').textContent = `${hh}:${mm}:${ss}`;
+function updateBeijingTime(){
+  const now = new Date();
+  const utc = now.getTime() + now.getTimezoneOffset()*60000;
+  const bj = new Date(utc + 8*3600000);
+  const pad = n => String(n).padStart(2,'0');
+  document.querySelector('#time-card .date').textContent = `${bj.getFullYear()}-${pad(bj.getMonth()+1)}-${pad(bj.getDate())}`;
+  document.querySelector('#time-card .time').textContent = `${pad(bj.getHours())}:${pad(bj.getMinutes())}:${pad(bj.getSeconds())}`;
 }
-updateBeijingTime();
-setInterval(updateBeijingTime, 1000);
+updateBeijingTime(); setInterval(updateBeijingTime,1000);
 </script>
 
-<!-- ✅ 国际象棋（Canvas + 电脑随机） -->
+<!-- 主逻辑（Canvas 渲染 + 合法走子 + AI） -->
 <script>
-const canvas = document.getElementById("chessCanvas");
-const ctx = canvas.getContext("2d");
-const size = 60;
+/* --------- 配置 & 基本变量 ---------- */
+const canvas = document.getElementById('chessCanvas');
+const ctx = canvas.getContext('2d');
+const BOARD_SIZE = 8;
+let BOARD_PX = canvas.width; // 假定正方形
+let SQUARE = BOARD_PX / BOARD_SIZE;
+let flip = false; // 翻转棋盘
+let game = new Chess(); // chess.js 引擎
+let selected = null; // e.g. 'e2'
+let legalTargets = []; // ['e4','e3'...]
+let lastMove = null;
+let aiThinking = false;
 
-let board = [];
-let selected = null;
-const piecesInit = [
-    ["r","n","b","q","k","b","n","r"],
-    ["p","p","p","p","p","p","p","p"],
-    [" "," "," "," "," "," "," "," "],
-    [" "," "," "," "," "," "," "," "],
-    [" "," "," "," "," "," "," "," "],
-    [" "," "," "," "," "," "," "," "],
-    ["P","P","P","P","P","P","P","P"],
-    ["R","N","B","Q","K","B","N","R"]
-];
+/* 画风色彩（极简线条风） */
+const colors = {
+  light: '#0b2540', // 浅格
+  dark:  '#071627', // 深格
+  highlight: 'rgba(96,165,250,0.28)', // 选中/最后一步
+  moveDot: 'rgba(96,165,250,0.85)', // 可走位点
+  pieceWhite: '#ffffff',
+  pieceBlack: '#60a5fa'
+};
 
-function drawBoard() {
-    for(let y=0;y<8;y++){
-        for(let x=0;x<8;x++){
-            ctx.fillStyle = (x+y)%2 ? "#1e293b" : "#0b1323";
-            ctx.fillRect(x*size, y*size, size, size);
-            let p = board[y][x];
-            if(p !== " ") {
-                ctx.fillStyle = p === p.toUpperCase()? "#fff": "#60a5fa";
-                ctx.font = "34px serif";
-                ctx.fillText(p, x*size+20, y*size+42);
-            }
-        }
+/* 评分（用于AI） */
+const PIECE_VALUE = { p:100, n:320, b:330, r:500, q:900, k:20000 };
+
+/* DOM refs */
+const statusEl = document.getElementById('statusInfo');
+const fenEl = document.getElementById('fen');
+document.getElementById('newBtn').addEventListener('click', newGame);
+document.getElementById('undoBtn').addEventListener('click', undoMove);
+document.getElementById('flipBtn').addEventListener('click', ()=>{ flip = !flip; render(); });
+document.getElementById('depthSelect').addEventListener('change', ()=>{ /* just reactive */ });
+
+/* 监听画布点击 */
+canvas.addEventListener('click', onCanvasClick);
+
+/* 自动适配尺寸（如果需要） */
+function resizeBoard(px){
+  BOARD_PX = px || 480;
+  canvas.width = BOARD_PX; canvas.height = BOARD_PX;
+  SQUARE = BOARD_PX / BOARD_SIZE;
+  render();
+}
+
+/* ---------- 渲染函数（极简棋子） ---------- */
+function render(){
+  // 背景格
+  ctx.clearRect(0,0,BOARD_PX,BOARD_PX);
+  // 遍历格子（以白方底朝下视角，flip 则翻转）
+  for(let r=0;r<8;r++){
+    for(let f=0;f<8;f++){
+      const vis = flip ? boardCoordToVis(7-r,7-f) : boardCoordToVis(r,f);
+      const x = vis.x*SQUARE, y = vis.y*SQUARE;
+      const isLight = (r+f)%2===0;
+      ctx.fillStyle = isLight ? colors.light : colors.dark;
+      ctx.fillRect(x,y,SQUARE,SQUARE);
+
+      // 高亮上次移动
+      if(lastMove && (lastMove.from === indexToSquare(r,f) || lastMove.to === indexToSquare(r,f))){
+        ctx.fillStyle = colors.highlight;
+        ctx.fillRect(x,y,SQUARE,SQUARE);
+      }
     }
+  }
+
+  // 绘制棋子
+  const boardArray = game.board(); // 8x8 array [rank 8->1]
+  for(let rank=0; rank<8; rank++){
+    for(let file=0; file<8; file++){
+      const p = boardArray[rank][file];
+      if(p){
+        // convert rank,file to canvas coords depending on flip
+        const vis = flip ? boardCoordToVis(7-rank,7-file) : boardCoordToVis(rank,file);
+        drawPiece(p, vis.x*SQUARE, vis.y*SQUARE, SQUARE);
+      }
+    }
+  }
+
+  // 如果选中，绘制可走点
+  if(selected){
+    for(const sq of legalTargets){
+      const idx = squareToIndex(sq); // {r,f}
+      const vis = flip ? boardCoordToVis(7-idx.r,7-idx.f) : boardCoordToVis(idx.r,idx.f);
+      const cx = vis.x*SQUARE + SQUARE/2;
+      const cy = vis.y*SQUARE + SQUARE/2;
+      // draw circle
+      ctx.beginPath();
+      ctx.fillStyle = colors.moveDot;
+      ctx.arc(cx, cy, Math.max(6, SQUARE*0.11), 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  // 更新状态与 FEN
+  updateStatus();
 }
 
-function newGame(){
-    board = JSON.parse(JSON.stringify(piecesInit));
-    selected = null;
-    drawBoard();
+/* 绘制极简风棋子（用几何与线条） */
+function drawPiece(pieceObj, x, y, s){
+  // pieceObj: {type:'p','k'..., color:'w'/'b'}
+  const type = pieceObj.type;
+  const color = pieceObj.color === 'w' ? colors.pieceWhite : colors.pieceBlack;
+  ctx.save();
+  ctx.translate(x, y);
+
+  // center for drawing
+  const cx = s/2, cy = s/2;
+
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = Math.max(1, s*0.05);
+  ctx.lineJoin = 'round';
+
+  // Draw simplified glyphs:
+  switch(type){
+    case 'p': // pawn: small circle on base
+      ctx.beginPath();
+      ctx.arc(cx, cy-6, s*0.11, 0, Math.PI*2);
+      ctx.fill();
+      ctx.fillRect(cx - s*0.12, cy - 0, s*0.24, s*0.18);
+      break;
+    case 'r': // rook: rectangular base + battlements
+      ctx.beginPath();
+      ctx.rect(cx - s*0.18, cy - s*0.12, s*0.36, s*0.28);
+      ctx.fill();
+      // battlements
+      ctx.fillStyle = getContrast(color);
+      ctx.fillRect(cx - s*0.18, cy - s*0.2, s*0.09, s*0.06);
+      ctx.fillRect(cx - s*0.04, cy - s*0.2, s*0.09, s*0.06);
+      ctx.fillRect(cx + s*0.1, cy - s*0.2, s*0.09, s*0.06);
+      break;
+    case 'n': // knight: triangle-ish
+      ctx.beginPath();
+      ctx.moveTo(cx - s*0.14, cy + s*0.14);
+      ctx.lineTo(cx + s*0.14, cy - s*0.06);
+      ctx.lineTo(cx - s*0.06, cy - s*0.18);
+      ctx.closePath();
+      ctx.fill();
+      break;
+    case 'b': // bishop: tall with slashed center
+      ctx.beginPath();
+      ctx.ellipse(cx, cy-2, s*0.12, s*0.2, 0, 0, Math.PI*2);
+      ctx.fill();
+      // slash
+      ctx.beginPath();
+      ctx.strokeStyle = getContrast(color);
+      ctx.lineWidth = Math.max(1, s*0.045);
+      ctx.moveTo(cx - s*0.05, cy - s*0.12);
+      ctx.lineTo(cx + s*0.05, cy + s*0.08);
+      ctx.stroke();
+      break;
+    case 'q': // queen: crown dots
+      ctx.beginPath();
+      ctx.moveTo(cx - s*0.16, cy + s*0.08);
+      ctx.lineTo(cx - s*0.08, cy - s*0.18);
+      ctx.lineTo(cx, cy + s*0.08);
+      ctx.lineTo(cx + s*0.08, cy - s*0.18);
+      ctx.lineTo(cx + s*0.16, cy + s*0.08);
+      ctx.closePath();
+      ctx.fill();
+      // crown dots
+      ctx.fillStyle = getContrast(color);
+      ctx.beginPath();
+      ctx.arc(cx - s*0.08, cy - s*0.18, s*0.03, 0, Math.PI*2);
+      ctx.arc(cx + s*0.08, cy - s*0.18, s*0.03, 0, Math.PI*2);
+      ctx.fill();
+      break;
+    case 'k': // king: box + small cross
+      ctx.beginPath();
+      ctx.rect(cx - s*0.14, cy - s*0.12, s*0.28, s*0.28);
+      ctx.fill();
+      ctx.fillStyle = getContrast(color);
+      ctx.fillRect(cx - s*0.02, cy - s*0.18, s*0.04, s*0.12);
+      ctx.fillRect(cx - s*0.08, cy - s*0.12, s*0.16, s*0.04);
+      break;
+  }
+  ctx.restore();
 }
 
-// ✅玩家点击落子
-canvas.addEventListener("click", (e)=>{
-    const x = Math.floor(e.offsetX/size);
-    const y = Math.floor(e.offsetY/size);
-    if(!selected) {
-        if(board[y][x] !== " ") selected = {x,y};
+/* contrast color for simple accents */
+function getContrast(col){
+  // if color is light (#fff) return dark; else return light
+  return (col === '#ffffff') ? '#0b2540' : '#ffffff';
+}
+
+/* ---------- 坐标转换帮助函数 ---------- */
+// chess.js board() returns array [rank8 ... rank1] so indexToSquare(0,0) => 'a8'
+function indexToSquare(rankIdx, fileIdx){
+  const file = String.fromCharCode(97 + fileIdx);
+  const rank = 8 - rankIdx;
+  return file + rank;
+}
+function squareToIndex(sq){
+  const file = sq.charCodeAt(0) - 97;
+  const rank = 8 - parseInt(sq[1],10);
+  return {r: rank, f: file};
+}
+// convert engine board coords to visible grid coords (x,y in 0..7)
+function boardCoordToVis(rankIdx, fileIdx){
+  return { x: fileIdx, y: rankIdx };
+}
+
+/* ---------- 交互：点击、选子、走子 ---------- */
+function onCanvasClick(evt){
+  if(aiThinking) return;
+  const rect = canvas.getBoundingClientRect();
+  const cx = evt.clientX - rect.left;
+  const cy = evt.clientY - rect.top;
+  const file = Math.floor(cx / SQUARE);
+  const rankVis = Math.floor(cy / SQUARE);
+  // convert vis coords to engine rank/file considering flip
+  const r = flip ? 7 - rankVis : rankVis;
+  const f = flip ? 7 - file : file;
+  const sq = indexToSquare(r, f);
+
+  const turn = game.turn(); // 'w' or 'b'
+  const isPlayersTurn = (turn === 'w'); // currently player is white only (future: support choice)
+  if(!selected){
+    const piece = game.get(sq);
+    if(piece && ((piece.color === 'w' && isPlayersTurn) || (piece.color === 'b' && !isPlayersTurn))){
+      // select and compute legal moves using chess.js (it gives legal moves for selected square)
+      selected = sq;
+      const moves = game.moves({ square: sq, verbose: true });
+      legalTargets = moves.map(m => m.to);
+      render();
+    }
+  } else {
+    // if clicked same square -> cancel
+    if(sq === selected){
+      selected = null; legalTargets = []; render(); return;
+    }
+    // if clicked a legal target -> make move (handle promotions: default to queen)
+    if(legalTargets.includes(sq)){
+      const move = game.move({ from: selected, to: sq, promotion: 'q' });
+      lastMove = move ? { from: move.from, to: move.to } : null;
+      selected = null; legalTargets = [];
+      render();
+      // if game not over, AI move (player always white here)
+      if(!game.game_over()){
+        // delay so UI updates
+        setTimeout(()=>{ aiTurn(); }, 220);
+      }
     } else {
-        board[y][x] = board[selected.y][selected.x];
-        board[selected.y][selected.x] = " ";
-        selected = null;
-        drawBoard();
-        setTimeout(aiMove, 300);
+      // clicked elsewhere: if clicked on another own piece, change selection
+      const piece = game.get(sq);
+      if(piece && piece.color === 'w'){ selected = sq; legalTargets = game.moves({ square: sq, verbose: true }).map(m=>m.to); render(); }
+      else { selected = null; legalTargets = []; render(); }
     }
-});
-
-// ✅电脑随机走子
-function aiMove(){
-    let moves=[];
-    for(let y=0;y<8;y++) for(let x=0;x<8;x++){
-        let p=board[y][x];
-        if(p === p.toLowerCase()){
-            let ny=y+1;
-            if(ny<8 && board[ny][x]==" ") moves.push({fx:x,fy:y,tx:x,ty:ny});
-        }
-    }
-    if(moves.length>0){
-        let m = moves[Math.floor(Math.random()*moves.length)];
-        board[m.ty][m.tx]=board[m.fy][m.fx];
-        board[m.fy][m.fx]=" ";
-    }
-    drawBoard();
+  }
 }
 
-newGame();
-</script>
+/* ---------- AI（Minimax + alpha-beta） ---------- */
+function aiTurn(){
+  const depth = parseInt(document.getElementById('depthSelect').value,10) || 2;
+  if(depth === 0){
+    // random move
+    const moves = game.moves();
+    const mv = moves[Math.floor(Math.random()*moves.length)];
+    game.move(mv);
+    lastMove = parseMoveToObj(mv);
+    render(); return;
+  }
 
+  aiThinking = true;
+  statusEl.textContent = 'AI 思考中...';
+  setTimeout(()=>{
+    const best = findBestMove(depth);
+    if(best && best.move){
+      game.move(best.move);
+      lastMove = { from: best.move.from, to: best.move.to };
+    }
+    aiThinking = false;
+    render();
+  }, 60);
+}
+
+/* helper: parse move string -> {from,to} (for random path) */
+function parseMoveToObj(moveStr){
+  // chess.js returns SAN or UCI? moves() returns SAN normally; but we'll prefer verbose moves when needed
+  // this helper is fallback (not used by minimax)
+  // Not robust; prefer verbose moves used elsewhere.
+  return null;
+}
+
+/* evaluation */
+function evaluateBoard(ch){
+  const boardArr = ch.board();
+  let score = 0;
+  for(let r=0;r<8;r++){
+    for(let f=0;f<8;f++){
+      const p = boardArr[r][f];
+      if(p){
+        const val = PIECE_VALUE[p.type] || 0;
+        score += (p.color === 'w') ? val : -val;
+      }
+    }
+  }
+  return score;
+}
+
+/* minimax - returns {score, move} where move is verbose move object */
+function minimax(ch, depth, alpha, beta, isMaximizing){
+  if(depth === 0 || ch.game_over()){
+    return { score: evaluateBoard(ch) };
+  }
+  const moves = ch.moves({ verbose: true });
+  if(isMaximizing){
+    let maxEval = -Infinity; let bestMove = null;
+    for(const m of moves){
+      ch.move(m);
+      const res = minimax(ch, depth-1, alpha, beta, false);
+      ch.undo();
+      if(res.score > maxEval){ maxEval = res.score; bestMove = m; }
+      alpha = Math.max(alpha, res.score);
+      if(beta <= alpha) break;
+    }
+    return { score: maxEval, move: bestMove };
+  } else {
+    let minEval = Infinity; let bestMove = null;
+    for(const m of moves){
+      ch.move(m);
+      const res = minimax(ch, depth-1, alpha, beta, true);
+      ch.undo();
+      if(res.score < minEval){ minEval = res.score; bestMove = m; }
+      beta = Math.min(beta, res.score);
+      if(beta <= alpha) break;
+    }
+    return { score: minEval, move: bestMove };
+  }
+}
+
+function findBestMove(depth){
+  // AI plays black (since player is white)
+  const ch = new Chess(game.fen());
+  const maximizing = (ch.turn() === 'w'); // if AI is white (not in this UI) - but here AI is black -> minimizing
+  // We'll treat AI as maximizing if it's white, else minimizing.
+  return minimax(ch, depth, -Infinity, Infinity, maximizing);
+}
+
+/* ---------- 控制：新游戏 / 悔棋 / 状态 ---------- */
+function newGame(){
+  game.reset();
+  selected = null; legalTargets = []; lastMove = null;
+  aiThinking = false;
+  render();
+}
+
+function undoMove(){
+  if(aiThinking) return;
+  // undo last two plies to restore player's turn (if possible)
+  game.undo();
+  game.undo();
+  selected = null; legalTargets = []; lastMove = null;
+  render();
+}
+
+function updateStatus(){
+  if(game.in_checkmate()){
+    statusEl.textContent = (game.turn()==='w' ? '黑方胜（将死）' : '白方胜（将死）');
+  } else if(game.in_draw() || game.in_stalemate()){
+    statusEl.textContent = '和棋';
+  } else if(game.in_check()){
+    statusEl.textContent = '被将军';
+  } else{
+    statusEl.textContent = (game.turn()==='w' ? '白方行棋' : '黑方行棋');
+  }
+  fenEl.textContent = game.fen();
+}
+
+/* ---------- 初始化 ---------- */
+function init(){
+  resizeBoard(480);
+  newGame();
+  // if player chooses black in future, call aiTurn() first
+}
+window.addEventListener('load', init);
+
+/* optional: keyboard shortcuts */
+window.addEventListener('keydown',(e)=>{
+  if(e.key === 'z' || e.key === 'Z') undoMove();
+  if(e.code === 'Space') newGame();
+});
+</script>
 </body>
 </html>
