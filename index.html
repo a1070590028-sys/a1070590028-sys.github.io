@@ -1,179 +1,150 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Frey 的个人博客</title>
-<link rel="icon" href="https://a1070590028-sys.github.io/a1070590028-sys.github.io/favicon.ico" type="image/x-icon">
-
-<!-- ✅ chessboard.js 样式 -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard.min.css">
-
-<style>
-* { box-sizing: border-box; }
-html, body {
-    height: 100%;
-    margin: 0;
-    font-family: "Segoe UI", Helvetica, Arial, sans-serif;
-    background: #0f172a;
-    color: #e2e8f0;
-    overflow-x: hidden;
-}
-#time-card {
-    position: fixed;
-    top: 12px;
-    right: 14px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.12);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    text-align: right;
-    font-size: 14px;
-    color: #60a5fa;
-    text-shadow: 0 0 6px rgba(96,165,250,0.5);
-    z-index: 9999;
-}
-#time-card .date { font-size: 13px; color: #93c5fd; }
-
-header {
-    backdrop-filter: blur(5px);
-    background: rgba(255,255,255,0.08);
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-    padding: 60px 20px;
-    text-align: center;
-}
-header h1 {
-    margin: 0 0 12px;
-    font-size: 38px;
-    font-weight: 700;
-    color: #60a5fa;
-    text-shadow: 0 0 8px rgba(96,165,250,0.5);
-}
-.container {
-    max-width: 900px;
-    margin: 35px auto;
-    padding: 0 16px;
-}
-
-#chess-section {
-    background: rgba(255,255,255,0.08);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 14px;
-    padding: 20px;
-    margin-top: 25px;
-    backdrop-filter: blur(6px);
-}
-#board {
-    width: 320px;
-    margin: auto;
-}
-#newgame {
-    display: block;
-    margin: 18px auto 0;
-    background: rgba(96,165,250,0.2);
-    color: #60a5fa;
-    border: 1px solid rgba(96,165,250,0.4);
-    padding: 6px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-#newgame:hover {
-    background: rgba(96,165,250,0.4);
-}
-footer {
-    text-align: center;
-    padding: 22px;
-    font-size: 14px;
-}
-footer span { color: #60a5fa; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>井字棋游戏</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background: #f4f4f4;
+        }
+        h1 {
+            margin-bottom: 10px;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+        }
+        .cell {
+            width: 100px;
+            height: 100px;
+            background: #fff;
+            border: 2px solid #000;
+            font-size: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        #controls {
+            margin-top: 15px;
+        }
+        #status {
+            margin-top: 12px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
 
-<div id="time-card">
-    <div class="date"></div>
-    <div class="time"></div>
-</div>
+    <h1>井字棋</h1>
+    <div id="board"></div>
 
-<header>
-<h1>Frey 的个人博客</h1>
-</header>
+    <div id="controls">
+        <button onclick="startNewGame()">新游戏</button>
+    </div>
 
-<div class="container">
-    <section id="chess-section">
-        <h2 style="text-align:center;color:#93c5fd;">♟ 国际象棋小游戏</h2>
-        <div id="board"></div>
-        <button id="newgame">新游戏</button>
-    </section>
-</div>
+    <div id="status">当前玩家：X</div>
 
-<footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
+    <script>
+        let board = [];
+        let currentPlayer = 'X';
+        let gameOver = false;
 
-<!-- 背景动画 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/vanta/dist/vanta.net.min.js"></script>
-<script>
-VANTA.NET({
-    el: "body",
-    mouseControls: true,
-    touchControls: true,
-    backgroundColor: 0x0f172a,
-    color: 0x60a5fa
-})
-</script>
+        function initBoard() {
+            board = [
+                ['', '', ''],
+                ['', '', ''],
+                ['', '', '']
+            ];
+            currentPlayer = 'X';
+            gameOver = false;
+            updateStatus();
+            renderBoard();
+        }
 
-<!-- ✅ chess.js & chessboard.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/1.0.0-beta.1/chess.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard.min.js"></script>
+        function renderBoard() {
+            const boardElement = document.getElementById("board");
+            boardElement.innerHTML = ""; // ✅清空后再渲染，否则会叠加
 
-<script>
-let game = new Chess();
-let board = null;
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    const cell = document.createElement("div");
+                    cell.classList.add("cell");
+                    cell.textContent = board[i][j];
+                    cell.onclick = () => handleCellClick(i, j);
+                    boardElement.appendChild(cell);
+                }
+            }
+        }
 
-function makeRandomMove() {
-    if (game.game_over()) return;
-    const moves = game.moves();
-    const move = moves[Math.floor(Math.random() * moves.length)];
-    game.move(move);
-    board.position(game.fen());
-}
+        function handleCellClick(i, j) {
+            if (board[i][j] !== "" || gameOver) return;
 
-function onDrop(source, target) {
-    const move = game.move({from: source, to: target, promotion: 'q'});
-    if (!move) return 'snapback';
-    setTimeout(makeRandomMove, 200);
-}
+            board[i][j] = currentPlayer;
+            renderBoard();
+            checkWinner();
 
-board = Chessboard('board', {
-    draggable: true,
-    position: 'start',
-    onDrop: onDrop,
-    pieceTheme: 'https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/img/chesspieces/wikipedia/{piece}.png'
-});
+            if (!gameOver) {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+                updateStatus();
+            }
+        }
 
-document.getElementById("newgame").addEventListener("click", () => {
-    game.reset();
-    board.position('start');
-});
-</script>
+        function updateStatus() {
+            document.getElementById("status").textContent = `当前玩家：${currentPlayer}`;
+        }
 
-<!-- ✅ 北京时间：已修正语法 -->
-<script>
-function updateBeijingTime() {
-    const now = new Date();
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-    const bj = new Date(utc + 8 * 3600000);
-    const pad = n => String(n).padStart(2, '0');
-    document.querySelector('#time-card .date').textContent =
-        `${bj.getFullYear()}-${pad(bj.getMonth()+1)}-${pad(bj.getDate())}`;
-    document.querySelector('#time-card .time').textContent =
-        `${pad(bj.getHours())}:${pad(bj.getMinutes())}:${pad(bj.getSeconds())}`;
-}
-updateBeijingTime();
-setInterval(updateBeijingTime, 1000);
-</script>
+        function checkWinner() {
+            const winPatterns = [
+                // 行
+                [[0,0],[0,1],[0,2]],
+                [[1,0],[1,1],[1,2]],
+                [[2,0],[2,1],[2,2]],
+                // 列
+                [[0,0],[1,0],[2,0]],
+                [[0,1],[1,1],[2,1]],
+                [[0,2],[1,2],[2,2]],
+                // 对角线
+                [[0,0],[1,1],[2,2]],
+                [[0,2],[1,1],[2,0]]
+            ];
+
+            for (const pattern of winPatterns) {
+                const [a,b,c] = pattern;
+                if (board[a[0]][a[1]] &&
+                    board[a[0]][a[1]] === board[b[0]][b[1]] &&
+                    board[a[0]][a[1]] === board[c[0]][c[1]]) {
+                    document.getElementById("status").textContent = `玩家 ${currentPlayer} 获胜！`;
+                    gameOver = true;
+                    return;
+                }
+            }
+
+            // 平局判断
+            if (board.flat().every(cell => cell !== "")) {
+                document.getElementById("status").textContent = "平局！";
+                gameOver = true;
+            }
+        }
+
+        function startNewGame() {
+            initBoard(); // ✅重新初始化 & 重新渲染
+        }
+
+        // ✅ 页面加载完成后立即生成棋盘
+        window.onload = initBoard;
+    </script>
 
 </body>
 </html>
