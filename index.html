@@ -3,200 +3,365 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>图片压缩 & 格式转换工具</title>
+<title>Frey 的个人网站</title>
 <link rel="icon" href="favicon.ico" type="image/x-icon">
-<style>
-    *{box-sizing:border-box;margin:0;padding:0;font-family:"Microsoft YaHei",sans-serif;}
-    body{background:#f0f2f5;padding:20px;color:#333;}
-    h2{margin-bottom:10px;font-size:20px;}
-    .card{
-        background:white;padding:18px;margin-bottom:20px;border-radius:12px;
-        box-shadow:0 2px 10px rgba(0,0,0,0.1);
-    }
-    .preview-area{
-        display:flex;flex-wrap:wrap;gap:15px;margin-top:10px;
-    }
-    .item-card{
-        width:260px;background:#fff;border-radius:10px;
-        box-shadow:0 2px 6px rgba(0,0,0,0.08);padding:12px;
-    }
-    .thumb{
-        width:100%;height:180px;object-fit:cover;border-radius:8px;background:#eee;
-    }
-    .controls label{font-size:14px;margin-right:12px;}
-    .small{color:#666;font-size:12px;}
-    button{
-        padding:10px 20px;border:none;border-radius:6px;
-        background:#1677ff;color:white;cursor:pointer;margin-top:10px;
-    }
-    button:hover{opacity:.9}
-    select,input[type="number"]{padding:4px 6px;font-size:14px;}
-</style>
-<script src="jszip.min.js"></script>
-<script src="browser-image-compression.js"></script>
-</head>
 
+<style>
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:"Segoe UI",Helvetica,Arial,sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
+    #time-card{position:fixed;top:12px;right:50px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(6px);font-size:14px;color:#60a5fa;z-index:9999;text-align:right}
+    #time-card .date{font-size:13px;color:#93c5fd}
+    header{position:relative;z-index:1;background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);padding:40px 20px;text-align:center}
+    header h1{margin:0 0 8px;font-size:34px;font-weight:700;color:#60a5fa;text-shadow:0 0 8px rgba(96,165,250,0.35)}
+    header p{margin:0;color:#cbd5e1;opacity:.85}
+
+    .container{max-width:980px;margin:28px auto;padding:0 16px;position:relative;z-index:1}
+    .post-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(6px);border-radius:14px;padding:20px;margin:18px 0}
+
+    .post-card h2{margin:0 0 10px;color:#93c5fd;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+    .post-card p{margin:0;color:#94a3b8}
+
+    .compress-grid{display:grid;grid-template-columns:1fr 340px;gap:18px}
+    .controls{display:flex;flex-direction:column;gap:10px}
+
+    .dropzone{border:2px dashed rgba(255,255,255,0.06);border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:rgba(255,255,255,0.02)}
+    .thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+    .thumb{width:120px;background:rgba(255,255,255,0.02);border-radius:8px;padding:8px;text-align:center;font-size:12px;color:#94a3b8}
+    .thumb img{max-width:100%;max-height:80px;border-radius:6px;margin-bottom:6px}
+
+    .small{font-size:13px;color:#94a3b8}
+    input[type="number"], select, input[type="range"] {
+        width:100%;padding:6px;border-radius:8px;
+        border:1px solid rgba(255,255,255,0.06);
+        background:transparent;color:#e2e8f0;
+    }
+
+    .btn{display:inline-block;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);
+         background:rgba(255,255,255,0.02);color:#cfe8ff;cursor:pointer;margin:6px 6px 0 0;}
+    .btn:hover{transform:translateY(-2px);border-color:#60a5fa;box-shadow:0 8px 18px rgba(0,0,0,0.35)}
+
+    /* 折叠动画 */
+    .card-content{overflow:hidden;transition:max-height .35s ease,padding .35s ease;padding:12px 0 0 0}
+    .card-content.collapsed{max-height:0;padding:0}
+
+    @media(max-width:860px){
+        .compress-grid{grid-template-columns:1fr}
+        .thumb{width:45%}
+    }
+</style>
+</head>
 <body>
 
-<!-- 上传区 -->
-<div class="card">
-    <h2>上传图片</h2>
-    <input id="fileInput" type="file" accept="image/*" multiple>
-</div>
+<div id="time-card"><div class="date">0000-00-00</div><div class="time">--:--:--</div></div>
 
-<!-- 参数设置区 -->
-<div class="card">
-    <h2>参数设置</h2>
-    <div class="controls">
-        <label><input id="enableCompress" type="checkbox"> 压缩图片（默认不压缩）</label>
+<header>
+    <h1>Frey 的个人网站</h1>
+    <p>记录 · 思考 · 成长 · 前进</p>
+</header>
 
-        <label>最大宽度：<input id="maxWidth" type="number" value="1920" style="width:70px;"> px</label>
+<div class="container">
 
-        <label>输出格式：
-            <select id="formatSelect">
-                <option value="original">保持原格式</option>
-                <option value="jpeg">JPEG</option>
-                <option value="png">PNG</option>
-                <option value="webp">WebP</option>
-            </select>
-        </label>
+    <!-- 图片压缩卡片 -->
+    <div class="post-card">
+        <h2 class="card-title">图片压缩 <span class="toggle-icon">▾</span></h2>
+        <div class="card-content">
 
-        <label>输出质量：<input id="quality" type="number" min="0" max="1" step="0.05" value="0.9" style="width:60px;"></label>
+            <p style="margin-top:8px">在浏览器内压缩图片并转换格式。</p>
+
+            <div class="compress-grid">
+
+                <!-- 左侧 -->
+                <div>
+                    <div id="dropzone" class="dropzone">
+                        <div style="font-weight:600;color:#cfe8ff">拖拽图片到这里，或点击选择文件</div>
+                        <div class="small" style="margin-top:6px">支持 JPEG / PNG / WebP / GIF</div>
+                        <input id="fileInput" type="file" accept="image/*" multiple style="display:none">
+                    </div>
+
+                    <div class="thumbs" id="thumbs"></div>
+
+                    <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+                        <div class="small">已选：<span id="count">0</span> 张</div>
+                        <div>
+                            <button class="btn" id="clearBtn">清空</button>
+                            <button class="btn" id="compressBtn">开始</button>
+                            <button class="btn" id="downloadAllBtn">打包下载</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:8px" class="small">
+                        处理日志：
+                        <div id="log" style="margin-top:6px;padding:6px;border-radius:6px;max-height:160px;overflow:auto;background:rgba(0,0,0,0.2)"></div>
+                    </div>
+                </div>
+
+                <!-- 右侧参数 -->
+                <div class="controls post-card">
+                    <h3 style="margin:0 0 8px;color:#93c5fd">参数设置</h3>
+
+                    <div>
+                        <label class="small"><input id="enableCompress" type="checkbox" checked> 启用压缩（关闭则仅转换格式）</label>
+                    </div>
+
+                    <div><label class="small">最大宽度或高度</label><input id="maxSide" type="number" value="1024"></div>
+                    <div><label class="small">目标大小（MB）</label><input id="maxSizeMB" type="number" value="1" step="0.05"></div>
+
+                    <div>
+                        <label class="small">输出格式</label>
+                        <select id="outFormat">
+                            <option value="original">保持原格式</option>
+                            <option value="jpeg">JPEG</option>
+                            <option value="png">PNG</option>
+                            <option value="webp" selected>WebP</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="small">质量 <span id="qualityVal" style="float:right">0.8</span></label>
+                        <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.8">
+                    </div>
+
+                    <div><label class="small"><input id="useWorker" type="checkbox" checked> 使用 Web Worker</label></div>
+
+                    <div class="small" style="margin-top:8px">
+                        关闭压缩后将仅转换格式，不缩放、不改变质量。
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </div>
+
+    <!-- 未来区域 -->
+    <div class="post-card">
+        <h2 class="card-title">未来内容 <span class="toggle-icon">▾</span></h2>
+        <div class="card-content"><p>敬请期待！</p></div>
+    </div>
+
 </div>
 
-<!-- 操作按钮 -->
-<div class="card">
-    <button id="startBtn">开始处理</button>
-    <button id="downloadAllBtn">下载全部</button>
-</div>
+<footer>© 2025 Frey</footer>
 
-<!-- 预览区 -->
-<div class="card">
-    <h2>处理结果</h2>
-    <div id="preview" class="preview-area"></div>
-</div>
+<!-- VANTA -->
+<script src="js/three.min.js"></script>
+<script src="js/vanta.net.min.js"></script>
+<script>
+VANTA.NET({
+    el:"body", mouseControls:true, touchControls:true,
+    color:0x60a5fa, backgroundColor:0x0f172a
+});
+</script>
+
+<script src="js/browser-image-compression.min.js"></script>
+<script src="js/jszip.min.js"></script>
 
 <script>
-let selectedFiles = [];
-const fileInput = document.getElementById("fileInput");
-const previewArea = document.getElementById("preview");
+// ========== 变量 ==========
+const fileInput=document.getElementById('fileInput'),
+      dropzone=document.getElementById('dropzone'),
+      thumbs=document.getElementById('thumbs'),
+      countEl=document.getElementById('count'),
+      compressBtn=document.getElementById('compressBtn'),
+      clearBtn=document.getElementById('clearBtn'),
+      downloadAllBtn=document.getElementById('downloadAllBtn'),
+      logEl=document.getElementById('log'),
 
-fileInput.addEventListener("change", e => {
-    selectedFiles = Array.from(e.target.files);
-    renderPreview();
+      enableCompress=document.getElementById('enableCompress'),
+      maxSideInput=document.getElementById('maxSide'),
+      maxSizeMBInput=document.getElementById('maxSizeMB'),
+      outFormatSelect=document.getElementById('outFormat'),
+      qualityRange=document.getElementById('quality'),
+      qualityVal=document.getElementById('qualityVal'),
+      useWorker=document.getElementById('useWorker');
+
+let files=[];
+
+function log(msg){
+    const el=document.createElement('div');
+    el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;
+    logEl.prepend(el);
+}
+
+function reset(){
+    files=[];thumbs.innerHTML='';countEl.textContent='0';logEl.innerHTML='';
+}
+
+// ========== 拖拽 & 选择 ==========
+dropzone.addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',e=>{
+    handleFiles([...e.target.files]); fileInput.value='';
+});
+dropzone.addEventListener('dragover',e=>{e.preventDefault();dropzone.style.borderColor='#60a5fa';});
+dropzone.addEventListener('dragleave',()=>dropzone.style.borderColor='rgba(255,255,255,0.06)');
+dropzone.addEventListener('drop',e=>{
+    e.preventDefault();dropzone.style.borderColor='rgba(255,255,255,0.06)';
+    handleFiles([...e.dataTransfer.files]);
 });
 
-function renderPreview() {
-    previewArea.innerHTML = "";
-    selectedFiles.forEach((file, idx) => {
-        const url = URL.createObjectURL(file);
-        const div = document.createElement("div");
-        div.className = "item-card";
-        div.innerHTML = `
-            <img src="${url}" class="thumb">
-            <div class="small">原图：${(file.size/1024).toFixed(1)} KB</div>
-            <div class="small" id="after_${idx}">未处理</div>
-            <button onclick="downloadSingle(${idx})">下载</button>
-        `;
-        previewArea.appendChild(div);
+function handleFiles(selected){
+    const imgs=selected.filter(f=>f.type.startsWith('image/'));
+    if(!imgs.length){log('未检测到图片文件');return;}
+
+    imgs.forEach(f=>{
+        const id=Date.now()+'_'+Math.random().toString(36).slice(2,8);
+        files.push({file:f,id,blob:null});
+
+        const reader=new FileReader();
+        reader.onload=ev=>{
+            const div=document.createElement('div');
+            div.className='thumb'; div.id='thumb_'+id;
+            div.innerHTML=`
+                <img src="${ev.target.result}">
+                <div style="font-weight:600">${f.name}</div>
+                <div class="small">原始：${(f.size/1024).toFixed(1)} KB</div>
+                <div id="res_${id}" class="small" style="margin-top:6px"></div>`;
+            thumbs.appendChild(div);
+        };
+        reader.readAsDataURL(f);
+    });
+
+    countEl.textContent=files.length;
+    log(`已添加 ${imgs.length} 张图片`);
+}
+
+// ========== UI 联动：启用压缩开关 ==========
+function updateUI(){
+    const enable=enableCompress.checked;
+    [maxSideInput,maxSizeMBInput,qualityRange,useWorker].forEach(el=>{
+        el.disabled=!enable;
+        el.style.opacity=enable?1:0.4;
+    });
+}
+enableCompress.addEventListener('change',updateUI);
+updateUI();
+
+// ========== 格式转换函数（不压缩） ==========
+async function convertFormatOnly(file,format){
+    return new Promise((resolve,reject)=>{
+        const img=new Image(), reader=new FileReader();
+        reader.onload=e=>{
+            img.onload=()=>{
+                const canvas=document.createElement('canvas');
+                canvas.width=img.width; canvas.height=img.height;
+                canvas.getContext('2d').drawImage(img,0,0);
+
+                let mime=file.type;
+                if(format!=="original"){
+                    if(format==="jpeg") mime="image/jpeg";
+                    if(format==="png") mime="image/png";
+                    if(format==="webp") mime="image/webp";
+                }
+
+                canvas.toBlob(b=>{
+                    b?resolve(b):reject();
+                },mime,1.0);
+            };
+            img.src=e.target.result;
+        };
+        reader.readAsDataURL(file);
     });
 }
 
-let processedBlobs = [];
+// ========== 开始处理 ==========
+compressBtn.addEventListener('click',async()=>{
+    if(!files.length){log('请先选择图片');return;}
 
-async function processImages() {
-    if (!selectedFiles.length) return alert("请先上传图片");
+    compressBtn.disabled=true;
+    downloadAllBtn.disabled=true;
 
-    processedBlobs = [];
+    const zip=new JSZip();
+    log(enableCompress.checked?'开始压缩...':'开始格式转换...');
 
-    const enableCompress = document.getElementById("enableCompress").checked;
-    const maxWidth = parseInt(document.getElementById("maxWidth").value);
-    const quality = parseFloat(document.getElementById("quality").value);
-    const format = document.getElementById("formatSelect").value;
+    for(const obj of files){
+        const file=obj.file;
+        let blob;
 
-    for (let i = 0; i < selectedFiles.length; i++) {
-        const file = selectedFiles[i];
+        try{
+            if(enableCompress.checked){
+                const opt={
+                    maxWidthOrHeight:+maxSideInput.value,
+                    maxSizeMB:+maxSizeMBInput.value,
+                    initialQuality:+qualityRange.value,
+                    useWebWorker:useWorker.checked,
+                    fileType:(outFormatSelect.value==="original"?undefined:`image/${outFormatSelect.value}`)
+                };
+                blob=await imageCompression(file,opt);
+                log(`压缩：${file.name}`);
+            }else{
+                blob=await convertFormatOnly(file,outFormatSelect.value);
+                log(`转换格式：${file.name}`);
+            }
 
-        let outputBlob;
+            obj.blob=blob;
+            const outName=makeOutName(file.name,outFormatSelect.value);
+            zip.file(outName,blob);
 
-        if (enableCompress) {
-            // ================================
-            // ✔ 启用压缩：使用 image-compression
-            // ================================
-            const options = {
-                maxWidthOrHeight: maxWidth,
-                initialQuality: quality,
-                fileType: format === "original" ? file.type : "image/" + format
-            };
+            const info=document.getElementById('res_'+obj.id);
+            if(info) info.textContent='处理后：'+(blob.size/1024).toFixed(1)+' KB';
 
-            outputBlob = await imageCompression(file, options);
+            addDownload(obj.id,outName,blob);
 
-        } else {
-            // ================================
-            // ✔ 不压缩：只进行格式转换
-            // ================================
-            const bitmap = await createImageBitmap(file);
-            const canvas = document.createElement("canvas");
-            canvas.width = bitmap.width;
-            canvas.height = bitmap.height;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(bitmap, 0, 0);
-
-            let outType;
-            if (format === "original") outType = file.type;
-            else outType = "image/" + format;
-
-            outputBlob = await new Promise(resolve =>
-                canvas.toBlob(resolve, outType, quality)
-            );
-        }
-
-        processedBlobs[i] = outputBlob;
-
-        // 显示结果
-        const before = file.size;
-        const after = outputBlob.size;
-
-        const info = document.getElementById("after_" + i);
-        if (enableCompress) {
-            info.innerHTML = `压缩后：${(after/1024).toFixed(1)} KB<br>
-                <span class="small">节省 ${(1 - after/before)*100 | 0}%</span>`;
-        } else {
-            info.innerHTML = `转换后：${(after/1024).toFixed(1)} KB`;
+        }catch(e){
+            log(`处理失败：${file.name}`);
         }
     }
 
-    alert("处理完成！");
-}
-
-document.getElementById("startBtn").onclick = processImages;
-
-function downloadSingle(idx) {
-    if (!processedBlobs[idx]) return alert("请先点击 开始处理");
-
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(processedBlobs[idx]);
-    a.download = "image_" + (idx+1) + ".jpg";
-    a.click();
-}
-
-document.getElementById("downloadAllBtn").onclick = function() {
-    if (!processedBlobs.length) return alert("请先处理图片");
-
-    const zip = new JSZip();
-
-    processedBlobs.forEach((blob, idx) => {
-        zip.file("image_" + (idx+1) + ".jpg", blob);
-    });
-
-    zip.generateAsync({ type: "blob" }).then(content => {
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(content);
-        a.download = "images.zip";
+    downloadAllBtn.onclick=async()=>{
+        log('生成 ZIP ...');
+        const content=await zip.generateAsync({type:'blob'});
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(content);
+        a.download='images_'+Date.now()+'.zip';
         a.click();
+    };
+
+    compressBtn.disabled=false;
+    downloadAllBtn.disabled=false;
+    log('全部完成');
+});
+
+// ========== 辅助 ==========
+function makeOutName(name,f){
+    if(f==='original') return name;
+    let ext=f==='jpeg'?'.jpg':'.'+f;
+    return name.replace(/\.[^/.]+$/,'')+ext;
+}
+
+function addDownload(id,name,blob){
+    const div=document.getElementById('thumb_'+id);
+    if(!div) return;
+    let btn=div.querySelector('.btn-download');
+    if(!btn){
+        btn=document.createElement('button');
+        btn.className='btn btn-download';
+        btn.textContent='下载';
+        div.appendChild(btn);
+    }
+    btn.onclick=()=>{
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(blob);
+        a.download=name;
+        a.click();
+    };
+}
+
+// ========== 卡片折叠 ==========
+document.querySelectorAll('.post-card .card-title').forEach(title=>{
+    const content = title.nextElementSibling;
+    const icon = title.querySelector('.toggle-icon');
+    content.style.maxHeight = content.scrollHeight + 'px';
+
+    title.addEventListener('click',()=>{
+        content.classList.toggle('collapsed');
+        if(content.classList.contains('collapsed')){
+            icon.textContent='▸';
+            content.style.maxHeight='0';
+        }else{
+            icon.textContent='▾';
+            content.style.maxHeight=content.scrollHeight+'px';
+        }
     });
-};
+});
 </script>
 
 </body>
