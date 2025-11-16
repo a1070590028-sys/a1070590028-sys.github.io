@@ -234,16 +234,39 @@ function addSingleDownloadButton(id,name,blob){const thumb=document.getElementBy
 
 // 卡片折叠动画
 document.querySelectorAll('.post-card .card-title').forEach(title=>{
-    const icon=title.querySelector('.toggle-icon');
-    const content=title.nextElementSibling;
+    const icon = title.querySelector('.toggle-icon');
+    const content = title.nextElementSibling;
     if(!content) return;
-    content.style.maxHeight=content.scrollHeight+'px';
-    title.addEventListener('click',()=>{
+
+    // 初始化展开高度
+    content.style.maxHeight = content.scrollHeight + 'px';
+
+    title.addEventListener('click', ()=>{
         content.classList.toggle('collapsed');
-        if(content.classList.contains('collapsed')){icon.textContent='▸';content.style.maxHeight='0';}
-        else{icon.textContent='▾';content.style.maxHeight=content.scrollHeight+'px';}
+        if(content.classList.contains('collapsed')){
+            icon.textContent = '▸';
+            content.style.maxHeight = '0';
+            content.style.padding = '0';
+        } else {
+            icon.textContent = '▾';
+            // 方法2：动态计算 scrollHeight + 额外空间，保证内容完整显示
+            const computedStyle = getComputedStyle(content);
+            const paddingTop = parseInt(computedStyle.paddingTop);
+            const paddingBottom = parseInt(computedStyle.paddingBottom);
+            content.style.maxHeight = (content.scrollHeight + paddingTop + paddingBottom + 20) + 'px';
+            content.style.padding = '12px 0 0 0';
+        }
     });
-    window.addEventListener('resize',()=>{if(!content.classList.contains('collapsed')) content.style.maxHeight=content.scrollHeight+'px';});
+
+    // 窗口尺寸变化时，重新计算高度
+    window.addEventListener('resize', ()=>{
+        if(!content.classList.contains('collapsed')){
+            const computedStyle = getComputedStyle(content);
+            const paddingTop = parseInt(computedStyle.paddingTop);
+            const paddingBottom = parseInt(computedStyle.paddingBottom);
+            content.style.maxHeight = (content.scrollHeight + paddingTop + paddingBottom + 20) + 'px';
+        }
+    });
 });
 </script>
 </body>
