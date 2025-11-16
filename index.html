@@ -113,8 +113,8 @@
     <script src="js/three.min.js"></script>
     <script src="js/vanta.net.min.js"></script>
     <script>
-        VANTA.NET({
-            el: "#vanta-bg",  
+        const vantaEffect = VANTA.NET({
+            el: "#vanta-bg",
             mouseControls: true,
             touchControls: true,
             gyroControls: false,
@@ -123,7 +123,16 @@
             scale: 1.0,
             scaleMobile: 1.0,
             color: 0x60a5fa,
-            backgroundColor: 0x0f172a
+            backgroundColor: 0x0f172a,
+            points: 10,
+            maxDistance: 20,
+            spacing: 15
+        });
+    
+        // 强制重绘 + 响应式
+        if (vantaEffect) vantaEffect.resize();
+        window.addEventListener("resize", () => {
+            if (vantaEffect) vantaEffect.resize();
         });
     </script>
 
