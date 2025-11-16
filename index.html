@@ -34,12 +34,22 @@
         .file-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
         /* responsive */
         @media(max-width:860px){.compress-grid{grid-template-columns:1fr}.thumb{width:45%}}
+        #vanta-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;        /* 放在最底层 */
+            pointer-events: none; /* 防止鼠标事件被背景挡住 */
+}
     </style>
 </head>
 <body>
+    <div id="vanta-bg"></div>
     <div id="time-card"><div class="date">0000-00-00</div><div class="time">--:--:--</div></div>
     
-    <header><h1>Frey 的个人博客</h1><p>记录 · 思考 · 成长 · 前进</p></header>
+    <header><h1>Frey 的个人网站</h1><p>记录 · 思考 · 成长 · 前进</p></header>
     
     <div class="container">
         <div class="post-card">
@@ -104,7 +114,7 @@
     <script src="js/vanta.net.min.js"></script>
     <script>
         VANTA.NET({
-            el: "body",
+            el: "#vanta-bg",  
             mouseControls: true,
             touchControls: true,
             gyroControls: false,
