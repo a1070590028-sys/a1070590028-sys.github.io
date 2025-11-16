@@ -241,6 +241,7 @@
         qualityRange.addEventListener('input', () => {
             qualityVal.textContent = qualityRange.value;
         });
+        qualityRange.addEventListener('wheel', e => e.stopPropagation());
 
         /* 压缩主流程 */
         compressBtn.addEventListener('click', async () => {
