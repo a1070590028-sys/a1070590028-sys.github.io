@@ -72,15 +72,11 @@
                         处理日志：<div id="log" style="margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:6px;border-radius:6px;background:rgba(0,0,0,0.2)"></div>
                     </div>
                 </div>
-
                 <!-- 右侧参数 -->
                 <div class="controls post-card" style="padding:14px">
                     <h3 style="margin:0 0 8px;color:#93c5fd">参数设置</h3>
-
                     <div><label class="small">最大宽度或高度（像素）</label><input id="maxSide" type="number" value="1024" min="64" step="1"></div>
-
                     <div><label class="small">目标文件大小（最大，MB）</label><input id="maxSizeMB" type="number" value="1" min="0.05" step="0.05"></div>
-
                     <div>
                         <label class="small">输出格式</label>
                         <select id="outFormat">
@@ -90,17 +86,11 @@
                             <option value="webp" selected>WebP (.webp)</option>
                         </select>
                     </div>
-
                     <div>
                         <label class="small">质量 (0.1 - 1.0) <span id="qualityVal" class="small" style="float:right">0.8</span></label>
                         <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.8">
                     </div>
-
                     <div><label class="small"><input id="useWorker" type="checkbox" checked> 使用 Web Worker（更快，推荐）</label></div>
-
-                    <!-- ⭐ 新增：压缩开关（默认不压缩） -->
-                    <div><label class="small"><input id="enableCompress" type="checkbox"> 压缩图片（默认不压缩）</label></div>
-
                     <div style="margin-top:8px" class="small">
                         提示：选择 WebP 能在多数浏览器中获得更好的压缩比。若需要最高兼容性请选择 JPEG/PNG。
                     </div>
@@ -172,8 +162,7 @@ const fileInput=document.getElementById('fileInput'),
       outFormatSelect=document.getElementById('outFormat'),
       qualityRange=document.getElementById('quality'),
       qualityVal=document.getElementById('qualityVal'),
-      useWorker=document.getElementById('useWorker'),
-      enableCompress=document.getElementById('enableCompress');
+      useWorker=document.getElementById('useWorker');
 
 let files=[];
 
@@ -223,50 +212,17 @@ compressBtn.addEventListener('click',async()=>{
                 fileType:(outFormatSelect.value==='original')?undefined:`image/${outFormatSelect.value==='jpeg'?'jpeg':outFormatSelect.value}`
             };
             log(`处理中：${file.name} ...`);
-
-            let compressedBlob;
-
-            if (!enableCompress.checked) {
-                // ⭐ 不压缩，仅格式转换
-                const bitmap = await createImageBitmap(file);
-                const canvas = document.createElement("canvas");
-                canvas.width = bitmap.width;
-                canvas.height = bitmap.height;
-                const ctx = canvas.getContext("2d");
-                ctx.drawImage(bitmap, 0, 0);
-
-                let outType;
-                if (outFormatSelect.value === "original") outType = file.type;
-                else if (outFormatSelect.value === "jpeg") outType = "image/jpeg";
-                else outType = "image/" + outFormatSelect.value;
-
-                compressedBlob = await new Promise(resolve =>
-                    canvas.toBlob(resolve, outType, parseFloat(qualityRange.value))
-                );
-            } else {
-                // ⭐ 原压缩逻辑
-                compressedBlob = await imageCompression(file, options);
-            }
-
+            const compressedBlob=await imageCompression(file,options);
             fobj.resultBlob=compressedBlob;
             const afterSize=compressedBlob.size;
             const infoEl=document.getElementById('res_'+fobj.id);
-
-            if (!enableCompress.checked) {
-                infoEl.innerHTML = `转换后：${bytesToSize(afterSize)}`;
-            } else {
-                infoEl.innerHTML =
-                    `压缩后：${bytesToSize(afterSize)} <br><span class="small">节省：${((1-afterSize/beforeSize)*100).toFixed(1)}%</span>`;
-            }
-
+            if(infoEl){infoEl.innerHTML=`压缩后：${bytesToSize(afterSize)} <br><span class="small">节省：${((1-afterSize/beforeSize)*100).toFixed(1)}%</span>`;}
             const outName=makeOutName(file.name,outFormatSelect.value);
             zip.file(outName,compressedBlob);
             addSingleDownloadButton(fobj.id,outName,compressedBlob);
             log(`完成：${file.name} → ${outName}（${bytesToSize(afterSize)}）`);
-
         }catch(err){log(`错误：处理 ${fobj.file.name} 失败 — ${err.message||err}`);}
     }
-
     downloadAllBtn.onclick=async()=>{
         try{downloadAllBtn.disabled=true;log('生成 ZIP 包中...');const content=await zip.generateAsync({type:'blob'});const a=document.createElement('a');a.href=URL.createObjectURL(content);a.download=`images_compressed_${Date.now()}.zip`;a.click();URL.revokeObjectURL(a.href);log('ZIP 包已生成并下载');}catch(e){log('生成 ZIP 失败：'+e);}finally{downloadAllBtn.disabled=false;}
     };
@@ -293,6 +249,7 @@ document.querySelectorAll('.post-card .card-title').forEach(title=>{
             content.style.padding = '0';
         } else {
             icon.textContent = '▾';
+            // 方法2：动态计算 scrollHeight + 额外空间，保证内容完整显示
             const computedStyle = getComputedStyle(content);
             const paddingTop = parseInt(computedStyle.paddingTop);
             const paddingBottom = parseInt(computedStyle.paddingBottom);
@@ -301,6 +258,7 @@ document.querySelectorAll('.post-card .card-title').forEach(title=>{
         }
     });
 
+    // 窗口尺寸变化时，重新计算高度
     window.addEventListener('resize', ()=>{
         if(!content.classList.contains('collapsed')){
             const computedStyle = getComputedStyle(content);
