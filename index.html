@@ -1,3 +1,8 @@
+明白了，我帮你把你的 HTML 做好修改，保证 **VANTA 背景覆盖整个页面高度**，内容增加也不会影响背景，并且不破坏你现有的图片压缩功能和文章布局。
+
+下面是修改后的完整 HTML（主要改动：`body/html` 样式改为 `height:auto; min-height:100%`，VANTA 初始化增加 `resize` 方法，移除固定 div 方法）：
+
+```html
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -7,7 +12,16 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <style>
         *{box-sizing:border-box}
-        html,body{height:100%;margin:0;font-family:"Segoe UI",Helvetica,Arial,sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
+        html,body{
+            min-height: 100%;      /* 保证至少填满视口 */
+            height: auto;          /* 高度随内容自适应 */
+            margin:0;
+            font-family:"Segoe UI",Helvetica,Arial,sans-serif;
+            background:#0f172a;
+            color:#e2e8f0;
+            overflow-x:hidden;
+            position: relative;
+        }
         #time-card{position:fixed;top:12px;right:14px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:14px;color:#60a5fa;z-index:9999;text-align:right}
         #time-card .date{font-size:13px;color:#93c5fd}
         header{position:relative;z-index:1;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);padding:40px 20px;text-align:center}
@@ -103,7 +117,8 @@
     <script src="js/three.min.js"></script>
     <script src="js/vanta.net.min.js"></script>
     <script>
-        VANTA.NET({
+        // 初始化 VANTA
+        let vantaEffect = VANTA.NET({
             el: "body",
             mouseControls: true,
             touchControls: true,
@@ -114,6 +129,11 @@
             scaleMobile: 1.0,
             color: 0x60a5fa,
             backgroundColor: 0x0f172a
+        });
+
+        // 当窗口大小变化时刷新 VANTA
+        window.addEventListener('resize', () => {
+            if(vantaEffect && vantaEffect.resize) vantaEffect.resize();
         });
     </script>
 
@@ -271,7 +291,7 @@
                 }
             }
 
-            // 打包下载（压缩完成后才生效）
+            // 打包下载
             downloadAllBtn.onclick = async () => {
                 try {
                     downloadAllBtn.disabled = true;
@@ -284,66 +304,5 @@
                     a.click();
                     URL.revokeObjectURL(url);
                     log('ZIP 包已生成并下载');
-                } catch (e) {
-                    log('生成 ZIP 失败：' + e);
-                } finally {
-                    downloadAllBtn.disabled = false;
-                }
-            };
-
-            compressBtn.disabled = false;
-            downloadAllBtn.disabled = false;
-            log('全部处理完成');
-        });
-
-        /* 辅助：生成输出文件名 */
-        function makeOutName(origName, fmt) {
-            if (fmt === 'original') return origName;
-            const base = origName.replace(/\.[^.]+$/, '');
-            const ext = (fmt === 'jpeg') ? 'jpg' : fmt;
-            return `${base}.${ext}`;
-        }
-
-        /* 为每个缩略图添加下载和预览按钮 */
-        function addSingleDownloadButton(id, filename, blob) {
-            const box = document.getElementById('thumb_' + id);
-            if (!box) return;
-
-            let btnRow = box.querySelector('.btnrow');
-            if (btnRow) btnRow.remove();
-            btnRow = document.createElement('div');
-            btnRow.className = 'btnrow';
-            btnRow.style.marginTop = '8px';
-
-            const dlBtn = document.createElement('button');
-            dlBtn.className = 'btn';
-            dlBtn.textContent = '下载';
-            dlBtn.onclick = () => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                a.click();
-                URL.revokeObjectURL(url);
-            };
-            btnRow.appendChild(dlBtn);
-
-            const viewBtn = document.createElement('button');
-            viewBtn.className = 'btn';
-            viewBtn.textContent = '预览';
-            viewBtn.onclick = () => {
-                const url = URL.createObjectURL(blob);
-                window.open(url, '_blank');
-                setTimeout(() => URL.revokeObjectURL(url), 20000);
-            };
-            btnRow.appendChild(viewBtn);
-
-            box.appendChild(btnRow);
-        }
-
-        /* 初始化 */
-        reset();
-        log('工具已就绪。');
-    </script>
-</body>
-</html>
+                } catch (e)
+```
