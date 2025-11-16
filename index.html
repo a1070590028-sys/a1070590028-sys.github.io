@@ -48,7 +48,7 @@
 
     <!-- 图片压缩卡片 -->
     <div class="post-card">
-        <h2 class="card-title">图片压缩 <span class="toggle-icon">👇</span></h2>
+        <h2 class="card-title">图片压缩 <span class="toggle-icon">▾</span></h2>
         <div class="card-content">
             <p style="margin-top:8px">在浏览器内压缩图片并转换格式：上传 → 设置参数 → 压缩 → 单张或打包下载。无需服务器，保护隐私。</p>
             <div style="margin-top:12px" class="compress-grid">
@@ -101,7 +101,7 @@
 
     <!-- 示例文章卡片 -->
     <div class="post-card">
-        <h2 class="card-title">未来内容预留区域 <span class="toggle-icon">👇</span></h2>
+        <h2 class="card-title">未来内容预留区域 <span class="toggle-icon">▾</span></h2>
         <div class="card-content">
             <p>敬请期待！</p>
         </div>
@@ -240,8 +240,8 @@ document.querySelectorAll('.post-card .card-title').forEach(title=>{
     content.style.maxHeight=content.scrollHeight+'px';
     title.addEventListener('click',()=>{
         content.classList.toggle('collapsed');
-        if(content.classList.contains('collapsed')){icon.textContent='👉';content.style.maxHeight='0';}
-        else{icon.textContent='👇';content.style.maxHeight=content.scrollHeight+'px';}
+        if(content.classList.contains('collapsed')){icon.textContent='▸';content.style.maxHeight='0';}
+        else{icon.textContent='▾';content.style.maxHeight=content.scrollHeight+'px';}
     });
     window.addEventListener('resize',()=>{if(!content.classList.contains('collapsed')) content.style.maxHeight=content.scrollHeight+'px';});
 });
