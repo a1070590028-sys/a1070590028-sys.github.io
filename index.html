@@ -8,20 +8,18 @@
     <style>
         *{box-sizing:border-box}
         html,body{height:100%;margin:0;font-family:"Segoe UI",Helvetica,Arial,sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
-        #time-card{position:fixed;top:12px;right:14px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:14px;color:#60a5fa;z-index:9999;text-align:right}
+        #time-card{position:fixed;top:12px;right:50px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:14px;color:#60a5fa;z-index:9999;text-align:right}
         #time-card .date{font-size:13px;color:#93c5fd}
         header{position:relative;z-index:1;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);padding:40px 20px;text-align:center}
         header h1{margin:0 0 8px;font-size:34px;font-weight:700;color:#60a5fa;text-shadow:0 0 8px rgba(96,165,250,0.35)}
         header p{margin:0;color:#cbd5e1;opacity:.85}
         .container{position:relative;z-index:1;max-width:980px;margin:28px auto;padding:0 16px}
-        .post-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:14px;padding:20px;margin:18px 0}
+        .post-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:14px;padding:20px;margin:18px 0;transition: all 0.3s ease;}
+        .post-card.collapsed-content { padding: 0 20px; }
         .post-card h2{margin:0 0 10px;color:#93c5fd}
+        .post-card p{margin:0;color:#94a3b8}
         footer{position:relative;z-index:1;text-align:center;padding:22px;font-size:14px;color:#64748b}
         footer span{color:#60a5fa}
-
-        /* 折叠内容 */
-        .card-content { overflow: hidden; max-height: 9999px; transition: max-height 0.3s ease; }
-        .card-content.collapsed { max-height: 0; }
 
         /* 图片压缩卡片 */
         .compress-grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
@@ -37,18 +35,22 @@
         .small{font-size:13px;color:#94a3b8}
         .file-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
 
-        /* responsive */
+        /* 折叠标题图标 */
+        .card-title { display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none;}
+        .card-title .toggle-icon { font-size:14px; transition: transform 0.2s ease; }
+
+        /* 响应式 */
         @media(max-width:860px){.compress-grid{grid-template-columns:1fr}.thumb{width:45%}}
     </style>
 </head>
 <body>
     <div id="time-card"><div class="date">0000-00-00</div><div class="time">--:--:--</div></div>
     
-    <header><h1>Frey 的个人博客</h1><p>记录 · 思考 · 成长 · 前进</p></header>
+    <header><h1>Frey 的个人网站</h1><p>记录 · 思考 · 成长 · 前进</p></header>
     
     <div class="container">
         <div class="post-card">
-            <h2 class="card-title">图片压缩 & 格式转换</h2>
+            <h2 class="card-title"><span class="toggle-icon">▼</span>图片压缩 & 格式转换</h2>
             <div class="card-content">
                 <p style="margin-top:8px">在浏览器内压缩图片并转换格式：上传 → 设置参数 → 压缩 → 单张或打包下载。无需服务器，保护隐私。</p>
                 <div style="margin-top:12px" class="compress-grid">
@@ -99,16 +101,15 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="post-card">
-            <h2 class="card-title">第一篇文章标题示例</h2>
+            <h2 class="card-title"><span class="toggle-icon">▼</span>第一篇文章标题示例</h2>
             <div class="card-content">
                 <p>这里是文章简介内容…</p>
             </div>
         </div>
-
         <div class="post-card">
-            <h2 class="card-title">未来内容预留区域</h2>
+            <h2 class="card-title"><span class="toggle-icon">▼</span>未来内容预留区域</h2>
             <div class="card-content">
                 <p>你可以添加更多文章和独立页面！</p>
             </div>
@@ -241,9 +242,6 @@
             qualityVal.textContent = qualityRange.value;
         });
 
-        // 阻止滚轮事件冒泡到 VANTA
-        qualityRange.addEventListener('wheel', e => e.stopPropagation());
-
         compressBtn.addEventListener('click', async () => {
             if (files.length === 0) { log('请先选择图片'); return; }
             compressBtn.disabled = true;
@@ -251,6 +249,7 @@
             log('开始压缩...');
 
             const zip = new JSZip();
+
             for (const fobj of files) {
                 try {
                     const file = fobj.file;
@@ -260,7 +259,7 @@
                         maxSizeMB: parseFloat(maxSizeMBInput.value) || 1,
                         useWebWorker: useWorker.checked,
                         initialQuality: parseFloat(qualityRange.value) || 0.8,
-                        fileType: (outFormatSelect.value === 'original') ? undefined : `image/${outFormatSelect.value === 'jpeg' ? 'jpeg' : outFormatSelect.value}`
+                        fileType: (outFormatSelect.value === 'original') ? undefined : `image/${outFormatSelect.value==='jpeg'?'jpeg':outFormatSelect.value}`
                     };
 
                     log(`处理中：${file.name} ...`);
@@ -270,7 +269,7 @@
 
                     const infoEl = document.getElementById('res_' + fobj.id);
                     if (infoEl) {
-                        infoEl.innerHTML = `压缩后：${bytesToSize(afterSize)} <br><span class="small">节省：${((1 - afterSize / beforeSize) * 100).toFixed(1)}%</span>`;
+                        infoEl.innerHTML = `压缩后：${bytesToSize(afterSize)} <br><span class="small">节省：${((1-afterSize/beforeSize)*100).toFixed(1)}%</span>`;
                     }
 
                     const outName = makeOutName(file.name, outFormatSelect.value);
@@ -287,7 +286,7 @@
                 try {
                     downloadAllBtn.disabled = true;
                     log('生成 ZIP 包中...');
-                    const content = await zip.generateAsync({type: 'blob'});
+                    const content = await zip.generateAsync({type:'blob'});
                     const url = URL.createObjectURL(content);
                     const a = document.createElement('a');
                     a.href = url;
@@ -295,54 +294,52 @@
                     a.click();
                     URL.revokeObjectURL(url);
                     log('ZIP 包已生成并下载');
-                } catch (e) {
-                    log('生成 ZIP 失败：' + e);
-                } finally {
-                    downloadAllBtn.disabled = false;
-                }
+                } catch(e) { log('生成 ZIP 失败：' + e); }
+                finally { downloadAllBtn.disabled = false; }
             };
 
             compressBtn.disabled = false;
             downloadAllBtn.disabled = false;
-            log('全部处理完成');
         });
 
-        function makeOutName(origName, fmt) {
-            if (fmt === 'original') return origName;
-            const base = origName.replace(/\.[^/.]+$/, "");
-            const ext = fmt === 'jpeg' ? 'jpg' : fmt;
-            return `${base}.${ext}`;
+        function makeOutName(name, format) {
+            if (format==='original') return name;
+            const ext = format==='jpeg' ? '.jpg' : '.' + format;
+            const base = name.replace(/\.[^/.]+$/, '');
+            return base + ext;
         }
 
-        function addSingleDownloadButton(id, filename, blob) {
-            const box = document.getElementById('thumb_' + id);
-            if (!box) return;
-            let btn = box.querySelector('.btn-download');
+        function addSingleDownloadButton(id, name, blob) {
+            const thumb = document.getElementById('thumb_' + id);
+            if (!thumb) return;
+            let btn = thumb.querySelector('.btn-download');
             if (!btn) {
                 btn = document.createElement('button');
-                btn.className = 'btn btn-download';
                 btn.textContent = '下载';
-                box.appendChild(btn);
+                btn.className = 'btn btn-download';
+                thumb.appendChild(btn);
             }
             btn.onclick = () => {
-                const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
+                a.href = URL.createObjectURL(blob);
+                a.download = name;
                 a.click();
-                URL.revokeObjectURL(url);
+                URL.revokeObjectURL(a.href);
             };
         }
-    </script>
 
-    <!-- 折叠卡片标题 -->
-    <script>
+        // 卡片折叠功能
         document.querySelectorAll('.post-card .card-title').forEach(title => {
-            title.style.cursor = 'pointer';
+            const icon = title.querySelector('.toggle-icon');
+            const content = title.nextElementSibling;
             title.addEventListener('click', () => {
-                const content = title.nextElementSibling;
                 if (!content) return;
                 content.classList.toggle('collapsed');
+                if (content.classList.contains('collapsed')) {
+                    icon.textContent = '►';
+                } else {
+                    icon.textContent = '▼';
+                }
             });
         });
     </script>
