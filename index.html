@@ -22,67 +22,92 @@
   footer{position:relative;z-index:1;text-align:center;padding:22px;font-size:14px;color:#64748b}
   footer span{color:#60a5fa}
 
-  /* 棋盘卡片 */
-  .chess-card{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start;justify-content:center}
-  .board-card{width:520px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px}
-  .controls-card{min-width:240px;max-width:320px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px}
-
-  /* Canvas */
-  #chessCanvas{display:block;margin:10px auto;border-radius:8px;box-shadow:0 8px 20px rgba(0,0,0,0.45);background:linear-gradient(180deg,#071026,#081228)}
-  .btn{display:inline-block;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#cfe8ff;cursor:pointer;margin:6px 6px 0 0}
+  /* 图片压缩卡片 */
+  .compress-grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
+  .controls{padding:12px;display:flex;flex-direction:column;gap:10px}
+  .dropzone{border:2px dashed rgba(255,255,255,0.06);border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))}
+  .thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+  .thumb{width:120px;background:rgba(255,255,255,0.02);border-radius:8px;padding:8px;text-align:center;font-size:12px;color:#94a3b8}
+  .thumb img{max-width:100%;max-height:80px;border-radius:6px;display:block;margin:0 auto 6px}
+  .btn{display:inline-block;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#cfe8ff;cursor:pointer;margin:6px 6px 0 0;user-select:none}
   .btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,0.35);border-color:#60a5fa}
-  .select, .label-row{display:flex;gap:8px;align-items:center;margin-top:8px}
+  label.small{font-size:13px;color:#94a3b8;display:block;margin-bottom:6px}
+  input[type="number"], select, input[type="range"]{width:100%;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#e2e8f0}
   .small{font-size:13px;color:#94a3b8}
+  .file-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
 
   /* responsive */
-  @media(max-width:860px){.chess-card{flex-direction:column}.board-card{width:92%}.controls-card{width:92%}}
+  @media(max-width:860px){.compress-grid{grid-template-columns:1fr}.thumb{width:45%}}
 </style>
 </head>
 <body>
 
 <div id="time-card"><div class="date">0000-00-00</div><div class="time">--:--:--</div></div>
 
-<header><h1>Frey 的个人博客</h1><p>记录 · 思考 · 成长 · 前进 —— 顺便下盘棋？</p></header>
+<header><h1>Frey 的个人博客</h1><p>记录 · 思考 · 成长 · 前进 —— 图片压缩工具已内置</p></header>
 
 <div class="container">
   <div class="post-card">
-    <h2>页面内置 — 国际象棋（极简线条风）</h2>
-    <p style="margin-top:8px">点击棋子显示合法落点高亮 → 点击落子。AI 使用 Minimax+αβ（默认深度2），可在控制面板调整。</p>
+    <h2>图片压缩 & 格式转换（纯前端）</h2>
+    <p style="margin-top:8px">在浏览器内压缩图片并转换格式：上传 → 设置参数 → 压缩 → 单张或打包下载。无需服务器，保护隐私。</p>
 
-    <div style="margin-top:12px" class="chess-card">
-      <div class="board-card post-card" style="padding:12px;">
-        <canvas id="chessCanvas" width="480" height="480"></canvas>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
-          <div class="small">玩家：<span id="playerInfo">白方</span></div>
-          <div class="small">状态：<span id="statusInfo">就绪</span></div>
+    <div style="margin-top:12px" class="compress-grid">
+      <!-- 左侧：文件与预览 -->
+      <div style="padding:12px">
+        <div id="dropzone" class="dropzone">
+          <div style="font-weight:600;color:#cfe8ff">拖拽图片到这里，或点击选择文件（支持多选）</div>
+          <div class="small" style="margin-top:6px">支持 JPEG / PNG / WebP / GIF（静帧）</div>
+          <input id="fileInput" type="file" accept="image/*" multiple style="display:none">
         </div>
+
+        <div class="thumbs" id="thumbs"></div>
+
+        <div style="margin-top:12px" class="file-row">
+          <div class="small">已选：<span id="count">0</span> 张</div>
+          <div>
+            <button class="btn" id="clearBtn">清空</button>
+            <button class="btn" id="compressBtn">开始压缩</button>
+            <button class="btn" id="downloadAllBtn">全部打包下载 (ZIP)</button>
+          </div>
+        </div>
+
+        <div style="margin-top:8px" class="small">处理日志：<div id="log" style="margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:6px;border-radius:6px;background:rgba(0,0,0,0.2)"></div></div>
       </div>
 
-      <div class="controls-card post-card" style="padding:12px">
-        <h3 style="margin:0 0 8px;color:#93c5fd">控制面板</h3>
+      <!-- 右侧：参数 -->
+      <div class="controls post-card" style="padding:14px">
+        <h3 style="margin:0 0 8px;color:#93c5fd">参数设置</h3>
 
-        <div class="label-row">
-          <button class="btn" id="newBtn">新游戏</button>
-          <button class="btn" id="undoBtn">悔棋</button>
-          <button class="btn" id="flipBtn">翻转棋盘</button>
+        <div>
+          <label class="small">最大宽度或高度（像素）</label>
+          <input id="maxSide" type="number" value="1024" min="64" step="1">
         </div>
 
-        <div class="select">
-          <label class="small">AI 难度</label>
-          <select id="depthSelect" class="btn" style="padding:6px 8px">
-            <option value="0">0 - 随机</option>
-            <option value="1">1 - Minimax 1 层</option>
-            <option value="2" selected>2 - Minimax 2 层</option>
-            <option value="3">3 - Minimax 3 层（较慢）</option>
+        <div>
+          <label class="small">目标文件大小（最大，MB）</label>
+          <input id="maxSizeMB" type="number" value="1" min="0.05" step="0.05">
+        </div>
+
+        <div>
+          <label class="small">输出格式</label>
+          <select id="outFormat">
+            <option value="original">保持原格式</option>
+            <option value="jpeg">JPEG (.jpg)</option>
+            <option value="png">PNG (.png)</option>
+            <option value="webp" selected>WebP (.webp)</option>
           </select>
         </div>
 
-        <div style="margin-top:10px" class="small">提示：点击己方棋子显示合法落点；AI 思考时會显示“AI 思考中...”</div>
-
-        <div style="margin-top:12px">
-          <div class="small">当前局面 FEN：<div id="fen" style="word-break:break-all;color:#94a3b8;font-size:12px;margin-top:6px"></div></div>
+        <div>
+          <label class="small">质量 (0.1 - 1.0) <span id="qualityVal" class="small" style="float:right">0.8</span></label>
+          <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.8">
         </div>
 
+        <div>
+          <label class="small"><input id="useWorker" type="checkbox" checked> 使用 Web Worker（更快，推荐）</label>
+        </div>
+
+        <div style="margin-top:8px" class="small">提示：选择 WebP 能在多数浏览器中获得更好的压缩比。若需要最高兼容性请选择 JPEG/PNG。</div>
       </div>
     </div>
   </div>
@@ -93,15 +118,16 @@
 
 <footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
 
-<!-- VANTA 背景 -->
+<!-- VANTA 背景 保留 -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vanta/dist/vanta.net.min.js"></script>
 <script>
 VANTA.NET({ el: "body", mouseControls: true, touchControls: true, gyroControls: false, minHeight:200, minWidth:200, scale:1.0, scaleMobile:1.0, color:0x60a5fa, backgroundColor:0x0f172a });
 </script>
 
-<!-- chess.js (规则引擎) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.12.0/chess.min.js"></script>
+<!-- libraries: browser-image-compression & jszip -->
+<script src="https://unpkg.com/browser-image-compression@1.0.17/dist/browser-image-compression.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
 
 <!-- 北京时间 -->
 <script>
@@ -116,391 +142,194 @@ function updateBeijingTime(){
 updateBeijingTime(); setInterval(updateBeijingTime,1000);
 </script>
 
-<!-- 主逻辑（Canvas 渲染 + 合法走子 + AI） -->
+<!-- 主逻辑：图片压缩与转换（纯前端） -->
 <script>
-/* --------- 配置 & 基本变量 ---------- */
-const canvas = document.getElementById('chessCanvas');
-const ctx = canvas.getContext('2d');
-const BOARD_SIZE = 8;
-let BOARD_PX = canvas.width; // 假定正方形
-let SQUARE = BOARD_PX / BOARD_SIZE;
-let flip = false; // 翻转棋盘
-let game = new Chess(); // chess.js 引擎
-let selected = null; // e.g. 'e2'
-let legalTargets = []; // ['e4','e3'...]
-let lastMove = null;
-let aiThinking = false;
+const fileInput = document.getElementById('fileInput');
+const dropzone = document.getElementById('dropzone');
+const thumbs = document.getElementById('thumbs');
+const countEl = document.getElementById('count');
+const compressBtn = document.getElementById('compressBtn');
+const clearBtn = document.getElementById('clearBtn');
+const downloadAllBtn = document.getElementById('downloadAllBtn');
+const logEl = document.getElementById('log');
 
-/* 画风色彩（极简线条风） */
-const colors = {
-  light: '#0b2540', // 浅格
-  dark:  '#071627', // 深格
-  highlight: 'rgba(96,165,250,0.28)', // 选中/最后一步
-  moveDot: 'rgba(96,165,250,0.85)', // 可走位点
-  pieceWhite: '#ffffff',
-  pieceBlack: '#60a5fa'
-};
+const maxSideInput = document.getElementById('maxSide');
+const maxSizeMBInput = document.getElementById('maxSizeMB');
+const outFormatSelect = document.getElementById('outFormat');
+const qualityRange = document.getElementById('quality');
+const qualityVal = document.getElementById('qualityVal');
+const useWorker = document.getElementById('useWorker');
 
-/* 评分（用于AI） */
-const PIECE_VALUE = { p:100, n:320, b:330, r:500, q:900, k:20000 };
+let files = []; // {file:File, id:string, resultBlob:Blob|null, info:{}}
 
-/* DOM refs */
-const statusEl = document.getElementById('statusInfo');
-const fenEl = document.getElementById('fen');
-document.getElementById('newBtn').addEventListener('click', newGame);
-document.getElementById('undoBtn').addEventListener('click', undoMove);
-document.getElementById('flipBtn').addEventListener('click', ()=>{ flip = !flip; render(); });
-document.getElementById('depthSelect').addEventListener('change', ()=>{ /* just reactive */ });
-
-/* 监听画布点击 */
-canvas.addEventListener('click', onCanvasClick);
-
-/* 自动适配尺寸（如果需要） */
-function resizeBoard(px){
-  BOARD_PX = px || 480;
-  canvas.width = BOARD_PX; canvas.height = BOARD_PX;
-  SQUARE = BOARD_PX / BOARD_SIZE;
-  render();
+/* 工具函数 */
+function log(msg){
+  const el = document.createElement('div');
+  el.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  logEl.prepend(el);
 }
 
-/* ---------- 渲染函数（极简棋子） ---------- */
-function render(){
-  // 背景格
-  ctx.clearRect(0,0,BOARD_PX,BOARD_PX);
-  // 遍历格子（以白方底朝下视角，flip 则翻转）
-  for(let r=0;r<8;r++){
-    for(let f=0;f<8;f++){
-      const vis = flip ? boardCoordToVis(7-r,7-f) : boardCoordToVis(r,f);
-      const x = vis.x*SQUARE, y = vis.y*SQUARE;
-      const isLight = (r+f)%2===0;
-      ctx.fillStyle = isLight ? colors.light : colors.dark;
-      ctx.fillRect(x,y,SQUARE,SQUARE);
-
-      // 高亮上次移动
-      if(lastMove && (lastMove.from === indexToSquare(r,f) || lastMove.to === indexToSquare(r,f))){
-        ctx.fillStyle = colors.highlight;
-        ctx.fillRect(x,y,SQUARE,SQUARE);
-      }
-    }
-  }
-
-  // 绘制棋子
-  const boardArray = game.board(); // 8x8 array [rank 8->1]
-  for(let rank=0; rank<8; rank++){
-    for(let file=0; file<8; file++){
-      const p = boardArray[rank][file];
-      if(p){
-        // convert rank,file to canvas coords depending on flip
-        const vis = flip ? boardCoordToVis(7-rank,7-file) : boardCoordToVis(rank,file);
-        drawPiece(p, vis.x*SQUARE, vis.y*SQUARE, SQUARE);
-      }
-    }
-  }
-
-  // 如果选中，绘制可走点
-  if(selected){
-    for(const sq of legalTargets){
-      const idx = squareToIndex(sq); // {r,f}
-      const vis = flip ? boardCoordToVis(7-idx.r,7-idx.f) : boardCoordToVis(idx.r,idx.f);
-      const cx = vis.x*SQUARE + SQUARE/2;
-      const cy = vis.y*SQUARE + SQUARE/2;
-      // draw circle
-      ctx.beginPath();
-      ctx.fillStyle = colors.moveDot;
-      ctx.arc(cx, cy, Math.max(6, SQUARE*0.11), 0, Math.PI*2);
-      ctx.fill();
-    }
-  }
-
-  // 更新状态与 FEN
-  updateStatus();
+function bytesToSize(bytes){
+  if(bytes === 0) return '0 B';
+  const k = 1024, sizes = ['B','KB','MB','GB'];
+  const i = Math.floor(Math.log(bytes)/Math.log(k));
+  return (bytes / Math.pow(k,i)).toFixed(2) + ' ' + sizes[i];
 }
 
-/* 绘制极简风棋子（用几何与线条） */
-function drawPiece(pieceObj, x, y, s){
-  // pieceObj: {type:'p','k'..., color:'w'/'b'}
-  const type = pieceObj.type;
-  const color = pieceObj.color === 'w' ? colors.pieceWhite : colors.pieceBlack;
-  ctx.save();
-  ctx.translate(x, y);
-
-  // center for drawing
-  const cx = s/2, cy = s/2;
-
-  ctx.strokeStyle = color;
-  ctx.fillStyle = color;
-  ctx.lineWidth = Math.max(1, s*0.05);
-  ctx.lineJoin = 'round';
-
-  // Draw simplified glyphs:
-  switch(type){
-    case 'p': // pawn: small circle on base
-      ctx.beginPath();
-      ctx.arc(cx, cy-6, s*0.11, 0, Math.PI*2);
-      ctx.fill();
-      ctx.fillRect(cx - s*0.12, cy - 0, s*0.24, s*0.18);
-      break;
-    case 'r': // rook: rectangular base + battlements
-      ctx.beginPath();
-      ctx.rect(cx - s*0.18, cy - s*0.12, s*0.36, s*0.28);
-      ctx.fill();
-      // battlements
-      ctx.fillStyle = getContrast(color);
-      ctx.fillRect(cx - s*0.18, cy - s*0.2, s*0.09, s*0.06);
-      ctx.fillRect(cx - s*0.04, cy - s*0.2, s*0.09, s*0.06);
-      ctx.fillRect(cx + s*0.1, cy - s*0.2, s*0.09, s*0.06);
-      break;
-    case 'n': // knight: triangle-ish
-      ctx.beginPath();
-      ctx.moveTo(cx - s*0.14, cy + s*0.14);
-      ctx.lineTo(cx + s*0.14, cy - s*0.06);
-      ctx.lineTo(cx - s*0.06, cy - s*0.18);
-      ctx.closePath();
-      ctx.fill();
-      break;
-    case 'b': // bishop: tall with slashed center
-      ctx.beginPath();
-      ctx.ellipse(cx, cy-2, s*0.12, s*0.2, 0, 0, Math.PI*2);
-      ctx.fill();
-      // slash
-      ctx.beginPath();
-      ctx.strokeStyle = getContrast(color);
-      ctx.lineWidth = Math.max(1, s*0.045);
-      ctx.moveTo(cx - s*0.05, cy - s*0.12);
-      ctx.lineTo(cx + s*0.05, cy + s*0.08);
-      ctx.stroke();
-      break;
-    case 'q': // queen: crown dots
-      ctx.beginPath();
-      ctx.moveTo(cx - s*0.16, cy + s*0.08);
-      ctx.lineTo(cx - s*0.08, cy - s*0.18);
-      ctx.lineTo(cx, cy + s*0.08);
-      ctx.lineTo(cx + s*0.08, cy - s*0.18);
-      ctx.lineTo(cx + s*0.16, cy + s*0.08);
-      ctx.closePath();
-      ctx.fill();
-      // crown dots
-      ctx.fillStyle = getContrast(color);
-      ctx.beginPath();
-      ctx.arc(cx - s*0.08, cy - s*0.18, s*0.03, 0, Math.PI*2);
-      ctx.arc(cx + s*0.08, cy - s*0.18, s*0.03, 0, Math.PI*2);
-      ctx.fill();
-      break;
-    case 'k': // king: box + small cross
-      ctx.beginPath();
-      ctx.rect(cx - s*0.14, cy - s*0.12, s*0.28, s*0.28);
-      ctx.fill();
-      ctx.fillStyle = getContrast(color);
-      ctx.fillRect(cx - s*0.02, cy - s*0.18, s*0.04, s*0.12);
-      ctx.fillRect(cx - s*0.08, cy - s*0.12, s*0.16, s*0.04);
-      break;
-  }
-  ctx.restore();
+function reset(){
+  files = [];
+  thumbs.innerHTML = '';
+  countEl.textContent = '0';
+  logEl.innerHTML = '';
 }
 
-/* contrast color for simple accents */
-function getContrast(col){
-  // if color is light (#fff) return dark; else return light
-  return (col === '#ffffff') ? '#0b2540' : '#ffffff';
-}
-
-/* ---------- 坐标转换帮助函数 ---------- */
-// chess.js board() returns array [rank8 ... rank1] so indexToSquare(0,0) => 'a8'
-function indexToSquare(rankIdx, fileIdx){
-  const file = String.fromCharCode(97 + fileIdx);
-  const rank = 8 - rankIdx;
-  return file + rank;
-}
-function squareToIndex(sq){
-  const file = sq.charCodeAt(0) - 97;
-  const rank = 8 - parseInt(sq[1],10);
-  return {r: rank, f: file};
-}
-// convert engine board coords to visible grid coords (x,y in 0..7)
-function boardCoordToVis(rankIdx, fileIdx){
-  return { x: fileIdx, y: rankIdx };
-}
-
-/* ---------- 交互：点击、选子、走子 ---------- */
-function onCanvasClick(evt){
-  if(aiThinking) return;
-  const rect = canvas.getBoundingClientRect();
-  const cx = evt.clientX - rect.left;
-  const cy = evt.clientY - rect.top;
-  const file = Math.floor(cx / SQUARE);
-  const rankVis = Math.floor(cy / SQUARE);
-  // convert vis coords to engine rank/file considering flip
-  const r = flip ? 7 - rankVis : rankVis;
-  const f = flip ? 7 - file : file;
-  const sq = indexToSquare(r, f);
-
-  const turn = game.turn(); // 'w' or 'b'
-  const isPlayersTurn = (turn === 'w'); // currently player is white only (future: support choice)
-  if(!selected){
-    const piece = game.get(sq);
-    if(piece && ((piece.color === 'w' && isPlayersTurn) || (piece.color === 'b' && !isPlayersTurn))){
-      // select and compute legal moves using chess.js (it gives legal moves for selected square)
-      selected = sq;
-      const moves = game.moves({ square: sq, verbose: true });
-      legalTargets = moves.map(m => m.to);
-      render();
-    }
-  } else {
-    // if clicked same square -> cancel
-    if(sq === selected){
-      selected = null; legalTargets = []; render(); return;
-    }
-    // if clicked a legal target -> make move (handle promotions: default to queen)
-    if(legalTargets.includes(sq)){
-      const move = game.move({ from: selected, to: sq, promotion: 'q' });
-      lastMove = move ? { from: move.from, to: move.to } : null;
-      selected = null; legalTargets = [];
-      render();
-      // if game not over, AI move (player always white here)
-      if(!game.game_over()){
-        // delay so UI updates
-        setTimeout(()=>{ aiTurn(); }, 220);
-      }
-    } else {
-      // clicked elsewhere: if clicked on another own piece, change selection
-      const piece = game.get(sq);
-      if(piece && piece.color === 'w'){ selected = sq; legalTargets = game.moves({ square: sq, verbose: true }).map(m=>m.to); render(); }
-      else { selected = null; legalTargets = []; render(); }
-    }
-  }
-}
-
-/* ---------- AI（Minimax + alpha-beta） ---------- */
-function aiTurn(){
-  const depth = parseInt(document.getElementById('depthSelect').value,10) || 2;
-  if(depth === 0){
-    // random move
-    const moves = game.moves();
-    const mv = moves[Math.floor(Math.random()*moves.length)];
-    game.move(mv);
-    lastMove = parseMoveToObj(mv);
-    render(); return;
-  }
-
-  aiThinking = true;
-  statusEl.textContent = 'AI 思考中...';
-  setTimeout(()=>{
-    const best = findBestMove(depth);
-    if(best && best.move){
-      game.move(best.move);
-      lastMove = { from: best.move.from, to: best.move.to };
-    }
-    aiThinking = false;
-    render();
-  }, 60);
-}
-
-/* helper: parse move string -> {from,to} (for random path) */
-function parseMoveToObj(moveStr){
-  // chess.js returns SAN or UCI? moves() returns SAN normally; but we'll prefer verbose moves when needed
-  // this helper is fallback (not used by minimax)
-  // Not robust; prefer verbose moves used elsewhere.
-  return null;
-}
-
-/* evaluation */
-function evaluateBoard(ch){
-  const boardArr = ch.board();
-  let score = 0;
-  for(let r=0;r<8;r++){
-    for(let f=0;f<8;f++){
-      const p = boardArr[r][f];
-      if(p){
-        const val = PIECE_VALUE[p.type] || 0;
-        score += (p.color === 'w') ? val : -val;
-      }
-    }
-  }
-  return score;
-}
-
-/* minimax - returns {score, move} where move is verbose move object */
-function minimax(ch, depth, alpha, beta, isMaximizing){
-  if(depth === 0 || ch.game_over()){
-    return { score: evaluateBoard(ch) };
-  }
-  const moves = ch.moves({ verbose: true });
-  if(isMaximizing){
-    let maxEval = -Infinity; let bestMove = null;
-    for(const m of moves){
-      ch.move(m);
-      const res = minimax(ch, depth-1, alpha, beta, false);
-      ch.undo();
-      if(res.score > maxEval){ maxEval = res.score; bestMove = m; }
-      alpha = Math.max(alpha, res.score);
-      if(beta <= alpha) break;
-    }
-    return { score: maxEval, move: bestMove };
-  } else {
-    let minEval = Infinity; let bestMove = null;
-    for(const m of moves){
-      ch.move(m);
-      const res = minimax(ch, depth-1, alpha, beta, true);
-      ch.undo();
-      if(res.score < minEval){ minEval = res.score; bestMove = m; }
-      beta = Math.min(beta, res.score);
-      if(beta <= alpha) break;
-    }
-    return { score: minEval, move: bestMove };
-  }
-}
-
-function findBestMove(depth){
-  // AI plays black (since player is white)
-  const ch = new Chess(game.fen());
-  const maximizing = (ch.turn() === 'w'); // if AI is white (not in this UI) - but here AI is black -> minimizing
-  // We'll treat AI as maximizing if it's white, else minimizing.
-  return minimax(ch, depth, -Infinity, Infinity, maximizing);
-}
-
-/* ---------- 控制：新游戏 / 悔棋 / 状态 ---------- */
-function newGame(){
-  game.reset();
-  selected = null; legalTargets = []; lastMove = null;
-  aiThinking = false;
-  render();
-}
-
-function undoMove(){
-  if(aiThinking) return;
-  // undo last two plies to restore player's turn (if possible)
-  game.undo();
-  game.undo();
-  selected = null; legalTargets = []; lastMove = null;
-  render();
-}
-
-function updateStatus(){
-  if(game.in_checkmate()){
-    statusEl.textContent = (game.turn()==='w' ? '黑方胜（将死）' : '白方胜（将死）');
-  } else if(game.in_draw() || game.in_stalemate()){
-    statusEl.textContent = '和棋';
-  } else if(game.in_check()){
-    statusEl.textContent = '被将军';
-  } else{
-    statusEl.textContent = (game.turn()==='w' ? '白方行棋' : '黑方行棋');
-  }
-  fenEl.textContent = game.fen();
-}
-
-/* ---------- 初始化 ---------- */
-function init(){
-  resizeBoard(480);
-  newGame();
-  // if player chooses black in future, call aiTurn() first
-}
-window.addEventListener('load', init);
-
-/* optional: keyboard shortcuts */
-window.addEventListener('keydown',(e)=>{
-  if(e.key === 'z' || e.key === 'Z') undoMove();
-  if(e.code === 'Space') newGame();
+/* 选择 / 拖拽文件 */
+dropzone.addEventListener('click', ()=> fileInput.click());
+fileInput.addEventListener('change', (e)=>{
+  handleFiles(Array.from(e.target.files));
+  fileInput.value = '';
 });
+
+dropzone.addEventListener('dragover', (e)=>{ e.preventDefault(); dropzone.style.borderColor = '#60a5fa'; });
+dropzone.addEventListener('dragleave', ()=>{ dropzone.style.borderColor = 'rgba(255,255,255,0.06)'; });
+dropzone.addEventListener('drop', (e)=>{ e.preventDefault(); dropzone.style.borderColor = 'rgba(255,255,255,0.06)'; handleFiles(Array.from(e.dataTransfer.files)); });
+
+function handleFiles(selectedFiles){
+  const imageFiles = selectedFiles.filter(f => f.type && f.type.startsWith('image'));
+  if(imageFiles.length === 0){ log('没有检测到图片文件'); return; }
+  for(const f of imageFiles){
+    const id = `${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+    files.push({ file: f, id, resultBlob: null, info: null });
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const box = document.createElement('div'); box.className = 'thumb'; box.id = 'thumb_' + id;
+      box.innerHTML = `<img src="${ev.target.result}" alt="${f.name}"><div style="font-weight:600">${f.name}</div><div class="small">原始：${bytesToSize(f.size)}</div><div class="small" id="res_${id}" style="margin-top:6px"></div>`;
+      thumbs.appendChild(box);
+    };
+    reader.readAsDataURL(f);
+  }
+  countEl.textContent = files.length;
+  log(`已添加 ${imageFiles.length} 张图片`);
+}
+
+/* 清空 */
+clearBtn.addEventListener('click', ()=>{
+  reset();
+  log('已清空所选文件');
+});
+
+/* 显示 quality 值 */
+qualityRange.addEventListener('input', ()=>{ qualityVal.textContent = qualityRange.value; });
+
+/* 压缩主流程 */
+compressBtn.addEventListener('click', async ()=>{
+  if(files.length === 0){ log('请先选择图片'); return; }
+  compressBtn.disabled = true;
+  downloadAllBtn.disabled = true;
+  log('开始压缩...');
+  const zip = new JSZip();
+  let processed = 0;
+  for(const fobj of files){
+    try{
+      const file = fobj.file;
+      const beforeSize = file.size;
+      const options = {
+        maxWidthOrHeight: parseInt(maxSideInput.value,10) || 1024,
+        maxSizeMB: parseFloat(maxSizeMBInput.value) || 1,
+        useWebWorker: useWorker.checked,
+        initialQuality: parseFloat(qualityRange.value) || 0.8,
+        fileType: (outFormatSelect.value === 'original') ? undefined : `image/${outFormatSelect.value}`
+      };
+      // browser-image-compression 会自动转换格式并压缩
+      log(`处理中：${file.name} ...`);
+      const compressedBlob = await imageCompression(file, options);
+      fobj.resultBlob = compressedBlob;
+      const afterSize = compressedBlob.size;
+      // 更新缩略信息
+      const infoEl = document.getElementById('res_' + fobj.id);
+      if(infoEl){
+        infoEl.innerHTML = `压缩后：${bytesToSize(afterSize)} <br><span class="small">节省：${((1 - afterSize/beforeSize) * 100).toFixed(1)}%</span>`;
+      }
+      // 将文件添加到 zip（保持或替换扩展名）
+      const outName = makeOutName(file.name, outFormatSelect.value);
+      zip.file(outName, compressedBlob);
+      // 生成单独下载按钮
+      addSingleDownloadButton(fobj.id, outName, compressedBlob);
+      log(`完成：${file.name} → ${outName}（${bytesToSize(afterSize)}）`);
+    }catch(err){
+      log(`错误：处理 ${fobj.file.name} 失败 — ${err && err.message ? err.message : err}`);
+    } finally {
+      processed++;
+    }
+  }
+
+  // 启用打包下载（异步生成 zip blob）
+  downloadAllBtn.onclick = async ()=>{
+    try{
+      downloadAllBtn.disabled = true;
+      log('生成 ZIP 包中...');
+      const content = await zip.generateAsync({type:'blob'}, (meta)=>{
+        // 可在此处显示进度（meta.percent）
+      });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement('a'); a.href = url; a.download = `images_compressed_${Date.now()}.zip`; a.click();
+      URL.revokeObjectURL(url);
+      log('ZIP 包已生成并下载');
+    }catch(e){
+      log('生成 ZIP 失败：' + e);
+    } finally {
+      downloadAllBtn.disabled = false;
+    }
+  };
+
+  compressBtn.disabled = false;
+  downloadAllBtn.disabled = false;
+  log('全部处理完成');
+});
+
+/* 辅助：生成输出文件名 */
+function makeOutName(origName, fmt){
+  if(fmt === 'original') return origName;
+  const base = origName.replace(/\.[^.]+$/, '');
+  const ext = (fmt === 'jpeg') ? 'jpg' : fmt;
+  return `${base}.${ext}`;
+}
+
+/* 为每个缩略卡添加下载按钮 */
+function addSingleDownloadButton(id, filename, blob){
+  const box = document.getElementById('thumb_' + id);
+  if(!box) return;
+  // remove existing buttons area
+  let btnRow = box.querySelector('.btnrow');
+  if(btnRow) btnRow.remove();
+  btnRow = document.createElement('div');
+  btnRow.className = 'btnrow';
+  btnRow.style.marginTop = '8px';
+  const dlBtn = document.createElement('button');
+  dlBtn.className = 'btn';
+  dlBtn.textContent = '下载';
+  dlBtn.onclick = ()=>{
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = filename; a.click(); URL.revokeObjectURL(url);
+  };
+  btnRow.appendChild(dlBtn);
+  // preview compressed in new tab
+  const viewBtn = document.createElement('button');
+  viewBtn.className = 'btn';
+  viewBtn.textContent = '预览';
+  viewBtn.onclick = ()=>{
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    // do not revoke immediately so preview works
+    setTimeout(()=> URL.revokeObjectURL(url), 20000);
+  };
+  btnRow.appendChild(viewBtn);
+  box.appendChild(btnRow);
+}
+
+/* 页面初始化 */
+reset();
+log('工具已就绪。');
 </script>
 </body>
 </html>
