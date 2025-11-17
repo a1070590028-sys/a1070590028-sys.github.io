@@ -83,37 +83,6 @@
     }
     /* responsive */
     @media(max-width:860px){.compress-grid{grid-template-columns:1fr}.thumb{width:45%}}
-    /* ---------- 自定义鼠标样式开始 ---------- */
-* {
-    cursor: none !important;
-}
-
-    #custom-cursor {
-        position: fixed;
-        top: 0; left: 0;
-        width: 14px; height: 14px;
-        border-radius: 50%;
-        background: #60a5fa;
-        box-shadow: 0 0 8px #60a5fa, 0 0 16px #ffffff;
-        pointer-events: none;
-        transform: translate(-50%, -50%);
-        z-index: 999999;
-    }
-
-#custom-cursor.active {
-    width: 22px;
-    height: 22px;
-    box-shadow: 0 0 32px #60a5fa, 0 0 64px #ffffff;
-}
-
-    canvas#cursor-canvas {
-        position: fixed;
-        top:0; left:0;
-        width:100%; height:100%;
-        pointer-events:none;
-        z-index:999997;
-    }
-    /* ---------- 自定义鼠标样式结束 ---------- */
 </style>
 </head>
 <body>
@@ -217,9 +186,6 @@ VANTA.NET({
     backgroundColor: 0x0f172a
 });
 </script>
-
-<div id="custom-cursor"></div>
-
 
 <!-- 本地库 -->
 <script src="js/browser-image-compression.min.js"></script>
@@ -425,52 +391,6 @@ function runNetTestLoop(){
 }
 runNetTestLoop();
 setInterval(runNetTestLoop,5000);
-</script>
-
-<script>
-// ========== 自定义鼠标主逻辑 ==========
-
-// 创建性能更好的 requestAnimationFrame 跟随
-const cursor = document.getElementById("custom-cursor");
-
-// 鼠标坐标
-let mouseX = window.innerWidth / 2;
-let mouseY = window.innerHeight / 2;
-
-// 监听鼠标移动（只更新目标位置）
-document.addEventListener("mousemove", (e) => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-});
-
-// 实时渲染（不会抖动、不卡顿）
-function render() {
-    cursor.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
-    requestAnimationFrame(render);
-}
-requestAnimationFrame(render);
-
-
-// ========== 可点击元素 hover 变大 ==========
-
-// 所有可点击元素
-const clickableSelectors = "a, button, input, textarea, select, label, [onclick], .clickable";
-
-// 监听进入可点击元素
-document.querySelectorAll(clickableSelectors).forEach(el => {
-    el.addEventListener("mouseenter", () => cursor.classList.add("active"));
-    el.addEventListener("mouseleave", () => cursor.classList.remove("active"));
-});
-
-
-// ========== 鼠标按下缩小、松开恢复 ==========
-document.addEventListener("mousedown", () => {
-    cursor.style.transform += " scale(0.85)";
-});
-document.addEventListener("mouseup", () => {
-    cursor.style.transform = `translate(${mouseX}px, ${mouseY}px)`;  // 恢复
-});
-
 </script>
 </body>
 </html>
