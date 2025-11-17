@@ -35,6 +35,52 @@
     /* 折叠动画 */
     .card-content{overflow:hidden;max-height:9999px;transition:max-height 0.35s ease,padding 0.35s ease;padding:12px 0 0 0}
     .card-content.collapsed{max-height:0;padding:0}
+    #net-monitor-btn {
+        position:fixed;
+        right:20px;
+        bottom:20px;
+        width:54px;
+        height:54px;
+        border-radius:50%;
+        background:rgba(255,255,255,0.08);
+        border:1px solid rgba(255,255,255,0.15);
+        backdrop-filter:blur(10px);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        cursor:pointer;
+        z-index:99999;
+        transition:0.25s;
+    }
+    #net-monitor-btn:hover{
+        transform:scale(1.08);
+        box-shadow:0 0 14px rgba(96,165,250,0.4);
+    }
+    .net-icon{font-size:22px;}
+
+    #net-monitor-panel{
+        position:fixed;
+        right:20px;
+        bottom:90px;
+        width:230px;
+        padding:16px;
+        border-radius:14px;
+        background:rgba(255,255,255,0.08);
+        border:1px solid rgba(255,255,255,0.12);
+        backdrop-filter:blur(12px);
+        color:#cfe8ff;
+        display:none;
+        z-index:99999;
+    }
+    #net-monitor-panel h3{
+        margin:0 0 10px;
+        font-size:16px;
+        color:#93c5fd;
+    }
+    .net-item{
+        margin:6px 0;
+        font-size:14px;
+    }
     /* responsive */
     @media(max-width:860px){.compress-grid{grid-template-columns:1fr}.thumb{width:45%}}
 </style>
@@ -110,6 +156,18 @@
 </div>
 
 <footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
+
+<div id="net-monitor-btn">
+    <div class="net-icon">📶</div>
+</div>
+
+<div id="net-monitor-panel">
+    <h3>网络状态监控</h3>
+    <div class="net-item">网络状态：<span id="nm-status">--</span></div>
+    <div class="net-item">请求耗时：<span id="nm-request">--</span></div>
+    <div class="net-item">下载速度：<span id="nm-speed">--</span></div>
+    <div class="net-item">网络延迟：<span id="nm-latency">--</span></div>
+</div>
 
 <!-- VANTA 背景（本地） -->
 <script src="js/three.min.js"></script>
@@ -268,6 +326,71 @@ document.querySelectorAll('.post-card .card-title').forEach(title=>{
         }
     });
 });
+</script>
+<script>
+const btn=document.getElementById("net-monitor-btn");
+const panel=document.getElementById("net-monitor-panel");
+
+btn.onclick=()=>{ 
+    panel.style.display = (panel.style.display==="none"||panel.style.display==="") 
+        ? "block" : "none";
+};
+
+const elStatus=document.getElementById("nm-status");
+const elRequest=document.getElementById("nm-request");
+const elSpeed=document.getElementById("nm-speed");
+const elLatency=document.getElementById("nm-latency");
+
+function updateOnlineStatus(){
+    elStatus.textContent = navigator.onLine ? "在线" : "离线";
+}
+window.addEventListener("online",updateOnlineStatus);
+window.addEventListener("offline",updateOnlineStatus);
+
+async function testRequestTime(){
+    const url="net/test.png?x="+Math.random();
+    const t1=performance.now();
+    try{
+        await fetch(url,{cache:"no-store"});
+        elRequest.textContent=(performance.now()-t1).toFixed(1)+" ms";
+    }catch{
+        elRequest.textContent="失败";
+    }
+}
+
+async function testDownloadSpeed(){
+    const url="net/test_1mb.bin?x="+Math.random();
+    const size=1048576;
+    const t1=performance.now();
+    try{
+        const res=await fetch(url);
+        await res.arrayBuffer();
+        const sec=(performance.now()-t1)/1000;
+        elSpeed.textContent=((size/sec)/1024/1024).toFixed(2)+" MB/s";
+    }catch{
+        elSpeed.textContent="失败";
+    }
+}
+
+async function testLatency(){
+    const url="net/ping.txt?x="+Math.random();
+    const t1=performance.now();
+    try{
+        await fetch(url,{method:"HEAD",cache:"no-store"});
+        elLatency.textContent=(performance.now()-t1).toFixed(1)+" ms";
+    }catch{
+        elLatency.textContent="失败";
+    }
+}
+
+function runNetTestLoop(){
+    updateOnlineStatus();
+    testRequestTime();
+    testDownloadSpeed();
+    testLatency();
+}
+runNetTestLoop();
+setInterval(runNetTestLoop,5000);
 </script>
 </body>
 </html>
