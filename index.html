@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Frey 的个人网站</title>
 <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+<!-- 新增：引入自定义鼠标 CSS -->
+<link rel="stylesheet" href="css/custom-cursor.css">
+
 <style>
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;font-family:"Segoe UI",Helvetica,Arial,sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
@@ -191,6 +195,9 @@ VANTA.NET({
 <script src="js/browser-image-compression.min.js"></script>
 <script src="js/jszip.min.js"></script>
 
+<!-- 新增：引入自定义鼠标 JS（div 会自动生成，无需手动添加） -->
+<script src="js/custom-cursor.js" defer></script>
+
 <!-- 北京时间 -->
 <script>
 function updateBeijingTime() {
@@ -231,7 +238,7 @@ function reset(){files=[];thumbs.innerHTML='';countEl.textContent='0';logEl.inne
 dropzone.addEventListener('click',()=>fileInput.click());
 fileInput.addEventListener('change',e=>{handleFiles(Array.from(e.target.files));fileInput.value='';});
 dropzone.addEventListener('dragover',e=>{e.preventDefault();dropzone.style.borderColor='#60a5fa';});
-dropzone.addEventListener('dragleave',()=>dropzone.style.borderColor='rgba(255,255,255,0.06)');
+dropzone.addEventListener('dragleave',()=>dropzone.style.borderColor='rgba(255,255,255,0.06)';});
 dropzone.addEventListener('drop',e=>{e.preventDefault();dropzone.style.borderColor='rgba(255,255,255,0.06)';handleFiles(Array.from(e.dataTransfer.files));});
 
 function handleFiles(selectedFiles){
@@ -296,7 +303,6 @@ document.querySelectorAll('.post-card .card-title').forEach(title=>{
     const content = title.nextElementSibling;
     if(!content) return;
 
-    // 初始化展开高度
     content.style.maxHeight = content.scrollHeight + 'px';
 
     title.addEventListener('click', ()=>{
@@ -307,7 +313,6 @@ document.querySelectorAll('.post-card .card-title').forEach(title=>{
             content.style.padding = '0';
         } else {
             icon.textContent = '▾';
-            // 方法2：动态计算 scrollHeight + 额外空间，保证内容完整显示
             const computedStyle = getComputedStyle(content);
             const paddingTop = parseInt(computedStyle.paddingTop);
             const paddingBottom = parseInt(computedStyle.paddingBottom);
@@ -316,7 +321,6 @@ document.querySelectorAll('.post-card .card-title').forEach(title=>{
         }
     });
 
-    // 窗口尺寸变化时，重新计算高度
     window.addEventListener('resize', ()=>{
         if(!content.classList.contains('collapsed')){
             const computedStyle = getComputedStyle(content);
