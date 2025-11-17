@@ -84,9 +84,10 @@
     /* responsive */
     @media(max-width:860px){.compress-grid{grid-template-columns:1fr}.thumb{width:45%}}
     /* ---------- 自定义鼠标样式开始 ---------- */
-     body, button, input, select, textarea {
-     cursor: none;
-     }
+     a, button, input, textarea, select, label, [onclick], .clickable {
+    cursor: none !important;
+    }
+
     #custom-cursor {
         position: fixed;
         top: 0; left: 0;
