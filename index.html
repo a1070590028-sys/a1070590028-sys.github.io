@@ -42,8 +42,10 @@
                 </div>
                 <div class="controls post-card" style="padding:14px">
                     <h3 style="margin:0 0 8px;color:#93c5fd">参数设置</h3>
-                    <div><label class="small">最大宽度或高度（像素）</label><input id="maxSide" type="number" value="1024" min="64" step="1"></div>
-                    <div><label class="small">目标文件大小（最大，MB）</label><input id="maxSizeMB" type="number" value="1" min="0.05" step="0.05"></div>
+
+                    <!-- 下面这四行是真正会变灰的压缩参数 -->
+                    <div class="compress-param"><label class="small">最大宽度或高度（像素）</label><input id="maxSide" type="number" value="1024" min="64" step="1"></div>
+                    <div class="compress-param"><label class="small">目标文件大小（最大，MB）</label><input id="maxSizeMB" type="number" value="1" min="0.05" step="0.05"></div>
                     <div>
                         <label class="small">输出格式</label>
                         <select id="outFormat">
@@ -54,12 +56,15 @@
                             <option value="avif">AVIF (.avif) —— 极致压缩（现代浏览器）</option>
                         </select>
                     </div>
-                    <div>
+                    <div class="compress-param">
                         <label class="small">质量 (0.1 - 1.0) <span id="qualityVal" class="small" style="float:right">0.80</span></label>
                         <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.80">
                     </div>
-                    <div><label class="small"><input id="useWorker" type="checkbox" checked> 使用 Web Worker（更快，推荐）</label></div>
+                    <div class="compress-param"><label class="small"><input id="useWorker" type="checkbox" checked> 使用 Web Worker（更快，推荐）</label></div>
+
+                    <!-- 这两个永远保持高亮、可交互 -->
                     <div><label class="small"><input type="checkbox" id="onlyConvert"> 仅修改图片格式（不压缩）</label></div>
+
                     <div style="margin-top:8px" class="small">
                         提示：勾选「仅修改图片格式」后将无损转换格式，压缩相关参数会变灰。<br>AVIF 压缩率最高，WebP 兼容性最佳。
                     </div>
