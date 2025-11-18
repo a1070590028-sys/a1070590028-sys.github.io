@@ -1,46 +1,43 @@
 document.addEventListener("DOMContentLoaded", () => {
     const cursor = document.createElement("div");
     cursor.id = "custom-cursor";
-    cursor.classList.add("cursor-default");
     document.body.appendChild(cursor);
 
-    let mouseX = 0, mouseY = 0;
-    let isInside = false;
+    let mouseX = 0;
+    let mouseY = 0;
 
-    // 默认偏移变量
+    // 默认偏移
     cursor.style.setProperty('--tx', '-4px');
     cursor.style.setProperty('--ty', '-4px');
 
-    document.addEventListener("mouseenter", (e) => {
-        isInside = true;
+    // 鼠标进入页面
+    document.addEventListener("mouseenter", () => {
         cursor.classList.add("visible");
         document.body.classList.add("cursor-active");
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-        updatePosition();
     });
 
+    // 鼠标离开页面
     document.addEventListener("mouseleave", () => {
-        isInside = false;
         cursor.classList.remove("visible");
         document.body.classList.remove("cursor-active");
     });
 
-    document.addEventListener("mousemove", (e) => {
-        if (!isInside) return;
+    // 核心：跟随 + 切换形态
+    document.addEventListener("mousemove", e => {
         mouseX = e.clientX;
         mouseY = e.clientY;
 
         const target = e.target;
-        const computed = getComputedStyle(target).cursor;
+        const cur = getComputedStyle(target).cursor;
 
-        cursor.classList.remove("cursor-default", "cursor-pointer", "cursor-text");
+        // 先移除所有形态类
+        cursor.className = "";   // 清空所有 class，只保留 id
 
-        if (computed === "pointer") {
+        if (cur === "pointer") {
             cursor.classList.add("cursor-pointer");
             cursor.style.setProperty('--tx', '-10px');
             cursor.style.setProperty('--ty', '-4px');
-        } else if (computed === "text") {
+        } else if (cur === "text") {
             cursor.classList.add("cursor-text");
             cursor.style.setProperty('--tx', '-50%');
             cursor.style.setProperty('--ty', '-50%');
@@ -50,20 +47,15 @@ document.addEventListener("DOMContentLoaded", () => {
             cursor.style.setProperty('--ty', '-4px');
         }
 
-        updatePosition();
+        cursor.classList.add("visible"); // 确保可见
+        cursor.style.left = mouseX + "px";
+        cursor.style.top  = mouseY + "px";
     });
 
-    function updatePosition() {
-        cursor.style.left = `${mouseX}px`;
-        cursor.style.top  = `${mouseY}px`;
-    }
-
-    // 保持 60fps 流畅跟随
-    const render = () => {
-        if (isInside) updatePosition();
-        requestAnimationFrame(render);
+    // 60fps 平滑跟随（即使在低帧率设备上也丝滑）
+    const loop = () => {
+        cursor.style.transform = `translate(calc(${mouseX}px + var(--tx)), calc(${mouseY}px + var(--ty)))`;
+        requestAnimationFrame(loop);
     };
-    requestAnimationFrame(render);
-
-    // 【已彻底删除 hover 放大和点击缩小相关代码】
+    requestAnimationFrame(loop);
 });
