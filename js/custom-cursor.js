@@ -3,30 +3,23 @@ document.addEventListener("DOMContentLoaded", () => {
     cursor.id = "custom-cursor";
     document.body.appendChild(cursor);
 
-    let mouseX = 0;
-    let mouseY = 0;
+    let mouseX = 0, mouseY = 0;
 
-    // 使用 document.elementFromPoint 来真正获取「鼠标下方的可交互元素」
+    // 精准获取鼠标下方真实元素
     function getCursorType(x, y) {
-        // 临时隐藏自定义光标，防止自己挡住检测
         cursor.style.display = 'none';
-        const underneath = document.elementFromPoint(x, y);
+        const el = document.elementFromPoint(x, y);
         cursor.style.display = '';
-        
-        if (!underneath) return "default";
-        const style = getComputedStyle(underneath);
-        const cursorType = style.cursor;
 
-        // 更宽松的判断，兼容更多情况
-        if (cursorType === "pointer" || 
-            underneath.tagName === "A" || 
-            underneath.tagName === "BUTTON" || 
-            underneath.onclick || 
-            underneath.style.cursor === "pointer" ||
-            underneath.closest('a, button, [onclick], [role="button"], .btn')) {
+        if (!el) return "default";
+        const style = getComputedStyle(el);
+        const cursorProp = style.cursor;
+
+        if (cursorProp === "pointer" || 
+            el.closest('a, button, input, textarea, select, [role="button"], .btn, [onclick]')) {
             return "pointer";
         }
-        if (cursorType === "text" || underneath.tagName === "TEXTAREA" || underneath.isContentEditable) {
+        if (cursorProp === "text" || el.tagName === "TEXTAREA" || el.isContentEditable) {
             return "text";
         }
         return "default";
@@ -38,23 +31,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const type = getCursorType(mouseX, mouseY);
 
-        cursor.className = "visible"; // 先清空再加
+        // 清空再添加，保证 transform 正确覆盖
+        cursor.className = "visible";
         cursor.classList.add("cursor-" + type);
 
-        // 直接用 transform 居中定位，不再依赖 CSS 变量（更稳定）
-        cursor.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
+        // 直接定位到鼠标坐标，偏移由 CSS 的 !important transform 精确控制
+        cursor.style.left = mouseX + "px";
+        cursor.style.top  = mouseY + "px";
     });
 
+    // 鼠标进出页面
     document.addEventListener("mouseenter", () => {
         cursor.classList.add("visible");
         document.body.classList.add("cursor-active");
     });
-
     document.addEventListener("mouseleave", () => {
         cursor.classList.remove("visible");
         document.body.classList.remove("cursor-active");
     });
 
-    // 初始隐藏在左上角
-    cursor.style.transform = "translate(-100px, -100px)";
+    // 初始隐藏
+    cursor.style.left = "-100px";
+    cursor.style.top = "-100px";
 });
