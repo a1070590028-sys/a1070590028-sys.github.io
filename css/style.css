@@ -33,21 +33,13 @@ input[type="number"],select,input[type="range"]{width:100%;padding:6px;border-ra
 .net-item{margin:6px 0;font-size:14px}
 @media(max-width:860px){.compress-grid{grid-template-columns:1fr}.thumb{width:45%}}
 
-.compress-controls-disabled > div:nth-child(1),
-.compress-controls-disabled > div:nth-child(2),
-.compress-controls-disabled > div:nth-child(4),
-.compress-controls-disabled > div:nth-child(5){opacity:0.45;pointer-events:none}
-.compress-controls-disabled > div:nth-child(1) input,
-.compress-controls-disabled > div:nth-child(2) input,
-.compress-controls-disabled > div:nth-child(4) input[type=range],
-.compress-controls-disabled > div:nth-child(5) input[type=checkbox],
-.compress-controls-disabled #qualityVal,
-.compress-controls-disabled label[for=maxSide],
-.compress-controls-disabled label[for=maxSizeMB],
-.compress-controls-disabled label[for=quality],
-.compress-controls-disabled label[for=useWorker]{cursor:not-allowed !important}
+.compress-param{transition:opacity .3s}
+.controls.compress-controls-disabled .compress-param{opacity:0.45;pointer-events:none}
+.controls.compress-controls-disabled .compress-param input,
+.controls.compress-controls-disabled .compress-param label,
+.controls.compress-controls-disabled #qualityVal{cursor:not-allowed !important}
 
-#outFormat,#onlyConvert,#outFormat option{opacity:1 !important;pointer-events:auto !important;cursor:pointer !important}
+#outFormat,#onlyConvert{opacity:1 !important;pointer-events:auto !important;cursor:pointer !important}
 
 #outFormat option{background-color:#0f172a;color:#60a5fa;font-weight:500}
 #outFormat option:hover{background-color:#1e293b !important;color:#93c5fd !important}
