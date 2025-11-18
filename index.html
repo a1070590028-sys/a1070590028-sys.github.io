@@ -1,95 +1,14 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Frey 的个人网站</title>
-<link rel="icon" href="favicon.ico" type="image/x-icon">
-
-<!-- 新增：引入自定义鼠标 CSS -->
-<link rel="stylesheet" href="css/custom-cursor.css">
-
-<style>
-    *{box-sizing:border-box}
-    html,body{height:100%;margin:0;font-family:"Segoe UI",Helvetica,Arial,sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
-    #time-card{position:fixed;top:12px;right:50px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:14px;color:#60a5fa;z-index:9999;text-align:right}
-    #time-card .date{font-size:13px;color:#93c5fd}
-    header{position:relative;z-index:1;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);padding:40px 20px;text-align:center}
-    header h1{margin:0 0 8px;font-size:34px;font-weight:700;color:#60a5fa;text-shadow:0 0 8px rgba(96,165,250,0.35)}
-    header p{margin:0;color:#cbd5e1;opacity:.85}
-    .container{position:relative;z-index:1;max-width:980px;margin:28px auto;padding:0 16px}
-    .post-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border-radius:14px;padding:20px;margin:18px 0}
-    .post-card h2{margin:0 0 10px;color:#93c5fd;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
-    .post-card p{margin:0;color:#94a3b8}
-    footer{position:relative;z-index:1;text-align:center;padding:22px;font-size:14px;color:#64748b}
-    footer span{color:#60a5fa}
-    /* 图片压缩卡片 */
-    .compress-grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
-    .controls{padding:12px;display:flex;flex-direction:column;gap:10px}
-    .dropzone{border:2px dashed rgba(255,255,255,0.06);border-radius:10px;padding:16px;text-align:center;cursor:pointer;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01))}
-    .thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
-    .thumb{width:120px;background:rgba(255,255,255,0.02);border-radius:8px;padding:8px;text-align:center;font-size:12px;color:#94a3b8}
-    .thumb img{max-width:100%;max-height:80px;border-radius:6px;display:block;margin:0 auto 6px}
-    .btn{display:inline-block;padding:8px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:#cfe8ff;cursor:pointer;margin:6px 6px 0 0;user-select:none}
-    .btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,0.35);border-color:#60a5fa}
-    label.small{font-size:13px;color:#94a3b8;display:block;margin-bottom:6px}
-    input[type="number"], select, input[type="range"]{width:100%;padding:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:#e2e8f0}
-    .small{font-size:13px;color:#94a3b8}
-    .file-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
-    /* 折叠动画 */
-    .card-content{overflow:hidden;max-height:9999px;transition:max-height 0.35s ease,padding 0.35s ease;padding:12px 0 0 0}
-    .card-content.collapsed{max-height:0;padding:0}
-    #net-monitor-btn {
-        position:fixed;
-        right:20px;
-        bottom:20px;
-        width:54px;
-        height:54px;
-        border-radius:50%;
-        background:rgba(255,255,255,0.08);
-        border:1px solid rgba(255,255,255,0.15);
-        backdrop-filter:blur(10px);
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        cursor:pointer;
-        z-index:99999;
-        transition:0.25s;
-    }
-    #net-monitor-btn:hover{
-        transform:scale(1.08);
-        box-shadow:0 0 14px rgba(96,165,250,0.4);
-    }
-    .net-icon{font-size:22px;}
-
-    #net-monitor-panel{
-        position:fixed;
-        right:20px;
-        bottom:90px;
-        width:230px;
-        padding:16px;
-        border-radius:14px;
-        background:rgba(255,255,255,0.08);
-        border:1px solid rgba(255,255,255,0.12);
-        backdrop-filter:blur(12px);
-        color:#cfe8ff;
-        display:none;
-        z-index:99999;
-    }
-    #net-monitor-panel h3{
-        margin:0 0 10px;
-        font-size:16px;
-        color:#93c5fd;
-    }
-    .net-item{
-        margin:6px 0;
-        font-size:14px;
-    }
-    /* responsive */
-    @media(max-width:860px){.compress-grid{grid-template-columns:1fr}.thumb{width:45%}}
-</style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Frey 的个人网站</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
 <div id="time-card"><div class="date">0000-00-00</div><div class="time">--:--:--</div></div>
 
 <header><h1>Frey 的个人网站</h1><p>记录 · 思考 · 成长 · 前进</p></header>
@@ -102,7 +21,6 @@
         <div class="card-content">
             <p style="margin-top:8px">在浏览器内压缩图片并转换格式：上传 → 设置参数 → 压缩 → 单张或打包下载。</p>
             <div style="margin-top:12px" class="compress-grid">
-                <!-- 左侧 -->
                 <div style="padding:12px">
                     <div id="dropzone" class="dropzone">
                         <div style="font-weight:600;color:#cfe8ff">拖拽图片到这里，或点击选择文件（支持多选）</div>
@@ -122,7 +40,6 @@
                         处理日志：<div id="log" style="margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:6px;border-radius:6px;background:rgba(0,0,0,0.2)"></div>
                     </div>
                 </div>
-                <!-- 右侧参数 -->
                 <div class="controls post-card" style="padding:14px">
                     <h3 style="margin:0 0 8px;color:#93c5fd">参数设置</h3>
                     <div><label class="small">最大宽度或高度（像素）</label><input id="maxSide" type="number" value="1024" min="64" step="1"></div>
@@ -149,22 +66,16 @@
         </div>
     </div>
 
-    <!-- 示例文章卡片 -->
     <div class="post-card">
         <h2 class="card-title">未来内容 <span class="toggle-icon">▾</span></h2>
-        <div class="card-content">
-            <p>敬请期待！</p>
-        </div>
+        <div class="card-content"><p>敬请期待！</p></div>
     </div>
 
 </div>
 
 <footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
 
-<div id="net-monitor-btn">
-    <div class="net-icon">🌐</div>
-</div>
-
+<div id="net-monitor-btn"><div class="net-icon">🌐</div></div>
 <div id="net-monitor-panel">
     <h3>网络状态监控</h3>
     <div class="net-item">网络状态：<span id="nm-status">--</span></div>
@@ -173,228 +84,13 @@
     <div class="net-item">网络延迟：<span id="nm-latency">--</span></div>
 </div>
 
-<!-- VANTA 背景（本地） -->
+<!-- 第三方库 -->
 <script src="js/three.min.js"></script>
 <script src="js/vanta.net.min.js"></script>
-<script>
-VANTA.NET({
-    el: "body",
-    mouseControls: true,
-    touchControls: true,
-    gyroControls: false,
-    minHeight: 200,
-    minWidth: 200,
-    scale: 1.0,
-    scaleMobile: 1.0,
-    color: 0x60a5fa,
-    backgroundColor: 0x0f172a
-});
-</script>
-
-<!-- 本地库 -->
 <script src="js/browser-image-compression.min.js"></script>
 <script src="js/jszip.min.js"></script>
 
-<!-- 新增：引入自定义鼠标 JS（div 会自动生成，无需手动添加） -->
-<script src="js/custom-cursor.js" defer></script>
-
-<!-- 北京时间 -->
-<script>
-function updateBeijingTime() {
-    const now = new Date();
-    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-    const bj = new Date(utc + 8 * 3600000);
-    const pad = n => String(n).padStart(2,'0');
-    document.querySelector('#time-card .date').textContent = `${bj.getFullYear()}-${pad(bj.getMonth()+1)}-${pad(bj.getDate())}`;
-    document.querySelector('#time-card .time').textContent = `${pad(bj.getHours())}:${pad(bj.getMinutes())}:${pad(bj.getSeconds())}`;
-}
-updateBeijingTime();
-setInterval(updateBeijingTime,1000);
-</script>
-
-<!-- 主逻辑：图片压缩与转换 -->
-<script>
-const fileInput=document.getElementById('fileInput'),
-      dropzone=document.getElementById('dropzone'),
-      thumbs=document.getElementById('thumbs'),
-      countEl=document.getElementById('count'),
-      compressBtn=document.getElementById('compressBtn'),
-      clearBtn=document.getElementById('clearBtn'),
-      downloadAllBtn=document.getElementById('downloadAllBtn'),
-      logEl=document.getElementById('log'),
-      maxSideInput=document.getElementById('maxSide'),
-      maxSizeMBInput=document.getElementById('maxSizeMB'),
-      outFormatSelect=document.getElementById('outFormat'),
-      qualityRange=document.getElementById('quality'),
-      qualityVal=document.getElementById('qualityVal'),
-      useWorker=document.getElementById('useWorker');
-
-let files=[];
-
-function log(msg){const el=document.createElement('div');el.textContent=`[${new Date().toLocaleTimeString()}] ${msg}`;logEl.prepend(el);}
-function bytesToSize(bytes){if(bytes===0)return '0 B';const k=1024,sizes=['B','KB','MB','GB'],i=Math.floor(Math.log(bytes)/Math.log(k));return(bytes/Math.pow(k,i)).toFixed(2)+' '+sizes[i];}
-function reset(){files=[];thumbs.innerHTML='';countEl.textContent='0';logEl.innerHTML='';}
-
-dropzone.addEventListener('click',()=>fileInput.click());
-fileInput.addEventListener('change',e=>{handleFiles(Array.from(e.target.files));fileInput.value='';});
-dropzone.addEventListener('dragover',e=>{e.preventDefault();dropzone.style.borderColor='#60a5fa';});
-dropzone.addEventListener('dragleave',()=>dropzone.style.borderColor='rgba(255,255,255,0.06)';});
-dropzone.addEventListener('drop',e=>{e.preventDefault();dropzone.style.borderColor='rgba(255,255,255,0.06)';handleFiles(Array.from(e.dataTransfer.files));});
-
-function handleFiles(selectedFiles){
-    const imageFiles=selectedFiles.filter(f=>f.type.startsWith('image/'));
-    if(imageFiles.length===0){log('没有检测到图片文件');return;}
-    for(const f of imageFiles){
-        const id=`${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
-        files.push({file:f,id, resultBlob:null, info:null});
-        const reader=new FileReader();
-        reader.onload=ev=>{
-            const box=document.createElement('div');box.className='thumb';box.id='thumb_'+id;
-            box.innerHTML=`<img src="${ev.target.result}" alt="${f.name}"><div style="font-weight:600">${f.name}</div><div class="small">原始：${bytesToSize(f.size)}</div><div class="small" id="res_${id}" style="margin-top:6px"></div>`;
-            thumbs.appendChild(box);
-        };
-        reader.readAsDataURL(f);
-    }
-    countEl.textContent=files.length;
-    log(`已添加 ${imageFiles.length} 张图片`);
-}
-
-clearBtn.addEventListener('click',()=>{reset();log('已清空所选文件');});
-qualityRange.addEventListener('input',()=>{qualityVal.textContent=qualityRange.value;});
-
-compressBtn.addEventListener('click',async()=>{
-    if(files.length===0){log('请先选择图片');return;}
-    compressBtn.disabled=true;downloadAllBtn.disabled=true;log('开始压缩...');
-    const zip=new JSZip();
-    for(const fobj of files){
-        try{
-            const file=fobj.file,beforeSize=file.size;
-            const options={
-                maxWidthOrHeight:parseInt(maxSideInput.value,10)||1024,
-                maxSizeMB:parseFloat(maxSizeMBInput.value)||1,
-                useWebWorker:useWorker.checked,
-                initialQuality:parseFloat(qualityRange.value)||0.8,
-                fileType:(outFormatSelect.value==='original')?undefined:`image/${outFormatSelect.value==='jpeg'?'jpeg':outFormatSelect.value}`
-            };
-            log(`处理中：${file.name} ...`);
-            const compressedBlob=await imageCompression(file,options);
-            fobj.resultBlob=compressedBlob;
-            const afterSize=compressedBlob.size;
-            const infoEl=document.getElementById('res_'+fobj.id);
-            if(infoEl){infoEl.innerHTML=`压缩后：${bytesToSize(afterSize)} <br><span class="small">节省：${((1-afterSize/beforeSize)*100).toFixed(1)}%</span>`;}
-            const outName=makeOutName(file.name,outFormatSelect.value);
-            zip.file(outName,compressedBlob);
-            addSingleDownloadButton(fobj.id,outName,compressedBlob);
-            log(`完成：${file.name} → ${outName}（${bytesToSize(afterSize)}）`);
-        }catch(err){log(`错误：处理 ${fobj.file.name} 失败 — ${err.message||err}`);}
-    }
-    downloadAllBtn.onclick=async()=>{
-        try{downloadAllBtn.disabled=true;log('生成 ZIP 包中...');const content=await zip.generateAsync({type:'blob'});const a=document.createElement('a');a.href=URL.createObjectURL(content);a.download=`images_compressed_${Date.now()}.zip`;a.click();URL.revokeObjectURL(a.href);log('ZIP 包已生成并下载');}catch(e){log('生成 ZIP 失败：'+e);}finally{downloadAllBtn.disabled=false;}
-    };
-    compressBtn.disabled=false;downloadAllBtn.disabled=false;log('全部处理完成');
-});
-
-function makeOutName(name,format){if(format==='original')return name;const ext=format==='jpeg'?'.jpg':'.'+format;const base=name.replace(/\.[^/.]+$/,'');return base+ext;}
-function addSingleDownloadButton(id,name,blob){const thumb=document.getElementById('thumb_'+id);if(!thumb)return;let btn=thumb.querySelector('.btn-download');if(!btn){btn=document.createElement('button');btn.textContent='下载';btn.className='btn btn-download';thumb.appendChild(btn);}btn.onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href);};}
-
-// 卡片折叠动画
-document.querySelectorAll('.post-card .card-title').forEach(title=>{
-    const icon = title.querySelector('.toggle-icon');
-    const content = title.nextElementSibling;
-    if(!content) return;
-
-    content.style.maxHeight = content.scrollHeight + 'px';
-
-    title.addEventListener('click', ()=>{
-        content.classList.toggle('collapsed');
-        if(content.classList.contains('collapsed')){
-            icon.textContent = '▸';
-            content.style.maxHeight = '0';
-            content.style.padding = '0';
-        } else {
-            icon.textContent = '▾';
-            const computedStyle = getComputedStyle(content);
-            const paddingTop = parseInt(computedStyle.paddingTop);
-            const paddingBottom = parseInt(computedStyle.paddingBottom);
-            content.style.maxHeight = (content.scrollHeight + paddingTop + paddingBottom + 20) + 'px';
-            content.style.padding = '12px 0 0 0';
-        }
-    });
-
-    window.addEventListener('resize', ()=>{
-        if(!content.classList.contains('collapsed')){
-            const computedStyle = getComputedStyle(content);
-            const paddingTop = parseInt(computedStyle.paddingTop);
-            const paddingBottom = parseInt(computedStyle.paddingBottom);
-            content.style.maxHeight = (content.scrollHeight + paddingTop + paddingBottom + 20) + 'px';
-        }
-    });
-});
-</script>
-<script>
-const btn=document.getElementById("net-monitor-btn");
-const panel=document.getElementById("net-monitor-panel");
-
-btn.onclick=()=>{ 
-    panel.style.display = (panel.style.display==="none"||panel.style.display==="") 
-        ? "block" : "none";
-};
-
-const elStatus=document.getElementById("nm-status");
-const elRequest=document.getElementById("nm-request");
-const elSpeed=document.getElementById("nm-speed");
-const elLatency=document.getElementById("nm-latency");
-
-function updateOnlineStatus(){
-    elStatus.textContent = navigator.onLine ? "在线" : "离线";
-}
-window.addEventListener("online",updateOnlineStatus);
-window.addEventListener("offline",updateOnlineStatus);
-
-async function testRequestTime(){
-    const url="net/test.png?x="+Math.random();
-    const t1=performance.now();
-    try{
-        await fetch(url,{cache:"no-store"});
-        elRequest.textContent=(performance.now()-t1).toFixed(1)+" ms";
-    }catch{
-        elRequest.textContent="失败";
-    }
-}
-
-async function testDownloadSpeed(){
-    const url="net/test_1mb.bin?x="+Math.random();
-    const size=1048576;
-    const t1=performance.now();
-    try{
-        const res=await fetch(url);
-        await res.arrayBuffer();
-        const sec=(performance.now()-t1)/1000;
-        elSpeed.textContent=((size/sec)/1024/1024).toFixed(2)+" MB/s";
-    }catch{
-        elSpeed.textContent="失败";
-    }
-}
-
-async function testLatency(){
-    const url="net/ping.txt?x="+Math.random();
-    const t1=performance.now();
-    try{
-        await fetch(url,{method:"HEAD",cache:"no-store"});
-        elLatency.textContent=(performance.now()-t1).toFixed(1)+" ms";
-    }catch{
-        elLatency.textContent="失败";
-    }
-}
-
-function runNetTestLoop(){
-    updateOnlineStatus();
-    testRequestTime();
-    testDownloadSpeed();
-    testLatency();
-}
-runNetTestLoop();
-setInterval(runNetTestLoop,5000);
-</script>
+<!-- 自己的模块入口 -->
+<script type="module" src="js/main.js"></script>
 </body>
 </html>
