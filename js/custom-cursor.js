@@ -1,17 +1,16 @@
 document.addEventListener("DOMContentLoaded", () => {
     const cursor = document.createElement("div");
     cursor.id = "custom-cursor";
-    cursor.classList.add("cursor-default");   // 默认箭头
+    cursor.classList.add("cursor-default");
     document.body.appendChild(cursor);
 
     let mouseX = 0, mouseY = 0;
     let isInside = false;
 
-    // 自定义变量用于 active/pressed 时保持偏移不变
+    // 默认偏移变量
     cursor.style.setProperty('--tx', '-4px');
     cursor.style.setProperty('--ty', '-4px');
 
-    // 鼠标进入页面
     document.addEventListener("mouseenter", (e) => {
         isInside = true;
         cursor.classList.add("visible");
@@ -21,15 +20,12 @@ document.addEventListener("DOMContentLoaded", () => {
         updatePosition();
     });
 
-    // 鼠标离开页面
     document.addEventListener("mouseleave", () => {
         isInside = false;
         cursor.classList.remove("visible");
         document.body.classList.remove("cursor-active");
-        cursor.classList.remove("active", "pressed");
     });
 
-    // 实时检测当前元素应该显示什么光标
     document.addEventListener("mousemove", (e) => {
         if (!isInside) return;
         mouseX = e.clientX;
@@ -38,7 +34,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const target = e.target;
         const computed = getComputedStyle(target).cursor;
 
-        // 移除所有形态类，只保留一个
         cursor.classList.remove("cursor-default", "cursor-pointer", "cursor-text");
 
         if (computed === "pointer") {
@@ -63,13 +58,12 @@ document.addEventListener("DOMContentLoaded", () => {
         cursor.style.top  = `${mouseY}px`;
     }
 
+    // 保持 60fps 流畅跟随
     const render = () => {
         if (isInside) updatePosition();
         requestAnimationFrame(render);
     };
     requestAnimationFrame(render);
 
-    // 点击缩小
-    document.addEventListener("mousedown", () => cursor.classList.add("pressed"));
-    document.addEventListener("mouseup", () => cursor.classList.remove("pressed"));
+    // 【已彻底删除 hover 放大和点击缩小相关代码】
 });
