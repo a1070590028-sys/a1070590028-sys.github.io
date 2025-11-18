@@ -24,7 +24,7 @@
                 <div style="padding:12px">
                     <div id="dropzone" class="dropzone">
                         <div style="font-weight:600;color:#cfe8ff">拖拽图片到这里，或点击选择文件（支持多选）</div>
-                        <div class="small" style="margin-top:6px">支持 JPEG / PNG / WebP / GIF（静帧）</div>
+                        <div class="small" style="margin-top:6px">支持 JPEG / PNG / WebP / AVIF / GIF（静帧）以及几乎所有浏览器可打开的图片格式</div>
                         <input id="fileInput" type="file" accept="image/*" multiple style="display:none">
                     </div>
                     <div class="thumbs" id="thumbs"></div>
@@ -32,7 +32,7 @@
                         <div class="small">已选：<span id="count">0</span> 张</div>
                         <div>
                             <button class="btn" id="clearBtn">清空页面</button>
-                            <button class="btn" id="compressBtn">开始压缩</button>
+                            <button class="btn" id="compressBtn">开始处理</button>
                             <button class="btn" id="downloadAllBtn">打包下载</button>
                         </div>
                     </div>
@@ -51,15 +51,17 @@
                             <option value="jpeg">JPEG (.jpg)</option>
                             <option value="png">PNG (.png)</option>
                             <option value="webp" selected>WebP (.webp)</option>
+                            <option value="avif">AVIF (.avif) —— 极致压缩（现代浏览器）</option>
                         </select>
                     </div>
                     <div>
-                        <label class="small">质量 (0.1 - 1.0) <span id="qualityVal" class="small" style="float:right">0.8</span></label>
-                        <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.8">
+                        <label class="small">质量 (0.1 - 1.0) <span id="qualityVal" class="small" style="float:right">0.80</span></label>
+                        <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.80">
                     </div>
                     <div><label class="small"><input id="useWorker" type="checkbox" checked> 使用 Web Worker（更快，推荐）</label></div>
+                    <div><label class="small"><input type="checkbox" id="onlyConvert"> 仅修改图片格式（不压缩）</label></div>
                     <div style="margin-top:8px" class="small">
-                        提示：选择 WebP 能在多数浏览器中获得更好的压缩比。若需要最高兼容性请选择 JPEG/PNG。
+                        提示：勾选「仅修改图片格式」后将无损转换格式，压缩相关参数会变灰。<br>AVIF 压缩率最高，WebP 兼容性最佳。
                     </div>
                 </div>
             </div>
