@@ -69,20 +69,6 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     requestAnimationFrame(render);
 
-    // hover 放大（可点击元素）
-    const clickable = "a, button, input, select, textarea, label, [onclick], [role='button'], .btn, .card-title, .toggle-icon";
-    const addListeners = () => {
-        document.querySelectorAll(clickable).forEach(el => {
-            if (!el.dataset.cursorListener) {
-                el.dataset.cursorListener = "true";
-                el.addEventListener("mouseenter", () => cursor.classList.add("active"));
-                el.addEventListener("mouseleave", () => cursor.classList.remove("active"));
-            }
-        });
-    };
-    addListeners();
-    new MutationObserver(addListeners).observe(document.body, { childList: true, subtree: true });
-
     // 点击缩小
     document.addEventListener("mousedown", () => cursor.classList.add("pressed"));
     document.addEventListener("mouseup", () => cursor.classList.remove("pressed"));
