@@ -33,6 +33,26 @@ input[type="number"],select,input[type="range"]{width:100%;padding:6px;border-ra
 .net-item{margin:6px 0;font-size:14px}
 @media(max-width:860px){.compress-grid{grid-template-columns:1fr}.thumb{width:45%}}
 
+#log{
+    margin-top:6px;
+    color:#94a3b8;
+    font-size:13px;
+    max-height:160px;
+    overflow-y:auto;
+    padding:10px 12px;
+    border-radius:8px;
+    background:rgba(0,0,0,0.25);
+    border:1px solid rgba(255,255,255,0.06);
+    line-height:1.5;
+}
+
+#log::-webkit-scrollbar{width:8px}
+#log::-webkit-scrollbar-track{background:transparent}
+#log::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
+#log::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.3)}
+
+#log{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.15) transparent}
+
 .compress-param{transition:opacity .3s}
 .controls.compress-controls-disabled .compress-param{opacity:0.45;pointer-events:none}
 .controls.compress-controls-disabled .compress-param input,
@@ -40,7 +60,6 @@ input[type="number"],select,input[type="range"]{width:100%;padding:6px;border-ra
 .controls.compress-controls-disabled #qualityVal{cursor:not-allowed !important}
 
 #outFormat,#onlyConvert{opacity:1 !important;pointer-events:auto !important;cursor:pointer !important}
-
 #outFormat option{background-color:#0f172a;color:#60a5fa;font-weight:500}
 #outFormat option:hover{background-color:#1e293b !important;color:#93c5fd !important}
 #outFormat option[value=original]{color:#94a3b8}
