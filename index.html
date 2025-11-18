@@ -84,15 +84,13 @@
     <div class="net-item">网络延迟：<span id="nm-latency">--</span></div>
 </div>
 
-<!-- 本地第三方库（顺序不能乱！） -->
+<!-- 第三方库 -->
 <script src="js/three.min.js"></script>
 <script src="js/vanta.net.min.js"></script>
 <script src="js/browser-image-compression.min.js"></script>
 <script src="js/jszip.min.js"></script>
 
-<!-- 兼容所有浏览器的双保险入口 -->
-<script nomodule src="js/main-legacy.js"></script>   <!-- 老浏览器 / 手机浏览器走这里 -->
-<script type="module" src="js/main.js"></script>    <!-- 现代浏览器走这里（更快） -->
-
+<!-- 自己的模块入口 -->
+<script type="module" src="js/main.js"></script>
 </body>
 </html>
