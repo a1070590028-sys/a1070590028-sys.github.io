@@ -6,56 +6,55 @@ document.addEventListener("DOMContentLoaded", () => {
     let mouseX = 0;
     let mouseY = 0;
 
-    // 默认偏移
-    cursor.style.setProperty('--tx', '-4px');
-    cursor.style.setProperty('--ty', '-4px');
+    // 使用 document.elementFromPoint 来真正获取「鼠标下方的可交互元素」
+    function getCursorType(x, y) {
+        // 临时隐藏自定义光标，防止自己挡住检测
+        cursor.style.display = 'none';
+        const underneath = document.elementFromPoint(x, y);
+        cursor.style.display = '';
+        
+        if (!underneath) return "default";
+        const style = getComputedStyle(underneath);
+        const cursorType = style.cursor;
 
-    // 鼠标进入页面
+        // 更宽松的判断，兼容更多情况
+        if (cursorType === "pointer" || 
+            underneath.tagName === "A" || 
+            underneath.tagName === "BUTTON" || 
+            underneath.onclick || 
+            underneath.style.cursor === "pointer" ||
+            underneath.closest('a, button, [onclick], [role="button"], .btn')) {
+            return "pointer";
+        }
+        if (cursorType === "text" || underneath.tagName === "TEXTAREA" || underneath.isContentEditable) {
+            return "text";
+        }
+        return "default";
+    }
+
+    document.addEventListener("mousemove", e => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        const type = getCursorType(mouseX, mouseY);
+
+        cursor.className = "visible"; // 先清空再加
+        cursor.classList.add("cursor-" + type);
+
+        // 直接用 transform 居中定位，不再依赖 CSS 变量（更稳定）
+        cursor.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
+    });
+
     document.addEventListener("mouseenter", () => {
         cursor.classList.add("visible");
         document.body.classList.add("cursor-active");
     });
 
-    // 鼠标离开页面
     document.addEventListener("mouseleave", () => {
         cursor.classList.remove("visible");
         document.body.classList.remove("cursor-active");
     });
 
-    // 核心：跟随 + 切换形态
-    document.addEventListener("mousemove", e => {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
-
-        const target = e.target;
-        const cur = getComputedStyle(target).cursor;
-
-        // 先移除所有形态类
-        cursor.className = "";   // 清空所有 class，只保留 id
-
-        if (cur === "pointer") {
-            cursor.classList.add("cursor-pointer");
-            cursor.style.setProperty('--tx', '-10px');
-            cursor.style.setProperty('--ty', '-4px');
-        } else if (cur === "text") {
-            cursor.classList.add("cursor-text");
-            cursor.style.setProperty('--tx', '-50%');
-            cursor.style.setProperty('--ty', '-50%');
-        } else {
-            cursor.classList.add("cursor-default");
-            cursor.style.setProperty('--tx', '-4px');
-            cursor.style.setProperty('--ty', '-4px');
-        }
-
-        cursor.classList.add("visible"); // 确保可见
-        cursor.style.left = mouseX + "px";
-        cursor.style.top  = mouseY + "px";
-    });
-
-    // 60fps 平滑跟随（即使在低帧率设备上也丝滑）
-    const loop = () => {
-        cursor.style.transform = `translate(calc(${mouseX}px + var(--tx)), calc(${mouseY}px + var(--ty)))`;
-        requestAnimationFrame(loop);
-    };
-    requestAnimationFrame(loop);
+    // 初始隐藏在左上角
+    cursor.style.transform = "translate(-100px, -100px)";
 });
