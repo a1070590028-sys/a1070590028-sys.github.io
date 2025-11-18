@@ -1,47 +1,56 @@
-/* custom-cursor.css – 终极零偏移 + 超强白光版 */
+/* custom-cursor.css – 稳定版，不破坏任何鼠标功能 */
 body.cursor-active,
 body.cursor-active * {
-    cursor: none !important;
+    cursor: none !important; /* 隐藏系统光标，仅隐藏外表 */
 }
 
+/* 自定义光标容器 */
 #custom-cursor {
     position: fixed;
-    pointer-events: none !important;
-    z-index: 999999999;
     left: 0;
     top: 0;
+    width: 32px;
+    height: 32px;
+    pointer-events: none; /* 最关键：让光标不阻挡任何点击 */
+    z-index: 999999999;
     opacity: 0;
     transition: opacity 0.25s ease;
     background-repeat: no-repeat;
     background-position: center;
     background-size: contain;
-    /* 超强白光外辉（现在像游戏里的一样亮）*/
-    filter: 
+
+    /* 光效 */
+    filter:
         drop-shadow(0 0 12px #60a5fa)
         drop-shadow(0 0 24px #60a5fa)
         drop-shadow(0 0 36px #ffffff)
         drop-shadow(0 0 48px #ffffff);
 }
 
-#custom-cursor.visible { opacity: 1; }
+#custom-cursor.visible {
+    opacity: 1;
+}
 
-/* 默认箭头 – 热点在尖尖的最前端（约 4px, 4px） */
+/* 系统箭头 */
 .cursor-default {
-    width: 28px; height: 40px;
+    width: 28px;
+    height: 40px;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 40'%3E%3Cpath d='M3 3 L21 18 L12 19.5 L14 37 L3 26 L9 19 Z' fill='%2360a5fa'/%3E%3C/svg%3E");
-    transform: translate(-4px, -4px) !important;   /* 精确偏移 */
+    transform: translate(-4px, -4px); /* 热点位置 */
 }
 
-/* 手形 – 热点在食指指尖（约 12px, 5px） */
+/* 手形 */
 .cursor-pointer {
-    width: 31px; height: 42px;
+    width: 31px;
+    height: 42px;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 31 42'%3E%3Cpath d='M8 2 L8 18 Q8 22 10 24 L14 28 Q16 30 16 34 L16 38 Q16 40 18 40 Q20 40 20 38 L20 23 Q20 20 22 20 Q24 20 24 18 L24 10 Q24 6 21 6 Q20 6 19.5 7 L18 10 L14 8 Q12 7 11 9 L11 18 Q11 20 10 21 L8 20 Z' fill='%2360a5fa'/%3E%3C/svg%3E");
-    transform: translate(-12px, -5px) !important;  /* 精确偏移 */
+    transform: translate(-12px, -5px);
 }
 
-/* 文本光标 – 热点在正中间 */
+/* 文本光标 */
 .cursor-text {
-    width: 20px; height: 36px;
+    width: 20px;
+    height: 36px;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 36'%3E%3Cpath d='M9 0 L11 0 L11 14 L17 14 L10 22 L10 36 L8 36 L8 22 L2 14 L8 14 Z' fill='%2360a5fa'/%3E%3C/svg%3E");
-    transform: translate(-50%, -50%) !important;
+    transform: translate(-50%, -50%);
 }
