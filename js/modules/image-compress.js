@@ -1,5 +1,4 @@
 // js/modules/image-compress.js
-// 立即执行函数，彻底隔离变量，不污染全局
 (() => {
     const fileInput        = document.getElementById('fileInput');
     const dropzone         = document.getElementById('dropzone');
@@ -15,17 +14,18 @@
     const qualityRange     = document.getElementById('quality');
     const qualityVal       = document.getElementById('qualityVal');
     const useWorker        = document.getElementById('useWorker');
+    const onlyConvertCheck = document.getElementById('onlyConvert');
 
-    let files = [];   // {file, id, resultBlob}
+    const compressControls = document.querySelector('.controls');
 
-    // 日志
+    let files = [];
+
     function log(msg) {
         const div = document.createElement('div');
         div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
         logEl.prepend(div);
     }
 
-    // 字节转人类可读
     function bytesToSize(bytes) {
         if (bytes === 0) return '0 B';
         const k = 1024;
@@ -34,7 +34,6 @@
         return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
     }
 
-    // 清空
     function reset() {
         files = [];
         thumbs.innerHTML = '';
@@ -42,16 +41,46 @@
         logEl.innerHTML = '';
     }
 
-    // 处理拖拽与选择的文件
+    function toggleCompressControls() {
+        if (onlyConvertCheck.checked) {
+            compressControls.classList.add('compress-controls-disabled');
+        } else {
+            compressControls.classList.remove('compress-controls-disabled');
+        }
+    }
+
+    // 无损格式转换（仅使用 canvas）
+    async function convertOnly(file, mimeType) {
+        const img = new Image();
+        const url = URL.createObjectURL(file);
+        img.src = url;
+
+        return new Promise((resolve, reject) => {
+            img.onload = () => {
+                URL.revokeObjectURL(url);
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob(resolve, mimeType, 1.0);
+            };
+            img.onerror = () => {
+                URL.revokeObjectURL(url);
+                reject(new Error('图片加载失败'));
+            };
+        });
+    }
+
     function handleFiles(selectedFiles) {
-        const imageFiles = selectedFiles.filter(f => f.type.startsWith('image/'));
+        const imageFiles = Array.from(selectedFiles).filter(f => f.type.startsWith('image/') || /\.(jpe?g|png|webp|avif|gif|bmp|tiff?|heic)$/i.test(f.name));
         if (imageFiles.length === 0) {
             log('没有检测到图片文件');
             return;
         }
 
         imageFiles.forEach(f => {
-            const id = `${Date.now()}_${Math.random().toString(36).substr(2, 8)}`;
+            const id = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             files.push({ file: f, id, resultBlob: null });
 
             const reader = new FileReader();
@@ -74,28 +103,28 @@
         log(`已添加 ${imageFiles.length} 张图片`);
     }
 
-    // 事件绑定
+    // ==================== 事件绑定 ====================
     dropzone.addEventListener('click', () => fileInput.click());
-
     fileInput.addEventListener('change', e => {
-        handleFiles(Array.from(e.target.files));
+        handleFiles(e.target.files);
         fileInput.value = '';
     });
 
-    dropzone.addEventListener('dragover', e => {
-        e.preventDefault();
-        dropzone.style.borderColor = '#60a5fa';
+    ['dragover', 'dragenter'].forEach(evt => {
+        dropzone.addEventListener(evt, e => {
+            e.preventDefault();
+            dropzone.style.borderColor = '#60a5fa';
+        });
     });
 
-    dropzone.addEventListener('dragleave', () => {
-        dropzone.style.borderColor = 'rgba(255,255,255,0.06)';
+    ['dragleave', 'drop'].forEach(evt => {
+        dropzone.addEventListener(evt, e => {
+            e.preventDefault();
+            dropzone.style.borderColor = 'rgba(255,255,255,0.06)';
+        });
     });
 
-    dropzone.addEventListener('drop', e => {
-        e.preventDefault();
-        dropzone.style.borderColor = 'rgba(255,255,255,0.06)';
-        handleFiles(Array.from(e.dataTransfer.files));
-    });
+    dropzone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
 
     clearBtn.addEventListener('click', () => {
         reset();
@@ -106,7 +135,10 @@
         qualityVal.textContent = qualityRange.value;
     });
 
-    // 开始压缩
+    onlyConvertCheck.addEventListener('change', toggleCompressControls);
+    toggleCompressControls(); // 初始化
+
+    // ==================== 开始处理 ====================
     compressBtn.addEventListener('click', async () => {
         if (files.length === 0) {
             log('请先选择图片');
@@ -115,7 +147,7 @@
 
         compressBtn.disabled = true;
         downloadAllBtn.disabled = true;
-        log('开始压缩所有图片…');
+        log(onlyConvertCheck.checked ? '开始批量转换格式…' : '开始压缩所有图片…');
 
         const zip = new JSZip();
 
@@ -123,45 +155,61 @@
             const file = item.file;
             const beforeSize = file.size;
 
-            const options = {
-                maxWidthOrHeight: parseInt(maxSideInput.value) || 1024,
-                maxSizeMB: parseFloat(maxSizeMBInput.value) || 1,
-                useWebWorker: useWorker.checked,
-                initialQuality: parseFloat(qualityRange.value) || 0.8,
-                fileType: outFormatSelect.value === 'original'
-                    ? undefined
-                    : `image/${outFormatSelect.value === 'jpeg' ? 'jpeg' : outFormatSelect.value}`
-            };
+            const selectedFormat = outFormatSelect.value;
+            let mimeType = file.type;
+            let ext = '';
+
+            switch (selectedFormat) {
+                case 'jpeg': mimeType = 'image/jpeg'; ext = '.jpg'; break;
+                case 'png':  mimeType = 'image/png';  ext = '.png'; break;
+                case 'webp': mimeType = 'image/webp'; ext = '.webp'; break;
+                case 'avif': mimeType = 'image/avif'; ext = '.avif'; break;
+            }
+
+            const outName = selectedFormat === 'original'
+                ? file.name
+                : file.name.replace(/\.[^/.]+$/, '') + ext;
 
             try {
-                log(`正在压缩：${file.name}`);
-                const compressedBlob = await imageCompression(file, options);
+                let outputBlob;
 
-                item.resultBlob = compressedBlob;
-                const afterSize = compressedBlob.size;
-                const savePercent = ((1 - afterSize / beforeSize) * 100).toFixed(1);
-
-                // 更新缩略图信息
-                const resEl = document.getElementById('res_' + item.id);
-                if (resEl) {
-                    resEl.innerHTML = `压缩后：${bytesToSize(afterSize)}<br><span class="small">节省 ${savePercent}%</span>`;
+                if (onlyConvertCheck.checked) {
+                    log(`正在转换：${file.name} → ${outName}`);
+                    outputBlob = await convertOnly(file, mimeType);
+                } else {
+                    const options = {
+                        maxWidthOrHeight: parseInt(maxSideInput.value) || 1024,
+                        maxSizeMB: parseFloat(maxSizeMBInput.value) || 1,
+                        useWebWorker: useWorker.checked,
+                        initialQuality: parseFloat(qualityRange.value) || 0.8,
+                        fileType: selectedFormat === 'original' ? undefined : mimeType
+                    };
+                    log(`正在压缩：${file.name}`);
+                    outputBlob = await imageCompression(file, options);
                 }
 
-                // 生成输出文件名
-                const outName = outFormatSelect.value === 'original'
-                    ? file.name
-                    : file.name.replace(/\.[^/.]+$/, '') + (outFormatSelect.value === 'jpeg' ? '.jpg' : '.' + outFormatSelect.value);
+                item.resultBlob = outputBlob;
+                const afterSize = outputBlob.size;
+                const savePercent = ((1 - afterSize / beforeSize) * 100).toFixed(1);
 
-                zip.file(outName, compressedBlob);
-                addSingleDownloadButton(item.id, outName, compressedBlob);
+                const resEl = document.getElementById('res_' + item.id);
+                if (resEl) {
+                    if (onlyConvertCheck.checked) {
+                        resEl.innerHTML = `转换后：${bytesToSize(afterSize)}<br><span class="small">大小变化 ${savePercent}%</span>`;
+                    } else {
+                        resEl.innerHTML = `压缩后：${bytesToSize(afterSize)}<br><span class="small">节省 ${savePercent}%</span>`;
+                    }
+                }
 
-                log(`✔ ${file.name} → ${outName}（${bytesToSize(afterSize)}，节省 ${savePercent}%）`);
+                zip.file(outName, outputBlob);
+                addSingleDownloadButton(item.id, outName, outputBlob);
+
+                log(`✔ ${file.name} → ${outName}（${bytesToSize(afterSize)}）`);
             } catch (err) {
-                log(`✖ 处理 ${file.name} 失败：${err.message || err}`);
+                log(`✖ ${file.name} 处理失败：${err.message || err}`);
             }
         }
 
-        // 打包下载按钮（只绑定一次）
         downloadAllBtn.onclick = async () => {
             downloadAllBtn.disabled = true;
             log('正在生成 ZIP 包…');
@@ -169,7 +217,7 @@
                 const content = await zip.generateAsync({ type: 'blob' });
                 const a = document.createElement('a');
                 a.href = URL.createObjectURL(content);
-                a.download = `compressed_images_${Date.now()}.zip`;
+                a.download = `${onlyConvertCheck.checked ? 'converted' : 'compressed'}_images_${Date.now()}.zip`;
                 a.click();
                 URL.revokeObjectURL(a.href);
                 log('ZIP 包下载完成');
@@ -182,10 +230,9 @@
 
         compressBtn.disabled = false;
         downloadAllBtn.disabled = false;
-        log('全部压缩完成！');
+        log('全部处理完成！');
     });
 
-    // 单张下载按钮
     function addSingleDownloadButton(id, name, blob) {
         const thumb = document.getElementById('thumb_' + id);
         if (!thumb) return;
@@ -197,7 +244,6 @@
             btn.className = 'btn btn-download';
             thumb.appendChild(btn);
         }
-
         btn.onclick = () => {
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
