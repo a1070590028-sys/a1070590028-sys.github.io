@@ -43,8 +43,8 @@
                 <div class="controls post-card" style="padding:14px">
                     <h3 style="margin:0 0 8px;color:#93c5fd">参数设置</h3>
 
-                    <div class="compress-param"><label class="small">最大宽度或高度（像素）</label><input type="number" id="maxSide" value="1024" min="64" step="1"></div>
-                    <div class="compress-param"><label class="small">目标文件大小（最大，MB）</label><input type="number" id="maxSizeMB" value="1" min="0.05" step="0.05"></div>
+                    <div class="compress-param"><label class="small">最大宽度或高度（像素）</label><input id="maxSide" type="number" value="1024" min="64" step="1"></div>
+                    <div class="compress-param"><label class="small">目标文件大小（最大，MB）</label><input id="maxSizeMB" type="number" value="1" min="0.05" step="0.05"></div>
                     <div>
                         <label class="small">输出格式</label>
                         <select id="outFormat">
@@ -52,7 +52,7 @@
                             <option value="jpeg">JPEG (.jpg)</option>
                             <option value="png">PNG (.png)</option>
                             <option value="webp" selected>WebP (.webp)</option>
-                            <option value="avif">AVIF (.avif)</option>
+                            <option value="avif">AVIF (.avif) </option>
                         </select>
                     </div>
                     <div class="compress-param">
@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    <!-- 图片 ↔ PDF 互转（完全统一样式 + 首次展开完美） -->
+    <!-- 图片 ↔ PDF 互转（样式完全统一） -->
     <div class="post-card">
         <h2 class="card-title">图片 ↔ PDF 互转 <span class="toggle-icon">Down Arrow</span></h2>
         <div class="card-content">
@@ -93,7 +93,8 @@
                     <div class="thumbs" id="imgThumbs"></div>
 
                     <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-                        <select id="pageSize" style="padding:6px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:#e2e8f0">
+                        <label class="small" style="margin:0">页面尺寸</label>
+                        <select id="pageSize">
                             <option value="a4">A4（竖版）</option>
                             <option value="a4l">A4（横版）</option>
                             <option value="letter">Letter</option>
