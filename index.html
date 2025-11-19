@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
 <div id="time-card"><div class="date">0000-00-00</div><div class="time">--:--:--</div></div>
 
 <header><h1>Frey 的个人网站</h1><p>记录 · 思考 · 成长 · 前进</p></header>
@@ -36,7 +37,7 @@
                         </div>
                     </div>
                     <div style="margin-top:8px" class="small">
-                        处理日志：<div id="log" style="margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);line-height:1.5"></div>
+                        处理日志：<div id="log" style="margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:6px;border-radius:6px;background:rgba(0,0,0,0.2)"></div>
                     </div>
                 </div>
                 <div class="controls post-card" style="padding:14px">
@@ -70,7 +71,7 @@
         </div>
     </div>
 
-    <!-- 图片 ↔ PDF 互转（样式完全统一） -->
+    <!-- 图片 ↔ PDF 互转（新功能） -->
     <div class="post-card">
         <h2 class="card-title">图片 ↔ PDF 互转 <span class="toggle-icon">▾</span></h2>
         <div class="card-content">
@@ -81,9 +82,9 @@
                 <button class="btn" data-tab="pdf2img">PDF → 图片</button>
             </div>
 
-            <!-- 图片 → PDF -->
-            <div id="img2pdf" class="pdf-tab active" style="display:block">
-                <div style="padding:12px">
+            <!-- 图片转PDF -->
+            <div id="img2pdf" class="pdf-tab active">
+                <div style="padding:12px;background:rgba(255,255,255,0.02);border-radius:10px">
                     <div id="dropzoneImg" class="dropzone">
                         <div style="font-weight:600;color:#cfe8ff">拖拽图片到这里，或点击选择（支持多选）</div>
                         <div class="small" style="margin-top:6px">支持 JPG / PNG / WebP / GIF（静帧）</div>
@@ -91,9 +92,8 @@
                     </div>
                     <div class="thumbs" id="imgThumbs"></div>
 
-                    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-                        <label class="small" style="margin:0">页面尺寸</label>
-                        <select id="pageSize">
+                    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                        <select id="pageSize" style="padding:6px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:#e2e8f0">
                             <option value="a4">A4（竖版）</option>
                             <option value="a4l">A4（横版）</option>
                             <option value="letter">Letter</option>
@@ -103,33 +103,27 @@
                         <input type="number" id="customH" placeholder="高 px" value="1080" style="width:100px;display:none">
                         <input type="number" id="margin" placeholder="边距 px" value="20" style="width:100px">
                         <button class="btn" id="generatePdf">生成 PDF</button>
-                        <button class="btn" id="clearImgList">清空列表</button>
+                        <button class="btn" id="clearImgList" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.4)">清空列表</button>
                     </div>
-
-                    <div style="margin-top:8px" class="small">
-                        处理日志：<div id="imgLog" style="margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);line-height:1.5"></div>
-                    </div>
+                    <div id="imgLog" style="margin-top:12px;max-height:120px;overflow:auto;font-size:13px;color:#94a3b8"></div>
                 </div>
             </div>
 
-            <!-- PDF → 图片 -->
+            <!-- PDF转图片 -->
             <div id="pdf2img" class="pdf-tab" style="display:none">
-                <div style="padding:12px">
+                <div style="padding:12px;background:rgba(255,255,255,0.02);border-radius:10px">
                     <div id="dropzonePdf" class="dropzone">
                         <div style="font-weight:600;color:#cfe8ff">拖拽 PDF 文件到这里，或点击选择</div>
                         <input type="file" id="pdfInput" accept=".pdf" style="display:none">
                     </div>
                     <div class="thumbs" id="pdfThumbs"></div>
 
-                    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+                    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
                         <button class="btn" id="extractImages">提取所有页面为图片</button>
                         <button class="btn" id="downloadAllImages">打包下载（ZIP）</button>
-                        <button class="btn" id="clearPdfList">清空</button>
+                        <button class="btn" id="clearPdfList" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.4)">清空</button>
                     </div>
-
-                    <div style="margin-top:8px" class="small">
-                        处理日志：<div id="pdfLog" style="margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);line-height:1.5"></div>
-                    </div>
+                    <div id="pdfLog" style="margin-top:12px;max-height:120px;overflow:auto;font-size:13px;color:#94a3b8"></div>
                 </div>
             </div>
         </div>
@@ -145,7 +139,7 @@
 
 <footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
 
-    <div id="net-monitor-btn"><div class="net-icon">🌐</div></div>
+<div id="net-monitor-btn"><div class="net-icon">🌐</div></div>
 <div id="net-monitor-panel">
     <h3>网络状态监控</h3>
     <div class="net-item">网络状态：<span id="nm-status">--</span></div>
@@ -153,51 +147,18 @@
     <div class="net-item">下载速度：<span id="nm-speed">--</span></div>
     <div class="net-item">网络延迟：<span id="nm-latency">--</span></div>
 </div>
-    
-    <!-- 背景层一定要在最下面 -->
-    <div id="vanta-bg"></div>
 
-    <!-- 所有第三方库（顺序不能乱） -->
-    <script src="js/lib/three.min.js"></script>
-    <script src="js/lib/vanta.net.min.js"></script>
-    <script src="js/lib/browser-image-compression.min.js"></script>
-    <script src="js/lib/jszip.min.js"></script>
-    <script src="js/lib/jspdf.umd.min.js"></script>
-    <script src="js/lib/pdf.min.js"></script>
+<!-- 第三方库 -->
+<script src="js/lib/three.min.js"></script>
+<script src="js/lib/vanta.net.min.js"></script>
+<script src="js/lib/browser-image-compression.min.js"></script>
+<script src="js/lib/jszip.min.js"></script>
 
-    <!-- 自己的业务代码 -->
-    <script type="module" src="js/main.js"></script>
+<!-- 图片↔PDF 互转依赖（必须放在这里） -->
+<script src="js/lib/jspdf.umd.min.js"></script>
+<script src="js/lib/pdf.min.js"></script>   <!-- pdf.worker.min.js 会自动加载同目录文件 -->
 
-    <!-- ★★★★★ 关键：彻底删除或注释掉所有以前的 Vanta 初始化代码 ★★★★★ -->
-    <!-- 包括你原来的 <script src="js/vanta-bg.js"></script> 一定要删！ -->
-    <!-- 包括 main.js 里如果有 VANTA.NET 那几行也要删！ -->
-
-    <!-- 改用这一段最稳的内联初始化（放在所有库加载完的最下面） -->
-    <script>
-      // 确保 three.js 和 vanta.net 都加载完了再执行
-      window.addEventListener('load', function () {
-        if (typeof VANTA !== 'undefined') {
-          VANTA.NET({
-            el: "#vanta-bg",
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200.00,
-            minWidth: 200.00,
-            scale: 1.00,
-            scaleMobile: 1.00,
-            color: 0x60a5fa,
-            backgroundColor: 0x0f172a,
-            points: 12,
-            maxDistance: 22,
-            spacing: 16,
-            showDots: true   // 加这行能让点更明显，方便你立刻看出有没有生效
-          });
-        } else {
-          console.error("VANTA 未加载成功，请检查 vanta.net.min.js 是否 404");
-        }
-      });
-    </script>
-
+<!-- 自己的模块入口 -->
+<script type="module" src="js/main.js"></script>
 </body>
 </html>
