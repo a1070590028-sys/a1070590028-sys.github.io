@@ -54,14 +54,17 @@
     };
 
     const load = i => {
-        idx = (i + songs.length) % songs.length;
-        const s = songs[idx];
-        audio.src = `/music/${s.file}`; 
-        title.textContent = s.name;
-        render();
-        audio.play().catch(() => {});
-        playBtn.textContent = '❚❚';
-    };
+    idx = (i + songs.length) % songs.length;
+    const s = songs[idx];
+
+    // 智能判断路径：本地拖入的 blob URL / 外链 直接用，原有相对路径才加 /music/
+    audio.src = /^(https?:|blob:|data:)/i.test(s.file) ? s.file : `/music/${s.file}`;
+
+    title.textContent = s.name;
+    render();
+    audio.play().catch(() => {});
+    playBtn.textContent = '❚❚';
+};
 
     // 纯本地读取 music-list.json（瞬间完成）
     fetch('/music/music-list.json?t=' + Date.now())
@@ -120,6 +123,7 @@
         }
     });
 })();
+
 
 
 
