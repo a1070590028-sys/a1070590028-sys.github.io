@@ -1,4 +1,4 @@
-// js/modules/music-player.js —— 自动读取根目录 /music/ 文件夹（零配置版）
+// js/modules/music-player.js —— 自动读取根目录 /music
 (() => {
     const entry = document.getElementById('music-player-entry');
     if (!entry) return;
@@ -107,7 +107,7 @@
 
         // 最后兜底
         title.textContent = '未发现音乐文件';
-        artist.textContent = '请放入 /music/ 文件夹';
+        artist.textContent = '请放入 /music';
     };
 
     const urlExists = url => new Promise(r => {
@@ -179,3 +179,4 @@
         }
     });
 })();
+
