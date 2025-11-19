@@ -6,7 +6,7 @@
     entry.innerHTML = `
         <div id="music-player-btn"><div class="icon">🎧</div></div>
         <div id="music-player-panel">
-            <h3>stellar 音乐播放器</h3>
+            <h3>Stellar 音乐播放器</h3>
             <div id="now-title">加载歌单中…</div>
             <div id="now-artist">共 <span id="total">0</span> 首</div>
             <div id="mp-controls">
@@ -120,6 +120,7 @@
         }
     });
 })();
+
 
 
 
