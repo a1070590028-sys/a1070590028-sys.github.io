@@ -54,11 +54,25 @@
     };
 
     const load = i => {
-    idx = ((i % songs.length) + songs.length) % songs.length;  // 先修上一首 bug
-    const s = songs[idx];
+  idx = ((i % songs.length) + songs.length) % songs.length;
+  const s = songs[idx];
 
-    // 关键修复：只有纯文件名才加 /music/ 前缀
-    // blob: data: http: https: 都不加，其余一律当成相对路径处理
+  if (!s || !s.file) {
+    {
+    console.error('这首歌数据异常', s);
+    return;
+  }
+
+  const isFullUrl = /^(https?:|blob:|data:|ipfs:)/i.test(s.file);
+  audio.src = isFullUrl ? s.file : `/music/${s.file}`;
+
+  console.log('正在加载 →', audio.src);   // ← 关键日志！看这里到底设置成了什么
+
+  title.textContent = s.name;
+  render();
+  audio.play().catch(e => console.warn('播放失败', e));
+  playBtn.textContent = '❚❚';
+};
     const isFullUrl = /^(https?:|blob:|data:|ipfs:)/i.test(s.file);
     audio.src = isFullUrl ? s.file : `/music/${s.file}`;
 
@@ -70,22 +84,37 @@
 
     // 纯本地读取 music-list.json（瞬间完成）
     fetch('/music/music-list.json?t=' + Date.now())
-        .then(r => r.ok ? r.json() : [])
-        .then(arr => {
-            songs = arr
-                .filter(f => /\.(mp3|flac|wav|m4a|aac|ogg)$/i.test(f))
-                .map(f => ({ name: niceName(f), file: f }))
-                .sort((a,b) => a.name.localeCompare(b.name));  // 字母序排序（可选）
+  .then(r => {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  })
+  .then(arr => {
+    console.log('原始 json 数据:', arr);  // ← 关键！看看这里到底拿到了什么
 
-            if (songs.length) {
-                title.textContent = songs[0].name;
-                load(0);
-            } else {
-                title.textContent = '未发现音乐文件';
-            }
-            render();
-        })
-        .catch(() => { title.textContent = '加载失败'; });
+    if (!Array.isArray(arr) || arr.length === 0) {
+      title.textContent = '歌单为空或格式错误';
+      return;
+    }
+
+    songs = arr
+      .filter(f => typeof f === 'string' && /\.(mp3|flac|wav|m4a|aac|ogg)$/i.test(f))
+      .map(f => ({ name: niceName(f), file: f }));
+
+    if (songs.length === 0) {
+      title.textContent = '没有找到支持的音乐文件';
+      return;
+    }
+
+    songs.sort((a,b) => a.name.localeCompare(b.name));
+    title.textContent = songs[0].name;
+    load(0);                    // ← 确保这一行还在！
+    render();
+  })
+  .catch(err => {
+    console.error('加载歌单彻底失败', err);
+    title.textContent = '加载歌单失败';
+ 见控制台';
+  });
 
     // 播放器交互（极简）
     audio.addEventListener('timeupdate', () => {
@@ -125,6 +154,7 @@
         }
     });
 })();
+
 
 
 
