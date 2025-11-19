@@ -1,7 +1,7 @@
 // js/modules/pdf-convert.js
 const { jsPDF } = window.jspdf;
 
-// 关键：手动指定 worker 路径（解决 90% 的 PDF 加载失败问题）
+// 必须手动指定 worker 路径，否则 PDF 加载会报错
 if (typeof pdfjsLib !== "undefined") {
     pdfjsLib.GlobalWorkerOptions.workerSrc = "js/lib/pdf.worker.min.js";
 }
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
         imgLog.scrollTop = imgLog.scrollHeight;
     };
 
-    // 拖拽上传
+    // 拖拽高亮
     ["dragover", "dragenter"].forEach(evt =>
         imgDropzone.addEventListener(evt, e => {
             e.preventDefault();
@@ -42,6 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
             imgDropzone.style.borderColor = "rgba(255,255,255,0.06)";
         })
     );
+
     imgDropzone.addEventListener("drop", e => handleImgFiles(e.dataTransfer.files));
     imgDropzone.addEventListener("click", () => imgInput.click());
     imgInput.addEventListener("change", () => handleImgFiles(imgInput.files));
@@ -62,14 +63,14 @@ document.addEventListener("DOMContentLoaded", () => {
         logImg(`Added ${files.length} images (total ${imgFiles.length})`);
     }
 
-    // 自定义尺寸显示控制
+    // 自定义尺寸显示
     document.getElementById("pageSize").addEventListener("change", function () {
         const show = this.value === "custom";
         document.getElementById("customW").style.display = show ? "inline-block" : "none";
         document.getElementById("customH").style.display = show ? "inline-block" : "none";
     });
 
-    // 清空列表
+    // 清空图片列表
     document.getElementById("clearImgList").addEventListener("click", () => {
         imgFiles.length = 0;
         imgThumbsContainer.innerHTML = "";
@@ -82,14 +83,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("generatePdf").addEventListener("click", async () => {
         if (imgFiles.length === 0) return alert("Please upload images first");
 
-        let width = 595.28, height = 841.89; // A4 vertical
+        let width = 595.28, height = 841.89; // A4 竖版
         const size = document.getElementById("pageSize").value;
-        if (size === "a4l") [width, height] = [841.89, 595.28]; // A4 landscape
+        if (size === "a4l") [width, height] = [841.89, 595.28];
         else if (size === "letter") { width = 612; height = 792; }
         else if (size === "custom") {
             width = parseFloat(document.getElementById("customW").value) || 1920;
             height = parseFloat(document.getElementById("customH").value) || 1080;
-            width *= 72 / 96;   // px → pt
+            width *= 72 / 96;
             height *= 72 / 96;
         }
         const margin = parseFloat(document.getElementById("margin").value) || 0;
@@ -112,21 +113,21 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             const imgProps = pdf.getImageProperties(dataUrl);
-            const pdfWidth = width - margin * 2;
-            const pdfHeight = height - margin * 2;
+            const pdfW = width - margin * 2;
+            const pdfH = height - margin * 2;
 
-            let drawWidth = pdfWidth;
-            let drawHeight = pdfHeight;
-            if (imgProps.width / imgProps.height > pdfWidth / pdfHeight) {
-                drawHeight = pdfWidth * imgProps.height / imgProps.width;
+            let drawW = pdfW;
+            let drawH = pdfH;
+            if (imgProps.width / imgProps.height > pdfW / pdfH) {
+                drawH = pdfW * imgProps.height / imgProps.width;
             } else {
-                drawWidth = pdfHeight * imgProps.width / imgProps.height;
+                drawW = pdfH * imgProps.width / imgProps.height;
             }
 
-            const x = margin + (pdfWidth - drawWidth) / 2;
-            const y = margin + (pdfHeight - drawHeight) / 2;
+            const x = margin + (pdfW - drawW) / 2;
+            const y = margin + (pdfH - drawH) / 2;
 
-            pdf.addImage(dataUrl, imgProps.fileType.toUpperCase(), x, y, drawWidth, drawHeight, "", "FAST");
+            pdf.addImage(dataUrl, imgProps.fileType.toUpperCase(), x, y, drawW, drawH, "", "FAST");
         }
 
         const filename = `frey-images-to-pdf-${Date.now()}.pdf`;
@@ -153,11 +154,13 @@ document.addEventListener("DOMContentLoaded", () => {
         })
     );
     ["dragleave", "dragend", "drop"].forEach(evt =>
-        pdfDropzone.addEventListener(evt, () => pdfDropzone.style.borderColor = "rgba(255,255,255,0.06)")
+        pdfDropzone.addEventListener(evt, e => {
+            e.preventDefault();
+            pdfDropzone.style.borderColor = "rgba(255,255,255,0.06)";
+        })
     );
 
     pdfDropzone.addEventListener("drop", e => {
-        e.preventDefault();
         if (e.dataTransfer.files[0]) processPdf(e.dataTransfer.files[0]);
     });
     pdfDropzone.addEventListener("click", () => pdfInput.click());
@@ -191,7 +194,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 const thumb = document.createElement("div");
                 thumb.className = "thumb";
-                thumb.innerHTML = `<img src="${URL.createObjectURL(blob)}"><div>Page ${i}<br><small>${(blob.size/1024).toFixed(1)} KB</small></div>`;
+                thumb.innerHTML = `<img src="${URL.createObjectURL(blob)}">
+                                   <div>Page ${i}<br><small>${(blob.size/1024).toFixed(1)} KB</small></div>`;
                 pdfThumbs.appendChild(thumb);
             }
             logPdf(`Extracted ${pdf.numPages} pages`);
