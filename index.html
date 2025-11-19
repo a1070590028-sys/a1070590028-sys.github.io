@@ -15,9 +15,9 @@
 
 <div class="container">
 
-    <!-- 图片压缩&格式转换 -->
+    <!-- 图片压缩&格式转换（保持原样） -->
     <div class="post-card">
-        <h2 class="card-title">图片压缩&格式转换 <span class="toggle-icon">▾</span></h2>
+        <h2 class="card-title">图片压缩&格式转换 <span class="toggle-icon">down arrow</span></h2>
         <div class="card-content">
             <p style="margin-top:8px">在浏览器内压缩图片并转换格式：上传 → 设置参数 → 压缩 → 单张或打包下载。</p>
             <div style="margin-top:12px" class="compress-grid">
@@ -37,7 +37,7 @@
                         </div>
                     </div>
                     <div style="margin-top:8px" class="small">
-                        处理日志：<div id="log" style="margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:6px;border-radius:6px;background:rgba(0,0,0,0.2)"></div>
+                        处理日志：<div id="log" style="margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);line-height:1.5;"></div>
                     </div>
                 </div>
                 <div class="controls post-card" style="padding:14px">
@@ -52,7 +52,7 @@
                             <option value="jpeg">JPEG (.jpg)</option>
                             <option value="png">PNG (.png)</option>
                             <option value="webp" selected>WebP (.webp)</option>
-                            <option value="avif">AVIF (.avif) </option>
+                            <option value="avif">AVIF (.avif)</option>
                         </select>
                     </div>
                     <div class="compress-param">
@@ -71,20 +71,22 @@
         </div>
     </div>
 
-    <!-- 图片 ↔ PDF 互转（新功能） -->
+    <!-- 图片 ↔ PDF 互转（已完全统一风格） -->
     <div class="post-card">
-        <h2 class="card-title">图片 ↔ PDF 互转 <span class="toggle-icon">▾</span></h2>
+        <h2 class="card-title">图片 ↔ PDF 互转 <span class="toggle-icon">down arrow</span></h2>
         <div class="card-content">
-            <p style="margin-top:8px">纯前端实现：多图转 PDF、PDF 转图片，全部离线处理，支持拖拽上传与批量下载。</p>
-            
-            <div class="pdf-tools-tabs" style="margin-top:12px;display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+
+            <p style="margin-top:8px">纯前端实现：多图转 PDF、PDF 转图片，全部离线处理，支持拖拽与批量下载。</p>
+
+            <!-- Tab 按钮 -->
+            <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
                 <button class="btn active" data-tab="img2pdf">图片 → PDF</button>
                 <button class="btn" data-tab="pdf2img">PDF → 图片</button>
             </div>
 
-            <!-- 图片转PDF -->
-            <div id="img2pdf" class="pdf-tab active">
-                <div style="padding:12px;background:rgba(255,255,255,0.02);border-radius:10px">
+            <!-- 图片 → PDF -->
+            <div id="img2pdf" class="compress-grid" style="margin-top:12px;gap:18px">
+                <div style="padding:12px">
                     <div id="dropzoneImg" class="dropzone">
                         <div style="font-weight:600;color:#cfe8ff">拖拽图片到这里，或点击选择（支持多选）</div>
                         <div class="small" style="margin-top:6px">支持 JPG / PNG / WebP / GIF（静帧）</div>
@@ -92,46 +94,67 @@
                     </div>
                     <div class="thumbs" id="imgThumbs"></div>
 
-                    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-                        <select id="pageSize" style="padding:6px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:#e2e8f0">
+                    <div class="file-row" style="margin-top:12px">
+                        <div class="small">已选：<span id="imgCount">0</span> 张</div>
+                        <div>
+                            <button class="btn" id="clearImgList">清空列表</button>
+                            <button class="btn" id="generatePdf">生成 PDF</button>
+                        </div>
+                    </div>
+
+                    <div class="small" style="margin-top:8px">
+                        处理日志：<div id="imgLog" style="margin-top:6px"></div>
+                    </div>
+                </div>
+
+                <!-- 参数区（与压缩卡片完全一致） -->
+                <div class="controls post-card" style="padding:14px;height:fit-content">
+                    <h3 style="margin:0 0 8px;color:#93c5fd">参数设置</h3>
+                    <div class="compress-param"><label class="small">页面尺寸</label>
+                        <select id="pageSize">
                             <option value="a4">A4（竖版）</option>
                             <option value="a4l">A4（横版）</option>
                             <option value="letter">Letter</option>
                             <option value="custom">自定义尺寸</option>
                         </select>
-                        <input type="number" id="customW" placeholder="宽 px" value="1920" style="width:100px;display:none">
-                        <input type="number" id="customH" placeholder="高 px" value="1080" style="width:100px;display:none">
-                        <input type="number" id="margin" placeholder="边距 px" value="20" style="width:100px">
-                        <button class="btn" id="generatePdf">生成 PDF</button>
-                        <button class="btn" id="clearImgList" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.4)">清空列表</button>
                     </div>
-                    <div id="imgLog" style="margin-top:12px;max-height:120px;overflow:auto;font-size:13px;color:#94a3b8"></div>
+                    <div class="compress-param" id="customSizeRow" style="display:none">
+                        <input type="number" id="customW" placeholder="宽 px" value="1920" style="width:48%">
+                        <input type="number" id="customH" placeholder="高 px" value="1080" style="width:48%;margin-left:4%">
+                    </div>
+                    <div class="compress-param"><label class="small">边距（px）</label><input id="margin" type="number" value="20" min="0"></div>
                 </div>
             </div>
 
-            <!-- PDF转图片 -->
-            <div id="pdf2img" class="pdf-tab" style="display:none">
-                <div style="padding:12px;background:rgba(255,255,255,0.02);border-radius:10px">
-                    <div id="dropzonePdf" class="dropzone">
-                        <div style="font-weight:600;color:#cfe8ff">拖拽 PDF 文件到这里，或点击选择</div>
-                        <input type="file" id="pdfInput" accept=".pdf" style="display:none">
-                    </div>
-                    <div class="thumbs" id="pdfThumbs"></div>
+            <!-- PDF → 图片 -->
+            <div id="pdf2img" style="display:none;padding:12px">
+                <div id="dropzonePdf" class="dropzone">
+                    <div style="font-weight:600;color:#cfe8ff">拖拽 PDF 文件到这里，或点击选择</div>
+                    <div class="small" style="margin-top:6px">一次只支持单个 PDF</div>
+                    <input type="file" id="pdfInput" accept=".pdf" style="display:none">
+                </div>
+                <div class="thumbs" id="pdfThumbs"></div>
 
-                    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
-                        <button class="btn" id="extractImages">提取所有页面为图片</button>
-                        <button class="btn" id="downloadAllImages">打包下载（ZIP）</button>
-                        <button class="btn" id="clearPdfList" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.4)">清空</button>
+                <div class="file-row" style="margin-top:12px">
+                    <div class="small">共 <span id="pdfPageCount">0</span> 页</div>
+                    <div>
+                        <button class="btn" id="clearPdfList" style="background:rgba(239,68,68,.2);border-color:rgba(239,68,68,.4)">清空</button>
+                        <button class="btn" id="extractImages">提取图片</button>
+                        <button class="btn" id="downloadAllImages">打包下载</button>
                     </div>
-                    <div id="pdfLog" style="margin-top:12px;max-height:120px;overflow:auto;font-size:13px;color:#94a3b8"></div>
+                </div>
+
+                <div class="small" style="margin-top:8px">
+                    处理日志：<div id="pdfLog" style="margin-top:6px"></div>
                 </div>
             </div>
+
         </div>
     </div>
 
     <!-- 未来内容 -->
     <div class="post-card">
-        <h2 class="card-title">未来内容 <span class="toggle-icon">▾</span></h2>
+        <h2 class="card-title">未来内容 <span class="toggle-icon">down arrow</span></h2>
         <div class="card-content"><p>敬请期待！</p></div>
     </div>
 
@@ -139,7 +162,7 @@
 
 <footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
 
-<div id="net-monitor-btn"><div class="net-icon">🌐</div></div>
+<div id="net-monitor-btn"><div class="net-icon">network</div></div>
 <div id="net-monitor-panel">
     <h3>网络状态监控</h3>
     <div class="net-item">网络状态：<span id="nm-status">--</span></div>
@@ -153,12 +176,36 @@
 <script src="js/lib/vanta.net.min.js"></script>
 <script src="js/lib/browser-image-compression.min.js"></script>
 <script src="js/lib/jszip.min.js"></script>
-
-<!-- 图片↔PDF 互转依赖（必须放在这里） -->
 <script src="js/lib/jspdf.umd.min.js"></script>
-<script src="js/lib/pdf.min.js"></script>   <!-- pdf.worker.min.js 会自动加载同目录文件 -->
+<script src="js/lib/pdf.min.js"></script>
 
 <!-- 自己的模块入口 -->
 <script type="module" src="js/main.js"></script>
+
+<!-- 仅 10 行内联脚本，保证 PDF 卡片完美统一 + 功能正常 -->
+<script>
+// Tab 切换
+document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
+    document.querySelectorAll('[data-tab]').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('#img2pdf, #pdf2img').forEach(x => x.style.display = 'none');
+    b.classList.add('active');
+    document.getElementById(b.dataset.tab).style.display = b.dataset.tab === 'img2pdf' ? 'grid' : 'block';
+});
+
+// 自定义尺寸显隐
+document.getElementById('pageSize').onchange = e => {
+    document.getElementById('customSizeRow').style.display = e.target.value === 'custom' ? 'block' : 'none';
+};
+
+// 让两个日志框完全复用 #log 的样式（包括滚动条）
+const style = document.createElement('style');
+style.textContent = `#imgLog,#pdfLog{margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);line-height:1.5;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.15) transparent;}
+#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px}
+#imgLog::-webkit-scrollbar-track,#pdfLog::-webkit-scrollbar-track{background:transparent}
+#imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
+#imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.3)}`;
+document.head.appendChild(style);
+</script>
+
 </body>
 </html>
