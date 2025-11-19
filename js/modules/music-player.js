@@ -90,8 +90,8 @@
         durTime.textContent = fmt(audio.duration);
     });
     audio.addEventListener('ended', () => load(idx + 1));
-    audio.addEventListener('play', () => playBtn.textContent = 'Pause');
-    audio.addEventListener('pause', () => playBtn.textContent = 'Play');
+    audio.addEventListener('play', () => playBtn.textContent = '❚❚');
+    audio.addEventListener('pause', () => playBtn.textContent = '▶');
 
     progress.onclick   = e => { const r=progress.getBoundingClientRect(); audio.currentTime = audio.duration * (e.clientX-r.left)/r.width; };
     volumeBar.onclick  = e => { const r=volumeBar.getBoundingClientRect(); const v=(e.clientX-r.left)/r.width; audio.volume=v; volumeFill.style.width=v*100+'%'; };
@@ -102,7 +102,7 @@
     plistBtn.onclick   = () => {
         const show = playlist.style.display !== 'block';
         playlist.style.display = show ? 'block' : 'none';
-        plistBtn.innerHTML = show ? `播放列表 ${songs.length} 首 Up Arrow` : `播放列表 ${songs.length} 首 Down Arrow`;
+        plistBtn.innerHTML = show ? `播放列表 ${songs.length} 首 ▲` : `播放列表 ${songs.length} 首 ▼`;
     };
     btn.onclick = () => panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
 
@@ -120,4 +120,5 @@
         }
     });
 })();
+
 
