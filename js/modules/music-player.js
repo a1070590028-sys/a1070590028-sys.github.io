@@ -54,15 +54,17 @@
     };
 
     const load = i => {
-    idx = (i + songs.length) % songs.length;
+    idx = ((i % songs.length) + songs.length) % songs.length;  // 先修上一首 bug
     const s = songs[idx];
 
-    // 智能判断路径：本地拖入的 blob URL / 外链 直接用，原有相对路径才加 /music/
-    audio.src = /^(https?:|blob:|data:)/i.test(s.file) ? s.file : `/music/${s.file}`;
+    // 关键修复：只有纯文件名才加 /music/ 前缀
+    // blob: data: http: https: 都不加，其余一律当成相对路径处理
+    const isFullUrl = /^(https?:|blob:|data:|ipfs:)/i.test(s.file);
+    audio.src = isFullUrl ? s.file : `/music/${s.file}`;
 
     title.textContent = s.name;
     render();
-    audio.play().catch(() => {});
+    audio.play().catch(e => console.warn('播放失败', e));
     playBtn.textContent = '❚❚';
 };
 
@@ -123,6 +125,7 @@
         }
     });
 })();
+
 
 
 
