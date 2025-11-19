@@ -1,5 +1,5 @@
 VANTA.NET({
-    el: "body",
+    el: document.getElementById("vanta-bg"),
     mouseControls: true,
     touchControls: true,
     gyroControls: false,
@@ -10,3 +10,4 @@ VANTA.NET({
     color: 0x60a5fa,
     backgroundColor: 0x0f172a
 });
+
