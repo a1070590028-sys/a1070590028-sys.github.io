@@ -64,7 +64,7 @@
     };
 
     // 纯本地读取 music-list.json（瞬间完成）
-    fetch('/music-list.json?t=' + Date.now())
+    fetch('/music/music-list.json?t=' + Date.now())
         .then(r => r.ok ? r.json() : [])
         .then(arr => {
             songs = arr
@@ -120,6 +120,7 @@
         }
     });
 })();
+
 
 
 
