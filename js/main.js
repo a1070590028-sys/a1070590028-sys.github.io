@@ -4,3 +4,4 @@ import './modules/vanta-bg.js';
 import './modules/card-toggle.js';
 import './modules/image-compress.js';
 import './modules/net-monitor.js';
+import './modules/pdf-convert.js';
