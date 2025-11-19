@@ -17,7 +17,7 @@
             <div id="mp-progress"><div id="mp-progress-fill"></div><div id="mp-progress-thumb"></div></div>
             <div id="mp-time"><span id="mp-cur">0:00</span><span id="mp-dur">0:00</span></div>
             <div id="mp-volume"><div id="mp-volume-fill" style="width:70%"></div><div id="mp-volume-thumb" style="left:70%"></div></div>
-            <button id="mp-plist-btn">播放列表 <span id="plist-count">0</span> 首 Down Arrow</button>
+            <button id="mp-plist-btn">播放列表 <span id="plist-count">0</span> 首 ▼</button>
             <div id="mp-playlist"></div>
         </div>
         <audio id="mp-audio" preload="metadata"></audio>`;
@@ -120,6 +120,7 @@
         }
     });
 })();
+
 
 
 
