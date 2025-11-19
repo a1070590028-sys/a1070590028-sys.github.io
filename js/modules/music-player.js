@@ -56,7 +56,7 @@
     const load = i => {
         idx = (i + songs.length) % songs.length;
         const s = songs[idx];
-        audio.src = `./music/${encodeURIComponent(s.file)}`;
+        audio.src = `/music/${s.file}`; 
         title.textContent = s.name;
         render();
         audio.play().catch(() => {});
@@ -120,6 +120,7 @@
         }
     });
 })();
+
 
 
 
