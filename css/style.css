@@ -33,7 +33,10 @@ input[type="number"],select,input[type="range"]{width:100%;padding:6px;border-ra
 .net-item{margin:6px 0;font-size:14px}
 @media(max-width:860px){.compress-grid{grid-template-columns:1fr}.thumb{width:45%}}
 
-#log{
+/* ==================== 以下为新增/优化内容 ==================== */
+
+/* 处理日志区样式（完全统一） */
+#log,#imgLog,#pdfLog{
     margin-top:6px;
     color:#94a3b8;
     font-size:13px;
@@ -46,21 +49,37 @@ input[type="number"],select,input[type="range"]{width:100%;padding:6px;border-ra
     line-height:1.5;
 }
 
-#log::-webkit-scrollbar{width:8px}
-#log::-webkit-scrollbar-track{background:transparent}
-#log::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
-#log::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.3)}
+/* 滚动条美化 */
+#log::-webkit-scrollbar,#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px}
+#log::-webkit-scrollbar-track,#imgLog::-webkit-scrollbar-track,#pdfLog::-webkit-scrollbar-track{background:transparent}
+#log::-webkit-scrollbar-thumb,#imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
+#log::-webkit-scrollbar-thumb:hover,#imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.3)}
+#log,#imgLog,#pdfLog{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.15) transparent}
 
-#log{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.15) transparent}
+/* 全局 select 美化（包括输出格式、页面尺寸等全部统一） */
+select{
+    width:100%;
+    padding:6px 30px 6px 8px;
+    border-radius:8px;
+    border:1px solid rgba(255,255,255,0.06);
+    background:transparent;
+    color:#e2e8f0;
+    font-size:14px;
+    cursor:pointer;
+    appearance:none;
+    background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%2360a5fa' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e");
+    background-repeat:no-repeat;
+    background-position:right 10px center;
+}
+select:focus{
+    border-color:#60a5fa !important;
+    box-shadow:0 0 8px rgba(96,165,250,0.3);
+    outline:none;
+}
 
-.compress-param{transition:opacity .3s}
-.controls.compress-controls-disabled .compress-param{opacity:0.45;pointer-events:none}
-.controls.compress-controls-disabled .compress-param input,
-.controls.compress-controls-disabled .compress-param label,
-.controls.compress-controls-disabled #qualityVal{cursor:not-allowed !important}
-
-#outFormat,#onlyConvert{opacity:1 !important;pointer-events:auto !important;cursor:pointer !important}
-#outFormat option{background-color:#0f172a;color:#60a5fa;font-weight:500}
-#outFormat option:hover{background-color:#1e293b !important;color:#93c5fd !important}
-#outFormat option[value=original]{color:#94a3b8}
-#outFormat:focus{border-color:#60a5fa;box-shadow:0 0 8px rgba(96,165,250,0.3)}
+/* PDF 工具 tab 按钮高亮 */
+.pdf-tools-tabs button.active{
+    background:rgba(96,165,250,0.2);
+    border-color:#60a5fa;
+    color:#fff;
+}
