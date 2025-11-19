@@ -1,4 +1,4 @@
-// js/modules/music-player.js —— 100% 纯本地 · 秒开 · 专为 music-list.json 打造
+// js/modules/music-player.js —— 100% 纯本地 · 秒开 · 已修复所有已知 bug
 (() => {
     const entry = document.getElementById('music-player-entry');
     if (!entry) return;
@@ -22,146 +22,149 @@
         </div>
         <audio id="mp-audio" preload="metadata"></audio>`;
 
-    const audio      = document.getElementById('mp-audio');
-    const panel      = document.getElementById('music-player-panel');
-    const btn        = document.getElementById('music-player-btn');
-    const playBtn    = document.getElementById('mp-play');
-    const prevBtn    = document.getElementById('mp-prev');
-    const nextBtn    = document.getElementById('mp-next');
-    const progress   = document.getElementById('mp-progress');
-    const fill       = document.getElementById('mp-progress-fill');
-    const curTime    = document.getElementById('mp-cur');
-    const durTime    = document.getElementById('mp-dur');
-    const volumeBar  = document.getElementById('mp-volume');
+    const audio = document.getElementById('mp-audio');
+    const panel = document.getElementById('music-player-panel');
+    const btn = document.getElementById('music-player-btn');
+    const playBtn = document.getElementById('mp-play');
+    const prevBtn = document.getElementById('mp-prev');
+    const nextBtn = document.getElementById('mp-next');
+    const progress = document.getElementById('mp-progress');
+    const fill = document.getElementById('mp-progress-fill');
+    const curTime = document.getElementById('mp-cur');
+    const durTime = document.getElementById('mp-dur');
+    const volumeBar = document.getElementById('mp-volume');
     const volumeFill = document.getElementById('mp-volume-fill');
-    const title      = document.getElementById('now-title');
-    const totalEl    = document.getElementById('total');
-    const plistBtn   = document.getElementById('mp-plist-btn');
+    const title = document.getElementById('now-title');
+    const totalEl = document.getElementById('total');
+    const plistBtn = document.getElementById('mp-plist-btn');
     const plistCount = document.getElementById('plist-count');
-    const playlist   = document.getElementById('mp-playlist');
+    const playlist = document.getElementById('mp-playlist');
 
     let songs = [];
     let idx = 0;
+    let hasUserInteracted = false; // 解决自动播放策略
 
     const niceName = n => n.replace(/^\d+[\s\.\-\_\)\]]*\s*/g, '').replace(/\.[^.]+$/, '').trim();
     const fmt = s => isNaN(s) ? '0:00' : `${Math.floor(s/60)}:${('0'+Math.floor(s%60)).slice(-2)}`;
 
     const render = () => {
-        playlist.innerHTML = songs.map((s,i) => 
+        playlist.innerHTML = songs.map((s,i) =>
             `<div class="mp-item ${i===idx?'active':''}" data-i="${i}">${s.name}</div>`
         ).join('');
         plistCount.textContent = totalEl.textContent = songs.length;
     };
 
     const load = i => {
-  idx = ((i % songs.length) + songs.length) % songs.length;
-  const s = songs[idx];
+        idx = ((i % songs.length) + songs.length) % songs.length; // 正确支持负数取模
+        const s = songs[idx];
+        if (!s || !s.file) return;
 
-  if (!s || !s.file) {
-    {
-    console.error('这首歌数据异常', s);
-    return;
-  }
+        // 严格区分完整 URL 与相对路径
+        const isFullUrl = /^(https?:|blob:|data:|ipfs:)/i.test(s.file);
+        audio.src = isFullUrl ? s.file : `/music/${s.file}`;
 
-  const isFullUrl = /^(https?:|blob:|data:|ipfs:)/i.test(s.file);
-  audio.src = isFullUrl ? s.file : `/music/${s.file}`;
+        title.textContent = s.name || '未知歌曲';
+        render();
 
-  console.log('正在加载 →', audio.src);   // ← 关键日志！看这里到底设置成了什么
+        // 智能播放：只有用户交互过才自动播放
+        if (hasUserInteracted && audio.paused) {
+            audio.play().then(() => {
+                playBtn.textContent = '❚❚';
+            }).catch(e => console.warn('自动播放失败', e));
+        } else {
+            playBtn.textContent = '▶';
+        }
+    };
 
-  title.textContent = s.name;
-  render();
-  audio.play().catch(e => console.warn('播放失败', e));
-  playBtn.textContent = '❚❚';
-};
-    const isFullUrl = /^(https?:|blob:|data:|ipfs:)/i.test(s.file);
-    audio.src = isFullUrl ? s.file : `/music/${s.file}`;
-
-    title.textContent = s.name;
-    render();
-    audio.play().catch(e => console.warn('播放失败', e));
-    playBtn.textContent = '❚❚';
-};
-
-    // 纯本地读取 music-list.json（瞬间完成）
+    // 加载歌单
     fetch('/music/music-list.json?t=' + Date.now())
-  .then(r => {
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    return r.json();
-  })
-  .then(arr => {
-    console.log('原始 json 数据:', arr);  // ← 关键！看看这里到底拿到了什么
+        .then(r => r.ok ? r.json() : [])
+        .then(arr => {
+            if (!Array.isArray(arr) || arr.length === 0) {
+                title.textContent = '歌单为空';
+                return;
+            }
 
-    if (!Array.isArray(arr) || arr.length === 0) {
-      title.textContent = '歌单为空或格式错误';
-      return;
-    }
+            songs = arr
+                .filter(f => typeof f === 'string' && /\.(mp3|flac|wav|m4a|aac|ogg)$/i.test(f))
+                .map(f => ({ name: niceName(f), file: f }))
+                .sort((a,b) => a.name.localeCompare(b.name));
 
-    songs = arr
-      .filter(f => typeof f === 'string' && /\.(mp3|flac|wav|m4a|aac|ogg)$/i.test(f))
-      .map(f => ({ name: niceName(f), file: f }));
+            if (songs.length === 0) {
+                title.textContent = '无支持的音乐文件';
+                return;
+            }
 
-    if (songs.length === 0) {
-      title.textContent = '没有找到支持的音乐文件';
-      return;
-    }
+            title.textContent = songs[0].name;
+            load(0);        // 只加载，不自动播放
+            render();
+        })
+        .catch(() => { title.textContent = '加载歌单失败'; });
 
-    songs.sort((a,b) => a.name.localeCompare(b.name));
-    title.textContent = songs[0].name;
-    load(0);                    // ← 确保这一行还在！
-    render();
-  })
-  .catch(err => {
-    console.error('加载歌单彻底失败', err);
-    title.textContent = '加载歌单失败';
- 见控制台';
-  });
-
-    // 播放器交互（极简）
+    // 播放进度
     audio.addEventListener('timeupdate', () => {
         if (!audio.duration) return;
-        fill.style.width = (audio.currentTime / audio.duration * 100) + '%';
+        const percent = audio.currentTime / audio.duration * 100;
+        fill.style.width = percent + '%';
         curTime.textContent = fmt(audio.currentTime);
         durTime.textContent = fmt(audio.duration);
     });
+
     audio.addEventListener('ended', () => load(idx + 1));
-    audio.addEventListener('play', () => playBtn.textContent = '❚❚');
+    audio.addEventListener('7play', () => playBtn.textContent = '❚❚');
     audio.addEventListener('pause', () => playBtn.textContent = '▶');
 
-    progress.onclick   = e => { const r=progress.getBoundingClientRect(); audio.currentTime = audio.duration * (e.clientX-r.left)/r.width; };
-    volumeBar.onclick  = e => { const r=volumeBar.getBoundingClientRect(); const v=(e.clientX-r.left)/r.width; audio.volume=v; volumeFill.style.width=v*100+'%'; };
-    playBtn.onclick    = () => audio.paused ? audio.play() : audio.pause();
-    prevBtn.onclick    = () => load(idx - 1);
-    nextBtn.onclick    = () => load(idx + 1);
-    playlist.onclick   = e => { const el=e.target.closest('.mp-item'); if(el) load(+el.dataset.i); };
-    plistBtn.onclick   = () => {
+    // 交互
+    progress.onclick = e => {
+        const rect = progress.getBoundingClientRect();
+        audio.currentTime = audio.duration * (e.clientX - rect.left) / rect.width;
+    };
+
+    volumeBar.onclick = e => {
+        const rect = volumeBar.getBoundingClientRect();
+        const v = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        audio.volume = v;
+        volumeFill.style.width = (v*100) + '%';
+    };
+
+    const userInteract = () => hasUserInteracted = true;
+
+    playBtn.onclick = () => {
+        userInteract();
+        audio.paused ? audio.play().then(() => playBtn.textContent = '❚❚') : audio.pause();
+    };
+
+    prevBtn.onclick = () => { userInteract(); load(idx - 1); };
+    nextBtn.onclick = () => { userInteract(); load(idx + 1); };
+
+    playlist.onclick = e => {
+        const el = e.target.closest('.mp-item');
+        if (el) { userInteract(); load(+el.dataset.i); }
+    };
+
+    plistBtn.onclick = () => {
         const show = playlist.style.display !== 'block';
         playlist.style.display = show ? 'block' : 'none';
         plistBtn.innerHTML = show ? `播放列表 ${songs.length} 首 ▲` : `播放列表 ${songs.length} 首 ▼`;
     };
+
     btn.onclick = () => panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
 
     audio.volume = 0.7;
 
-    // 拖拽本地音乐彩蛋
+    // 拖拽本地音乐彩蛋（自动 revoke 旧 blob，防止内存泄漏）
+    let currentBlobUrl = null;
     document.body.addEventListener('dragover', e => e.preventDefault());
     document.body.addEventListener('drop', e => {
         e.preventDefault();
         const f = e.dataTransfer?.files[0];
         if (f?.type.startsWith('audio/')) {
-            const url = URL.createObjectURL(f);
-            songs.push({ name: niceName(f.name)+' (本地)', file: url });
-            render(); load(songs.length-1);
+            if (currentBlobUrl) URL.revokeObjectURL(currentBlobUrl);
+            currentBlobUrl = URL.createObjectURL(f);
+            songs.push({ name: niceName(f.name) + ' (本地)', file: currentBlobUrl });
+            render();
+            userInteract();
+            load(songs.length - 1);
         }
     });
 })();
-
-
-
-
-
-
-
-
-
-
-
