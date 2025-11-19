@@ -1,5 +1,5 @@
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;font-family:"Segoe UI",Helvetica,Arial,sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
+html,body{height:100%;margin:0;padding:0;font-family:"Segoe UI",Helvetica,Arial,sans-serif;background:#0f172a;color:#e2e8f0;overflow-x:hidden}
 #time-card{position:fixed;top:12px;right:50px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-size:14px;color:#60a5fa;z-index:9999;text-align:right}
 #time-card .date{font-size:13px;color:#93c5fd}
 header{position:relative;z-index:1;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);background:rgba(255,255,255,0.04);border-bottom:1px solid rgba(255,255,255,0.04);padding:40px 20px;text-align:center}
@@ -27,59 +27,41 @@ input[type="number"],select,input[type="range"]{width:100%;padding:6px;border-ra
 .card-content.collapsed{max-height:0;padding:0}
 #net-monitor-btn{position:fixed;right:20px;bottom:20px;width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:99999;transition:0.25s}
 #net-monitor-btn:hover{transform:scale(1.08);box-shadow:0 0 14px rgba(96,165,250,0.4)}
-.net-icon{font-size:22px;}
+.net-icon{font-size:22px}
 #net-monitor-panel{position:fixed;right:20px;bottom:90px;width:230px;padding:16px;border-radius:14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(12px);color:#cfe8ff;display:none;z-index:99999}
 #net-monitor-panel h3{margin:0 0 10px;font-size:16px;color:#93c5fd}
 .net-item{margin:6px 0;font-size:14px}
 @media(max-width:860px){.compress-grid{grid-template-columns:1fr}.thumb{width:45%}}
 
-/* ==================== 以下为新增/优化内容 ==================== */
+/* ==================== 以下为最终优化 ==================== */
 
-/* 处理日志区样式（完全统一） */
-#log,#imgLog,#pdfLog{
-    margin-top:6px;
-    color:#94a3b8;
-    font-size:13px;
-    max-height:160px;
-    overflow-y:auto;
-    padding:10px 12px;
-    border-radius:8px;
-    background:rgba(0,0,0,0.25);
-    border:1px solid rgba(255,255,255,0.06);
-    line-height:1.5;
+/* Vanta 全屏背景专用层 */
+#vanta-bg{
+    position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;pointer-events:none;
 }
 
-/* 滚动条美化 */
+/* 统一所有日志区样式 */
+#log,#imgLog,#pdfLog{
+    margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow-y:auto;
+    padding:10px 12px;border-radius:8px;background:rgba(0,0,0,0.25);
+    border:1px solid rgba(255,255,255,0.06);line-height:1.5;
+}
 #log::-webkit-scrollbar,#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px}
 #log::-webkit-scrollbar-track,#imgLog::-webkit-scrollbar-track,#pdfLog::-webkit-scrollbar-track{background:transparent}
 #log::-webkit-scrollbar-thumb,#imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
 #log::-webkit-scrollbar-thumb:hover,#imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.3)}
 #log,#imgLog,#pdfLog{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.15) transparent}
 
-/* 全局 select 美化（包括输出格式、页面尺寸等全部统一） */
+/* 全局 select 美化（输出格式、页面尺寸全部统一） */
 select{
-    width:100%;
-    padding:6px 30px 6px 8px;
-    border-radius:8px;
-    border:1px solid rgba(255,255,255,0.06);
-    background:transparent;
-    color:#e2e8f0;
-    font-size:14px;
-    cursor:pointer;
-    appearance:none;
+    width:100%;padding:6px 30px 6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);
+    background:transparent;color:#e2e8f0;font-size:14px;cursor:pointer;appearance:none;
     background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%2360a5fa' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e");
-    background-repeat:no-repeat;
-    background-position:right 10px center;
+    background-repeat:no-repeat;background-position:right 10px center;
 }
-select:focus{
-    border-color:#60a5fa !important;
-    box-shadow:0 0 8px rgba(96,165,250,0.3);
-    outline:none;
-}
+select:focus{border-color:#60a5fa !important;box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
 
-/* PDF 工具 tab 按钮高亮 */
+/* PDF tab 按钮高亮 */
 .pdf-tools-tabs button.active{
-    background:rgba(96,165,250,0.2);
-    border-color:#60a5fa;
-    color:#fff;
+    background:rgba(96,165,250,0.2);border-color:#60a5fa;color:#fff;
 }
