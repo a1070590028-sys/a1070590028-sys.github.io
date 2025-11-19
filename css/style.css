@@ -76,3 +76,13 @@ body {
     position: relative;
     z-index: 1;
 }
+/* 深色主题下拉框优化（2025最新补丁） */
+select {
+    background-color: rgba(255,255,255,0.08) !important;
+    color: #e2e8f0 !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
+}
+select option {
+    background-color: #1e293b !important;
+    color: #e2e8f0 !important;
+}
