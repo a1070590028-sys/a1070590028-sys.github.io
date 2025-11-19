@@ -1,14 +1,22 @@
 // js/modules/pdf-convert.js
 const { jsPDF } = window.jspdf;
 
+// 关键修复：必须手动指定 worker 路径，否则 PDF 加载会报错
+if (typeof pdfjsLib !== 'undefined') {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'js/lib/pdf.worker.min.js';
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Tab 切换
+    // ====================== Tab 切换 ======================
     document.querySelectorAll('.pdf-tools-tabs button').forEach(btn => {
         btn.addEventListener('click', () => {
+            // 按钮高亮
             document.querySelectorAll('.pdf-tools-tabs button').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            document.querySelectorAll('.pdf-tab').forEach(tab => tab.classList.remove('active'));
-            document.getElementById(btn.dataset.tab).classList.add('active');
+
+            // 内容显示（统一用 style.display，避免 class 与 inline-style 冲突）
+            document.querySelectorAll('.pdf-tab').forEach(tab => tab.style.display = 'none');
+            document.getElementById(btn.dataset.tab).style.display = 'block';
         });
     });
 
@@ -17,23 +25,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const imgThumbsContainer = document.getElementById('imgThumbs');
     const imgDropzone = document.getElementById('dropzoneImg');
     const imgInput = document.getElementById('imgInput');
+    const imgLog = document.getElementById('imgLog');
 
-    const logImg = msg => document.getElementById('imgLog').innerHTML += `<div>${msg}</div>`;
+    const logImg = msg => imgLog.innerHTML += `<div>${new Date().toLocaleTimeString()} ${msg}</div>`;
 
     // 拖拽上传
     ['dragover', 'dragenter'].forEach(evt => imgDropzone.addEventListener(evt, e => { e.preventDefault(); imgDropzone.style.borderColor = '#60a5fa'; }));
-    ['dragleave', 'dragend'].forEach(evt => imgDropzone.addEventListener(evt, () => imgDropzone.style.borderColor = 'rgba(255,255,255,0.06)'));
+    ['dragleave', 'dragend', 'drop'].forEach(evt => imgDropzone.addEventListener(evt, e => { if (evt.type !== 'drop') e.preventDefault(); imgDropzone.style.borderColor = 'rgba(255,255,255,0.06)'; }));
     imgDropzone.addEventListener('drop', e => {
         e.preventDefault();
-        imgDropzone.style.borderColor = 'rgba(255,255,255,0.06)';
-        handleFiles(e.dataTransfer.files);
+        handleImgFiles(e.dataTransfer.files);
     });
     imgDropzone.addEventListener('click', () => imgInput.click());
-    imgInput.addEventListener('change', () => handleFiles(imgInput.files));
+    imgInput.addEventListener('change', () => handleImgFiles(imgInput.files));
 
-    function handleFiles(files) {
-        [...files].forEach(file => {
-            if (!file.type.startsWith('image/')) return;
+    function handleImgFiles(files) {
+        [...files].filter(f => f.type.startsWith('image/')).forEach(file => {
             imgFiles.push(file);
             const reader = new FileReader();
             reader.onload = e => {
@@ -44,30 +51,43 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             reader.readAsDataURL(file);
         });
-        logImg(`已添加 ${files.length} 张图片，共 ${imgFiles.length} 张`);
+        logImg(`✓ 已添加 ${files.length} 张图片（共 ${imgFiles.length} 张）`);
     }
 
-    // 页面尺寸切换
+    // 页面尺寸切换自定义尺寸显示
     document.getElementById('pageSize').addEventListener('change', function () {
-        const custom = this.value === 'custom';
-        document.getElementById('customW').style.display = custom ? 'inline-block' : 'none';
-        document.getElementById('customH').style.display = custom ? 'inline-block' : 'none';
+        const show = this.value === 'custom';
+        document.getElementById('customW').style.display = show ? 'inline-block' : 'none';
+        document.getElementById('customH').style.display = show ? 'inline-block' : 'none';
+    });
+
+    // 清空列表（修复的重点）
+    document.getElementById('clearImgList').addEventListener('click', () => {
+        imgFiles.length = 0;
+        imgThumbsContainer.innerHTML = '';
+        imgLog.innerHTML = '';
+        imgInput.value = '';
+        logImg('🗑️ 图片列表已清空');
     });
 
     // 生成 PDF
     document.getElementById('generatePdf').addEventListener('click', async () => {
         if (imgFiles.length === 0) return alert('请先上传图片');
 
-        let width = 595, height = 842; // A4 pt
+        let width = 595.28, height = 841.89; // A4 竖版 (pt)
         const size = document.getElementById('pageSize').value;
-        if (size === 'letter') { width = 612; height = 792; }
-        if (size === 'custom') {
-            width = parseInt(document.getElementById('customW').value) || 1080;
-            height = parseInt(document.getElementById('customH').value) || 1920;
-            width = width * 0.752;   // px → pt (1inch=72pt, 1inch≈96px)
-            height = height * 0.752;
+
+        if (size === 'a4l') { [width, height] = [841.89, 595.28]; } // A4 横版
+        else if (size === 'letter') { width = 612; height = 792; }
+        else if (size === 'custom') {
+            width = parseFloat(document.getElementById('customW').value) || 1920;
+            height = parseFloat(document.getElementById('customH').value) || 1080;
+            const ptRatio = 72 / 96;
+            width *= ptRatio;
+            height *= ptRatio;
         }
-        const margin = parseInt(document.getElementById('margin').value) || 0;
+
+        const margin = parseFloat(document.getElementById('margin').value) || 0;
 
         const pdf = new jsPDF({
             orientation: width > height ? 'l' : 'p',
@@ -75,18 +95,35 @@ document.addEventListener('DOMContentLoaded', () => {
             format: [width, height]
         });
 
-        logImg('正在生成 PDF...');
+        logImg('正在生成 PDF…');
         for (let i = 0; i < imgFiles.length; i++) {
             if (i > 0) pdf.addPage();
-            const dataUrl = await new Promise(r => {
+            const dataUrl = await new Promise(resolve => {
                 const reader = new FileReader();
-                reader.onload = () => r(reader.result);
+                reader.onload = () => resolve(reader.result);
                 reader.readAsDataURL(imgFiles[i]);
             });
-            pdf.addImage(dataUrl, dataUrl.split(';')[0].slice(5).toUpperCase(), margin, margin, width - margin * 2, height - margin * 2, '', 'FAST');
+
+            });
+
+            // 自动保持图片比例并居中（修复变形问题）
+            const imgProps = pdf.getImageProperties(dataUrl);
+            const pdfWidth = width - margin * 2;
+            const pdfHeight = height - margin * 2;
+            let finalWidth = pdfWidth;
+            let finalHeight = pdfHeight;
+            if (imgProps.width / imgProps.height > pdfWidth / pdfHeight) {
+                finalHeight = pdfWidth * imgProps.height / imgProps.width;
+            } else {
+                finalWidth = pdfHeight * imgProps.width / imgProps.height;
+            }
+            const x = margin + (pdfWidth - finalWidth) / 2;
+            const y = margin + (pdfHeight - finalHeight) / 2;
+
+            pdf.addImage(dataUrl, imgProps.fileType.toUpperCase(), x, y, finalWidth, finalHeight, '', 'FAST');
         }
 
-        const filename = `frey-images-to-pdf-${new Date().getTime()}.pdf`;
+        const filename = `frey-images-to-pdf-${Date.now()}.pdf`;
         pdf.save(filename);
         logImg(`✅ 生成完成：${filename}`);
     });
@@ -95,55 +132,74 @@ document.addEventListener('DOMContentLoaded', () => {
     const pdfThumbs = document.getElementById('pdfThumbs');
     const pdfDropzone = document.getElementById('dropzonePdf');
     const pdfInput = document.getElementById('pdfInput');
+    const pdfLog = document.getElementById('pdfLog');
     let extractedBlobs = [];
 
-    const logPdf = msg => document.getElementById('pdfLog').innerHTML += `<div>${msg}</div>`;
+    const logPdf = msg => pdfLog.innerHTML += `<div>${new Date().toLocaleTimeString()} ${msg}</div>`;
 
     ['dragover', 'dragenter'].forEach(evt => pdfDropzone.addEventListener(evt, e => { e.preventDefault(); pdfDropzone.style.borderColor = '#60a5fa'; }));
-    ['dragleave', 'dragend'].forEach(evt => pdfDropzone.addEventListener(evt, () => pdfDropzone.style.borderColor = 'rgba(255,255,255,0.06)'));
+    ['dragleave', 'dragend', 'drop'].forEach'].forEach(evt => pdfDropzone.addEventListener(evt, () => pdfDropzone.style.borderColor = 'rgba(255,255,255,0.06)'));
     pdfDropzone.addEventListener('drop', e => {
         e.preventDefault();
-        pdfDropzone.style.borderColor = 'rgba(255,255,255,0.06)';
         if (e.dataTransfer.files[0]) processPdf(e.dataTransfer.files[0]);
     });
     pdfDropzone.addEventListener('click', () => pdfInput.click());
-    pdfInput.addEventListener('change', () => processPdf(pdfInput.files[0]));
+    pdfInput.addEventListener('change', () => { if (pdfInput.files[0]) processPdf(pdfInput.files[0]); });
 
     async function processPdf(file) {
         pdfThumbs.innerHTML = '';
         extractedBlobs = [];
-        logPdf(`正在加载 PDF：${file.name}`);
+        logPdf(`正在加载 PDF：${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
 
-        const arrayBuffer = await file.arrayBuffer();
-        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-        const pdf = await loadingTask.promise;
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+            const pdf = await loadingTask.promise;
 
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-            const page = await pdf.getPage(pageNum);
-            const viewport = page.getViewport({ scale: 2.0 });
+            logPdf(`共 ${pdf.numPages} 页，开始渲染…`);
 
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
+            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                const page = await pdf.getPage(pageNum);
+                const viewport = page.getViewport({ scale: 2.0 });
 
-            await page.render({ canvasContext: context, viewport }).promise;
+                const canvas = document.createElement('canvas');
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                const context = canvas.getContext('2d');
 
-            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.95));
-            extractedBlobs.push(blob);
+                await page.render({ canvasContext: context, viewport }).promise;
 
-            const thumb = document.createElement('div');
-            thumb.className = 'thumb';
-            thumb.innerHTML = `<img src="${URL.createObjectURL(blob)}"><div>第 ${pageNum} 页</div>`;
-            pdfThumbs.appendChild(thumb);
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', 0.95));
+                extractedBlobs.push(blob);
+
+                const thumb = document.createElement('div');
+                thumb.className = 'thumb';
+                thumb.innerHTML = `<img src="${URL.createObjectURL(blob)}"><div>第 ${pageNum} 页<br><small>${(blob.size/1024).toFixed(1)} KB</small></div>`;
+                pdfThumbs.appendChild(thumb);
+            }
+            logPdf(`✅ 提取完成，共 ${pdf.numPages} 页`);
+        } catch (err) {
+            logPdf(`❌ 加载失败：${err.message}`);
+            console.error(err);
         }
-        logPdf(`✅ 提取完成，共 ${pdf.numPages} 页`);
     }
 
+    // 提取按钮
     document.getElementById('extractImages').addEventListener('click', () => {
-        if (pdfInput.files[0]) processPdf(pdfInput.files[0]);
+        if (!pdfInput.files[0]) return alert('请先上传 PDF 文件');
+        processPdf(pdfInput.files[0]);
     });
 
+    // 清空列表（修复的重点）
+    document.getElementById('clearPdfList').addEventListener('click', () => {
+        pdfThumbs.innerHTML = '';
+        extractedBlobs = [];
+        pdfLog.innerHTML = '';
+        pdfInput.value = '';
+        logPdf('🗑️ PDF 列表已清空');
+    });
+
+    // 打包下载
     document.getElementById('downloadAllImages').addEventListener('click', async () => {
         if (extractedBlobs.length === 0) return alert('请先提取图片');
         const zip = new JSZip();
@@ -155,6 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
         a.href = URL.createObjectURL(content);
         a.download = `frey-pdf-to-images-${Date.now()}.zip`;
         a.click();
-        logPdf('打包下载完成');
+        logPdf('📦 打包下载完成');
     });
 });
