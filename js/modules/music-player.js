@@ -4,15 +4,15 @@
     if (!entry) return;
 
     entry.innerHTML = `
-        <div id="music-player-btn"><div class="icon">Music</div></div>
+        <div id="music-player-btn"><div class="icon">🎧</div></div>
         <div id="music-player-panel">
             <h3>Music 音乐播放器</h3>
             <div id="now-title">加载歌单中…</div>
             <div id="now-artist">共 <span id="total">0</span> 首</div>
             <div id="mp-controls">
-                <button id="mp-prev">Previous</button>
-                <button id="mp-play">Play</button>
-                <button id="mp-next">Next</button>
+                <button id="mp-prev">⏮</button>
+                <button id="mp-play">▶</button>
+                <button id="mp-next">⏭</button>
             </div>
             <div id="mp-progress"><div id="mp-progress-fill"></div><div id="mp-progress-thumb"></div></div>
             <div id="mp-time"><span id="mp-cur">0:00</span><span id="mp-dur">0:00</span></div>
@@ -60,7 +60,7 @@
         title.textContent = s.name;
         render();
         audio.play().catch(() => {});
-        playBtn.textContent = 'Pause';
+        playBtn.textContent = '❚❚';
     };
 
     // 纯本地读取 music-list.json（瞬间完成）
@@ -120,3 +120,4 @@
         }
     });
 })();
+
