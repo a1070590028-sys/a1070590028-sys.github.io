@@ -155,18 +155,38 @@
     <div class="net-item">下载速度：<span id="nm-speed">--</span></div>
     <div class="net-item">网络延迟：<span id="nm-latency">--</span></div>
 </div>
+<!-- 第三方库（顺序不能乱：three.js 必须最先） -->
+    <script src="js/lib/three.min.js"></script>
+    <script src="js/lib/vanta.net.min.js"></script>
+    <script src="js/lib/browser-image-compression.min.js"></script>
+    <script src="js/lib/jszip.min.js"></script>
 
-<!-- 第三方库 -->
-<script src="js/lib/three.min.js"></script>
-<script src="js/lib/vanta.net.min.js"></script>
-<script src="js/lib/browser-image-compression.min.js"></script>
-<script src="js/lib/jszip.min.js"></script>
+    <!-- 图片↔PDF 互转依赖 -->
+    <script src="js/lib/jspdf.umd.min.js"></script>
+    <script src="js/lib/pdf.min.js"></script>
 
-<!-- 图片↔PDF 互转依赖 -->
-<script src="js/lib/jspdf.umd.min.js"></script>
-<script src="js/lib/pdf.min.js"></script>
+    <!-- 自己的模块入口（其他功能） -->
+    <script type="module" src="js/main.js"></script>
 
-<!-- 自己的模块入口 -->
-<script type="module" src="js/main.js"></script>
+    <!-- ★★★★★ 关键：Vanta 背景初始化（必须放在最后，确保 #vanta-bg 已经存在）★★★★★ -->
+    <script type="module">
+        document.addEventListener("DOMContentLoaded", () => {
+            VANTA.NET({
+                el: document.getElementById("vanta-bg"),
+                mouseControls: true,
+                touchControls: true,
+                gyroControls: false,
+                minHeight: 200,
+                minWidth: 200,
+                scale: 1.0,
+                scaleMobile: 1.0,
+                color: 0x60a5fa,
+                backgroundColor: 0x0f172a,
+                points: 12,
+                maxDistance: 22,
+                spacing: 16
+            });
+        });
+    </script>
 </body>
 </html>
