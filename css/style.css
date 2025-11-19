@@ -65,3 +65,14 @@ select:focus{border-color:#60a5fa !important;box-shadow:0 0 8px rgba(96,165,250,
 .pdf-tools-tabs button.active{
     background:rgba(96,165,250,0.2);border-color:#60a5fa;color:#fff;
 }
+/* 确保 body 永远铺满内容高度，Vanta 才能填满 */
+body {
+    min-height: 100vh;
+    height: auto;
+}
+
+/* 可选：如果你的 .container 很长，确保它不会被意外裁剪 */
+.container {
+    position: relative;
+    z-index: 1;
+}
