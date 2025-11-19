@@ -15,9 +15,9 @@
 
 <div class="container">
 
-    <!-- 图片压缩&格式转换 -->
+    <!-- 图片压缩&格式转换（默认展开） -->
     <div class="post-card">
-        <h2 class="card-title">图片压缩&格式转换 <span class="toggle-icon">▾</span></h2>
+        <h2 class="card-title">图片压缩&格式转换 <span class="toggle-icon">Down Arrow</span></h2>
         <div class="card-content">
             <p style="margin-top:8px">在浏览器内压缩图片并转换格式：上传 → 设置参数 → 压缩 → 单张或打包下载。</p>
             <div style="margin-top:12px" class="compress-grid">
@@ -42,7 +42,6 @@
                 </div>
                 <div class="controls post-card" style="padding:14px">
                     <h3 style="margin:0 0 8px;color:#93c5fd">参数设置</h3>
-
                     <div class="compress-param"><label class="small">最大宽度或高度（像素）</label><input id="maxSide" type="number" value="1024" min="64" step="1"></div>
                     <div class="compress-param"><label class="small">目标文件大小（最大，MB）</label><input id="maxSizeMB" type="number" value="1" min="0.05" step="0.05"></div>
                     <div>
@@ -52,7 +51,7 @@
                             <option value="jpeg">JPEG (.jpg)</option>
                             <option value="png">PNG (.png)</option>
                             <option value="webp" selected>WebP (.webp)</option>
-                            <option value="avif">AVIF (.avif) </option>
+                            <option value="avif">AVIF (.avif)</option>
                         </select>
                     </div>
                     <div class="compress-param">
@@ -60,9 +59,7 @@
                         <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.80">
                     </div>
                     <div class="compress-param"><label class="small"><input id="useWorker" type="checkbox" checked> 使用 Web Worker（更快，推荐）</label></div>
-
                     <div><label class="small"><input type="checkbox" id="onlyConvert"> 仅修改图片格式（不压缩）</label></div>
-
                     <div style="margin-top:8px" class="small">
                         提示：勾选「仅修改图片格式」后将无损转换格式，压缩相关参数会变灰。<br>AVIF 压缩率最高，WebP 兼容性最佳。
                     </div>
@@ -71,9 +68,9 @@
         </div>
     </div>
 
-    <!-- 图片 ↔ PDF 互转（新功能） -->
+    <!-- 图片 ↔ PDF 互转（默认收起） -->
     <div class="post-card">
-        <h2 class="card-title">图片 ↔ PDF 互转 <span class="toggle-icon">▾</span></h2>
+        <h2 class="card-title">图片 ↔ PDF 互转 <span class="toggle-icon">Right Arrow</span></h2>
         <div class="card-content">
             <p style="margin-top:8px">纯前端实现：多图转 PDF、PDF 转图片，全部离线处理，支持拖拽上传与批量下载。</p>
             
@@ -129,9 +126,9 @@
         </div>
     </div>
 
-    <!-- 未来内容 -->
+    <!-- 未来内容（默认收起） -->
     <div class="post-card">
-        <h2 class="card-title">未来内容 <span class="toggle-icon">▾</span></h2>
+        <h2 class="card-title">未来内容 <span class="toggle-icon">Right Arrow</span></h2>
         <div class="card-content"><p>敬请期待！</p></div>
     </div>
 
@@ -139,7 +136,7 @@
 
 <footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
 
-<div id="net-monitor-btn"><div class="net-icon">🌐</div></div>
+<div id="net-monitor-btn"><div class="net-icon">Globe</div></div>
 <div id="net-monitor-panel">
     <h3>网络状态监控</h3>
     <div class="net-item">网络状态：<span id="nm-status">--</span></div>
@@ -154,9 +151,9 @@
 <script src="js/lib/browser-image-compression.min.js"></script>
 <script src="js/lib/jszip.min.js"></script>
 
-<!-- 图片↔PDF 互转依赖（必须放在这里） -->
+<!-- 图片↔PDF 依赖 -->
 <script src="js/lib/jspdf.umd.min.js"></script>
-<script src="js/lib/pdf.min.js"></script>   <!-- pdf.worker.min.js 会自动加载同目录文件 -->
+<script src="js/lib/pdf.min.js"></script>
 
 <!-- 自己的模块入口 -->
 <script type="module" src="js/main.js"></script>
