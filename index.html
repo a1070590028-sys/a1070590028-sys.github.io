@@ -43,7 +43,6 @@
                 <div class="controls post-card" style="padding:14px">
                     <h3 style="margin:0 0 8px;color:#93c5fd">参数设置</h3>
 
-                    <!-- 下面这四行是真正会变灰的压缩参数 -->
                     <div class="compress-param"><label class="small">最大宽度或高度（像素）</label><input id="maxSide" type="number" value="1024" min="64" step="1"></div>
                     <div class="compress-param"><label class="small">目标文件大小（最大，MB）</label><input id="maxSizeMB" type="number" value="1" min="0.05" step="0.05"></div>
                     <div>
@@ -62,7 +61,6 @@
                     </div>
                     <div class="compress-param"><label class="small"><input id="useWorker" type="checkbox" checked> 使用 Web Worker（更快，推荐）</label></div>
 
-                    <!-- 这两个永远保持高亮、可交互 -->
                     <div><label class="small"><input type="checkbox" id="onlyConvert"> 仅修改图片格式（不压缩）</label></div>
 
                     <div style="margin-top:8px" class="small">
@@ -73,6 +71,65 @@
         </div>
     </div>
 
+    <!-- 图片 ↔ PDF 互转（新功能） -->
+    <div class="post-card">
+        <h2 class="card-title">图片 ↔ PDF 互转 <span class="toggle-icon">▾</span></h2>
+        <div class="card-content">
+            <p style="margin-top:8px">纯前端实现：多图转 PDF、PDF 转图片，全部离线处理，支持拖拽上传与批量下载。</p>
+            
+            <div class="pdf-tools-tabs" style="margin-top:12px;display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+                <button class="btn active" data-tab="img2pdf">图片 → PDF</button>
+                <button class="btn" data-tab="pdf2img">PDF → 图片</button>
+            </div>
+
+            <!-- 图片转PDF -->
+            <div id="img2pdf" class="pdf-tab active">
+                <div style="padding:12px;background:rgba(255,255,255,0.02);border-radius:10px">
+                    <div id="dropzoneImg" class="dropzone">
+                        <div style="font-weight:600;color:#cfe8ff">拖拽图片到这里，或点击选择（支持多选）</div>
+                        <div class="small" style="margin-top:6px">支持 JPG / PNG / WebP / GIF（静帧）</div>
+                        <input type="file" id="imgInput" accept="image/*" multiple style="display:none">
+                    </div>
+                    <div class="thumbs" id="imgThumbs"></div>
+
+                    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+                        <select id="pageSize" style="padding:6px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.06);color:#e2e8f0">
+                            <option value="a4">A4（竖版）</option>
+                            <option value="a4l">A4（横版）</option>
+                            <option value="letter">Letter</option>
+                            <option value="custom">自定义尺寸</option>
+                        </select>
+                        <input type="number" id="customW" placeholder="宽 px" value="1920" style="width:100px;display:none">
+                        <input type="number" id="customH" placeholder="高 px" value="1080" style="width:100px;display:none">
+                        <input type="number" id="margin" placeholder="边距 px" value="20" style="width:100px">
+                        <button class="btn" id="generatePdf">生成 PDF</button>
+                        <button class="btn" id="clearImgList" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.4)">清空列表</button>
+                    </div>
+                    <div id="imgLog" style="margin-top:12px;max-height:120px;overflow:auto;font-size:13px;color:#94a3b8"></div>
+                </div>
+            </div>
+
+            <!-- PDF转图片 -->
+            <div id="pdf2img" class="pdf-tab" style="display:none">
+                <div style="padding:12px;background:rgba(255,255,255,0.02);border-radius:10px">
+                    <div id="dropzonePdf" class="dropzone">
+                        <div style="font-weight:600;color:#cfe8ff">拖拽 PDF 文件到这里，或点击选择</div>
+                        <input type="file" id="pdfInput" accept=".pdf" style="display:none">
+                    </div>
+                    <div class="thumbs" id="pdfThumbs"></div>
+
+                    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+                        <button class="btn" id="extractImages">提取所有页面为图片</button>
+                        <button class="btn" id="downloadAllImages">打包下载（ZIP）</button>
+                        <button class="btn" id="clearPdfList" style="background:rgba(239,68,68,0.2);border-color:rgba(239,68,68,0.4)">清空</button>
+                    </div>
+                    <div id="pdfLog" style="margin-top:12px;max-height:120px;overflow:auto;font-size:13px;color:#94a3b8"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 未来内容 -->
     <div class="post-card">
         <h2 class="card-title">未来内容 <span class="toggle-icon">▾</span></h2>
         <div class="card-content"><p>敬请期待！</p></div>
@@ -96,6 +153,10 @@
 <script src="js/lib/vanta.net.min.js"></script>
 <script src="js/lib/browser-image-compression.min.js"></script>
 <script src="js/lib/jszip.min.js"></script>
+
+<!-- 图片↔PDF 互转依赖（必须放在这里） -->
+<script src="js/lib/jspdf.umd.min.js"></script>
+<script src="js/lib/pdf.min.js"></script>   <!-- pdf.worker.min.js 会自动加载同目录文件 -->
 
 <!-- 自己的模块入口 -->
 <script type="module" src="js/main.js"></script>
