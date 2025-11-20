@@ -1,5 +1,5 @@
 // js/modules/music-player.js
-// 终极无缝版 + 只有点击按钮才能关闭面板 + 防内存泄漏 + 加载提示
+// 终极版：默认不自动播放 + 只有点击按钮关闭面板 + 切歌丝滑 + 防内存泄漏
 
 let audio = null;
 let playlist = [];      // { name: string, url: string, type: 'online'|'local', objectURL?: string }
@@ -15,16 +15,14 @@ export function initMusicPlayer() {
     audio.volume = 0.7;
     audio.preload = 'metadata';
 
-    // ==================== 面板开关：只有点击按钮本身才能开/关 ====================
+    // ==================== 只有点击按钮本身才能开/关面板 ====================
     btn.onclick = () => {
         const isVisible = panel.style.display === 'block';
         panel.style.display = isVisible ? 'none' : 'block';
     };
-
-    // 防止点击面板内部时冒泡影响到外层（保险）
     panel.addEventListener('click', e => e.stopPropagation());
 
-    // 加载在线歌单
+    // 加载在线歌单（关键修改：加载完只选中第一首，不自动播放）
     fetch('music/music-list.json?' + Date.now(), { cache: 'no-store' })
         .then(r => r.ok ? r.json() : [])
         .then(list => {
@@ -35,7 +33,15 @@ export function initMusicPlayer() {
             }));
             playlist = onlineSongs;
             renderPlaylist();
-            if (playlist.length > 0) playIndex(0);
+
+            // ★★★★★ 这里是关键修改 ★★★★★
+            if (playlist.length > 0) {
+                currentIndex = 0;  // 选中第一首
+                document.getElementById('songTitle').textContent = playlist[0].name;
+                document.getElementById('playBtn').textContent = '▶';  // 明确显示播放图标
+                renderPlaylist();  // 高亮第一首
+                // 不调用 playIndex(0)，所以默认不播放
+            }
         })
         .catch(() => { /* 失败也没事，本地拖拽还能用 */ });
 
@@ -76,7 +82,7 @@ export function initMusicPlayer() {
         }
     }
 
-    // ========== 核心：无缝播放（彻底解决切歌卡顿、按钮错乱）==========
+    // ========== 核心：无缝播放 ==========
     function playIndex(i) {
         if (i < 0 || i >= playlist.length || !audio) return;
 
@@ -84,7 +90,7 @@ export function initMusicPlayer() {
             return;
         }
 
-        // 释放上一首本地文件的 objectURL
+        // 释放上一首本地文件内存
         if (playlist[currentIndex]?.type === 'local' && playlist[currentIndex]?.objectURL) {
             URL.revokeObjectURL(playlist[currentIndex].objectURL);
         }
@@ -92,7 +98,7 @@ export function initMusicPlayer() {
         currentIndex = i;
         const song = playlist[i];
 
-        // 清理旧事件
+        // 清理旧事件与资源
         audio.pause();
         audio.removeEventListener('canplaythrough', onCanPlay);
         audio.removeEventListener('loadeddata', onCanPlay);
@@ -100,12 +106,11 @@ export function initMusicPlayer() {
         audio.removeEventListener('pause', onPauseOrEnded);
         audio.removeEventListener('ended', onPauseOrEnded);
 
-        // 彻底清理旧 src
         audio.src = '';
         audio.removeAttribute('src');
         try { audio.load(); } catch(e) {}
 
-        // UI 立即更新
+        // UI 更新
         document.getElementById('songTitle').textContent = song.name + ' (加载中...)';
         document.getElementById('playBtn').textContent = '▶';
         document.getElementById('currentTime').textContent = '0:00';
@@ -128,15 +133,8 @@ export function initMusicPlayer() {
             document.getElementById('playBtn').textContent = '⏸';
             cleanup();
         }
-
-        function onPlaying() {
-            document.getElementById('playBtn').textContent = '⏸';
-        }
-
-        function onPauseOrEnded() {
-            document.getElementById('playBtn').textContent = '▶';
-        }
-
+        function onPlaying() { document.getElementById('playBtn').textContent = '⏸'; }
+        function onPauseOrEnded() { document.getElementById('playBtn').textContent = '▶'; }
         function cleanup() {
             audio.removeEventListener('canplaythrough', onCanPlay);
             audio.removeEventListener('loadeddata', onCanPlay);
@@ -191,7 +189,7 @@ export function initMusicPlayer() {
         return `${m}:${sec < 10 ? '0' + sec : sec}`;
     }
 
-    // ========== 拖拽本地文件（支持内存释放）==========
+    // ========== 拖拽本地文件 ==========
     const dropZone = panel;
     dropZone.ondragover = e => { e.preventDefault(); dropZone.style.background = 'rgba(96,165,250,0.15)'; };
     dropZone.ondragleave = () => dropZone.style.background = '';
@@ -209,7 +207,10 @@ export function initMusicPlayer() {
         }
         renderPlaylist();
         if (playlist.length > 0 && currentIndex < 0) {
-            playIndex(playlist.length - 1);
+            currentIndex = playlist.length - 1;
+            document.getElementById('songTitle').textContent = playlist[currentIndex].name;
+            renderPlaylist();
+            // 拖入本地文件后也不自动播放，用户需手动点▶
         }
     };
 }
