@@ -172,7 +172,7 @@
 <!-- ====================== 音乐播放器按钮（和网速按钮完全对称） ====================== -->
 <div id="music-player-btn"><div class="music-icon">🎵</div></div>
 
-<!-- ====================== 音乐播放器面板（初始隐藏） ====================== -->
+<!-- 音乐播放器面板（初始隐藏） -->
 <div id="music-player-panel">
     <h3 style="margin:0 0 10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
         <span>音乐播放器</span>
@@ -201,7 +201,15 @@
 
     <!-- 可展开的歌曲列表 + 支持拖拽本地 mp3 -->
     <div id="playlistContainer" style="display:none;max-height:180px;overflow-y:auto;margin-top:8px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;">
+        
+        <!-- 新增：Frey AI 生成标识 -->
+        <div style="text-align:center;color:#60a5fa;font-size:12px;padding:4px 0;margin-bottom:8px;
+                    border-bottom:1px solid rgba(96,165,250,0.3);font-weight:600;">
+            ♪ 以下所有音乐均由 Frey 使用 AI 生成 ♪
+        </div>
+
         <div id="playlistItems" style="font-size:13px;"></div>
+        
         <div style="padding:8px 0;color:#64748b;font-size:12px;text-align:center;">
             可拖拽本地 mp3 到此处添加
         </div>
