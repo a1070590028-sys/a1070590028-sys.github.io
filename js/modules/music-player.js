@@ -1,50 +1,45 @@
 // js/modules/music-player.js
-let initialized = false;  // 标记是否已经初始化过（只初始化一次）
+let initialized = false;
 
 export function initMusicPlayerOnDemand() {
     if (initialized) {
-        // 已经初始化过了，直接显示/隐藏面板即可
         const panel = document.getElementById('music-player-panel');
-        const visible = panel && panel.style.display === 'flex';
-        if (panel) panel.style.display = visible ? 'none' : 'flex';
+        if (panel) panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
         return;
     }
-
-    initialized = true;  // 标记已初始化，后面再点就只是切换显隐
-
-    // ==================== 下面才是真正初始化代码 ====================
+    initialized = true;
 
     let playlist = [];
     let currentIndex = 0;
     let audio = new Audio();
     let isRandom = false;
 
-    // 创建按钮（左下角，和网络检测完全对称）
+    // 创建按钮（左下角）
     const btn = document.createElement('div');
     btn.id = 'music-player-btn';
-    btn.innerHTML = '<div class="music-icon">🎵</div>';
+    btn.innerHTML = '🎵';
     btn.title = '音乐播放器';
     Object.assign(btn.style, {
-        position: 'fixed', left: '20px', bottom: '20px', width: '54px', height: '54px',
-        borderRadius: '50%', background: 'rgba(255,255,255,0.08)',
-        border: '1px solid rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        cursor: 'pointer', zIndex: '99999', transition: '0.25s', fontSize: '22px'
+        position:'fixed',left:'20px',bottom:'20px',width:'54px',height:'54px',
+        borderRadius:'50%',background:'rgba(255,255,255,0.08)',
+        border:'1px solid rgba(255,255,255,0.15)',backdropFilter:'blur(10px)',
+        display:'flex',alignItems:'center',justifyContent:'center',
+        cursor:'pointer',zIndex:'99999',transition:'0.25s',fontSize:'22px'
     });
     btn.onmouseover = () => btn.style.transform = 'scale(1.08)';
     btn.onmouseout  = () => btn.style.transform = '';
     document.body.appendChild(btn);
 
-    // 创建面板（初始隐藏）
+    // 创建面板
     const panel = document.createElement('div');
     panel.id = 'music-player-panel';
     Object.assign(panel.style, {
-        position: 'fixed', left: '20px', bottom: '90px', width: '280px', padding: '16px',
-        borderRadius: '14px', background: 'rgba(255,255,255,0.08)',
-        border: '1px solid rgba(255,255,255,0.12)', backdropFilter: 'blur(12px)',
-        color: '#cfe8ff', zIndex: '99999', display: 'none',
-        flexDirection: 'column', gap: '10px', fontSize: '14px',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.4)'
+        position:'fixed',left:'20px',bottom:'90px',width:'280px',padding:'16px',
+        borderRadius:'14px',background:'rgba(255,255,255,0.08)',
+        border:'1px solid rgba(255,255,255,0.12)',backdropFilter:'blur(12px)',
+        color:'#cfe8ff',zIndex:'99999',display:'none',
+        flexDirection:'column',gap:'10px',fontSize:'14px',
+        boxShadow:'0 8px 32px rgba(0,0,0,0.4)'
     });
     panel.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -73,7 +68,7 @@ export function initMusicPlayerOnDemand() {
     `;
     document.body.appendChild(panel);
 
-    // 注入统一美化样式（只注入一次）
+    // 样式
     const style = document.createElement('style');
     style.textContent = `
         #music-player-btn:hover{box-shadow:0 0 14px rgba(96,165,250,0.4)}
@@ -97,42 +92,41 @@ export function initMusicPlayerOnDemand() {
     `;
     document.head.appendChild(style);
 
-    // 加载播放列表
-    fetch('music/music-list.json?t=' + Date.now())  // 加时间戳防止缓存
-        .then(r => r.json())
+    // 关键修复：路径必须是 ./music/music-list.json 或 /music/music-list.json
+    fetch('./music/music-list.json')   // ← 修复这行！加了 ./music/
+        .then(r => {
+            if (!r.ok) throw new Error('404');
+            return r.json();
+        })
         .then(list => {
-            playlist = list.map(f => 'music/' + f);
-            if (playlist.length > 0) loadTrack(0);
-            else document.getElementById('songTitle').textContent = '无音乐文件';
+            playlist = list.map(f => `./music/${f}`);  // ← 也要加 ./music/
+            if (playlist.length === 0) {
+                document.getElementById('songTitle').textContent = '播放列表为空';
+                return;
+            }
+            loadTrack(0);
         })
         .catch(err => {
-            console.error(err);
-            document.getElementById('songTitle').textContent = '列表加载失败';
+            console.error('音乐列表加载失败：', err);
+            document.getElementById('songTitle').textContent = '加载失败（检查路径）';
         });
 
     function loadTrack(i) {
-        if (!playlist[i]) return;
         currentIndex = i;
-        const file = playlist[i];
-        audio.src = file;
+        audio.src = playlist[i];
         audio.load();
         document.getElementById('songTitle').textContent =
-            decodeURIComponent(file.split('/').pop().replace('.mp3', ''));
+            decodeURIComponent(playlist[i].split('/').pop().replace('.mp3', ''));
         audio.play().catch(() => {});
     }
 
     function togglePlay() {
-        if (audio.paused) {
-            audio.play();
-            document.getElementById('playBtn').textContent = '⏸';
-        } else {
-            audio.pause();
-            document.getElementById('playBtn').textContent = '▶';
-        }
+        audio.paused ? audio.play() : audio.pause();
+        document.getElementById('playBtn').textContent = audio.paused ? '▶' : '⏸';
     }
 
     function next() {
-        currentIndex = isRandom
+        currentIndex = isRandom 
             ? Math.floor(Math.random() * playlist.length)
             : (currentIndex + 1) % playlist.length;
         loadTrack(currentIndex);
@@ -143,8 +137,8 @@ export function initMusicPlayerOnDemand() {
         loadTrack(currentIndex);
     }
 
-    // 事件绑定
-    btn.onclick = () => panel.style.display = 'flex';  // 第一次点击时触发整个初始化
+    btn.onclick = () => panel.style.display = 'flex';
+
     document.getElementById('playBtn').onclick = togglePlay;
     document.getElementById('nextBtn').onclick = next;
     document.getElementById('prevBtn').onclick = prev;
@@ -153,34 +147,28 @@ export function initMusicPlayerOnDemand() {
         document.getElementById('randomBtn').classList.toggle('active', isRandom);
     };
 
-    // 进度条 & 音量
     audio.ontimeupdate = () => {
         if (audio.duration) {
             const p = (audio.currentTime / audio.duration) * 100;
             document.getElementById('progress').value = p;
-            document.getElementById('currentTime').textContent = format(audio.currentTime);
-            document.getElementById('duration').textContent = format(audio.duration);
+            document.getElementById('currentTime').textContent = fmt(audio.currentTime);
+            document.getElementById('duration').textContent = fmt(audio.duration);
         }
     };
-    document.getElementById('progress').oninput = e =>
-        audio.currentTime = (e.target.value / 100) * audio.duration;
-    document.getElementById('volume').oninput = e =>
-        audio.volume = e.target.value / 100;
-
+    document.getElementById('progress').oninput = e => audio.currentTime = (e.target.value / 100) * audio.duration;
+    document.getElementById('volume').oninput = e => audio.volume = e.target.value / 100;
     audio.onended = next;
 
-    function format(s) {
+    function fmt(s) {
         s = Math.floor(s);
-        return `${Math.floor(s/60)}:${(s%60).<10?'0':''}${s%60}`;
+        return `${Math.floor(s/60)}:${(s%60)<10?'0':''}${s%60}`;
     }
 
-    // 点击页面空白处关闭面板
     document.addEventListener('click', e => {
         if (!btn.contains(e.target) && !panel.contains(e.target)) {
             panel.style.display = 'none';
         }
     });
 
-    // 初始化完成，显示面板（第一次点击后自动打开）
-    panel.style.display = 'flex';
+    panel.style.display = 'flex';  // 第一次点击后自动打开
 }
