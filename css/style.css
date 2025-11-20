@@ -87,3 +87,30 @@ select option {
     color: #e2e8f0 !important;
 }
 
+/* 音乐播放器按钮和网速按钮完全对称 */
+#music-player-btn {
+    position:fixed;
+    left:20px;               /* 左下角 */
+    bottom:20px;
+    width:54px;
+    height:54px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.15);
+    backdrop-filter:blur(10px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    z-index:99999;
+    transition:all .25s;
+    font-size:24px;
+    user-select:none;
+}
+#music-player-btn:hover {
+    transform:scale(1.08);
+    box-shadow:0 0 14px rgba(96,165,250,0.4);
+}
+.music-icon {
+    pointer-events:none;
+}
