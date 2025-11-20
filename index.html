@@ -169,14 +169,17 @@
     <div class="net-item">下载速度：<span id="nm-speed">--</span></div>
     <div class="net-item">网络延迟：<span id="nm-latency">--</span></div>
 </div>
-<!-- 音乐播放器按钮（和网速按钮完全对称） -->
-<div id="music-player-btn"><div class="music-icon">🎵</div></div>
-
-<!-- 音乐播放器面板（初始隐藏，和网速面板完全一致） -->
+<!-- 音乐播放器面板 -->
 <div id="music-player-panel">
-    <h3>音乐播放器</h3>
-    <div id="songTitle" class="net-item">加载中...</div>
+    <h3 style="margin:0 0 10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+        <span>音乐播放器</span>
+        <span id="toggleList" style="font-size:18px;opacity:0.6;">♪</span>
+    </h3>
+
+    <div id="songTitle" class="net-item" style="font-weight:600;cursor:pointer;" title="点击展开歌单">加载中...</div>
+
     <div class="net-item">进度：<input type="range" id="progress" value="0" max="100" style="width:160px;vertical-align:middle;"></div>
+    
     <div class="net-item" style="justify-content:space-between;">
         <span id="currentTime">0:00</span>
         <button id="prevBtn" class="mini-btn">⏮</button>
@@ -184,7 +187,14 @@
         <button id="nextBtn" class="mini-btn">⏭</button>
         <span id="duration">--:--</span>
     </div>
+    
     <div class="net-item">音量：<input type="range" id="volume" min="0" max="100" value="70" style="width:140px;vertical-align:middle;"></div>
+
+    <!-- 新增：歌曲列表（默认隐藏） -->
+    <div id="playlistContainer" style="display:none;max-height:180px;overflow-y:auto;margin-top:8px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;">
+        <div id="playlistItems" style="font-size:13px;"></div>
+        <div style="padding:8px 0;color:#64748b;font-size:12px;text-align:center;">可拖拽本地 mp3 到这里</div>
+    </div>
 </div>
 
 <!-- 第三方库 -->
