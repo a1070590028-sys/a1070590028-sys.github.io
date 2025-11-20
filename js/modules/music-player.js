@@ -88,7 +88,7 @@ export function initMusicPlayer() {
 
         // UI 进入加载状态
         document.getElementById('songTitle').textContent = song.name + ' (加载中...)';
-        document.getElementById('playBtn').textContent = '⟳';
+        document.getElementById('playBtn').textContent = '▶';
         document.getElementById('progress').value = 0;
         document.getElementById('currentTime').textContent = '0:00';
         document.getElementById('duration').textContent = '0:00';
@@ -196,3 +196,4 @@ export function initMusicPlayer() {
 }
 
 document.addEventListener('DOMContentLoaded', initMusicPlayer);
+
