@@ -25,92 +25,89 @@ input[type="number"],select,input[type="range"]{width:100%;padding:6px;border-ra
 .file-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .card-content{overflow:hidden;max-height:9999px;transition:max-height 0.35s ease,padding 0.35s ease;padding:12px 0 0 0}
 .card-content.collapsed{max-height:0;padding:0}
-#net-monitor-btn{position:fixed;right:20px;bottom:20px;width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:99999;transition:0.25s}
-#net-monitor-btn:hover{transform:scale(1.08);box-shadow:0 0 14px rgba(96,165,250,0.4)}
-.net-icon{font-size:22px}
-#net-monitor-panel{position:fixed;right:20px;bottom:90px;width:230px;padding:16px;border-radius:14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(12px);color:#cfe8ff;display:none;z-index:99999}
-#net-monitor-panel h3{margin:0 0 10px;font-size:16px;color:#93c5fd}
-.net-item{margin:6px 0;font-size:14px}
-@media(max-width:860px){.compress-grid{grid-template-columns:1fr}.thumb{width:45%}}
 
-/* ==================== 以下为最终优化 ==================== */
+/* ==================== 浮动按钮（网络 + 音乐）完全统一 ==================== */
+#net-monitor-btn,
+#music-player-btn{
+    position:fixed;bottom:20px;width:54px;height:54px;border-radius:50%;
+    background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;
+    z-index:99999;transition:all .25s;font-size:22px;user-select:none;
+}
+#net-monitor-btn{right:20px;}
+#music-player-btn{left:20px;}
+#net-monitor-btn:hover,
+#music-player-btn:hover{
+    transform:scale(1.08);
+    box-shadow:0 0 14px rgba(96,165,250,0.4);
+}
+.net-icon,.music-icon{pointer-events:none;}
 
-/* Vanta 全屏背景专用层 */
-#vanta-bg{
-    position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;pointer-events:none;
+/* ==================== 浮动面板（网络 + 音乐）完全统一 ==================== */
+#net-monitor-panel,
+#music-player-panel{
+    position:fixed;bottom:90px;width:260px;padding:16px;border-radius:14px;
+    background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    color:#cfe8ff;z-index:99999;display:none;flex-direction:column;gap:10px;
+    font-size:14px;box-shadow:0 8px 32px rgba(0,0,0,0.4);
+}
+#net-monitor-panel{right:20px;}
+#music-player-panel{left:20px;}
+
+#net-monitor-panel h3,
+#music-player-panel h3{
+    margin:0 0 10px;font-size:16px;color:#93c5fd;
 }
 
-/* 统一所有日志区样式 */
-#log,#imgLog,#pdfLog{
-    margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow-y:auto;
-    padding:10px 12px;border-radius:8px;background:rgba(0,0,0,0.25);
-    border:1px solid rgba(255,255,255,0.06);line-height:1.5;
+/* 网络面板原有条目样式复用 */
+.net-item{
+    display:flex;align-items:center;justify-content:space-between;
+    margin:6px 0;font-size:14px;
 }
+
+/* 音乐面板专用的迷你按钮 */
+#music-player-panel .mini-btn{
+    width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.1);color:#cfe8ff;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+    transition:all .2s;
+}
+#music-player-panel .mini-btn:hover{
+    background:rgba(96,165,250,0.2);border-color:#60a5fa;
+}
+
+/* 统一的 range 美化（进度条 + 音量条） */
+#net-monitor-panel input[type=range],
+#music-player-panel input[type=range]{
+    -webkit-appearance:none;height:5px;border-radius:3px;
+    background:rgba(255,255,255,0.15);outline:none;cursor:pointer;
+}
+#net-monitor-panel input[type=range]::-webkit-slider-thumb,
+#music-player-panel input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:14px;height:14px;border-radius:50%;
+    background:#60a5fa;
+}
+
+/* ==================== 其他原有样式保持不变 ==================== */
+#vanta-bg{position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;pointer-events:none;}
+#log,#imgLog,#pdfLog{margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow-y:auto;padding:10px 12px;border-radius:8px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);line-height:1.5;}
 #log::-webkit-scrollbar,#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px}
 #log::-webkit-scrollbar-track,#imgLog::-webkit-scrollbar-track,#pdfLog::-webkit-scrollbar-track{background:transparent}
 #log::-webkit-scrollbar-thumb,#imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
 #log::-webkit-scrollbar-thumb:hover,#imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.3)}
-#log,#imgLog,#pdfLog{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.15) transparent}
-
-/* 全局 select 美化（输出格式、页面尺寸全部统一） */
-select{
-    width:100%;padding:6px 30px 6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);
-    background:transparent;color:#e2e8f0;font-size:14px;cursor:pointer;appearance:none;
+select{width:100%;padding:6px 30px 6px 8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.08)!important;color:#e2e8f0!important;font-size:14px;cursor:pointer;appearance:none;
     background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%2360a5fa' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e");
     background-repeat:no-repeat;background-position:right 10px center;
 }
-select:focus{border-color:#60a5fa !important;box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
+select:focus{border-color:#60a5fa;box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
+select option{background-color:#1e293b!important;color:#e2e8f0!important;}
+body{min-height:100vh;height:auto;}
 
-/* PDF tab 按钮高亮 */
-.pdf-tools-tabs button.active{
-    background:rgba(96,165,250,0.2);border-color:#60a5fa;color:#fff;
-}
-/* 确保 body 永远铺满内容高度，Vanta 才能填满 */
-body {
-    min-height: 100vh;
-    height: auto;
-}
-
-/* 可选：如果你的 .container 很长，确保它不会被意外裁剪 */
-.container {
-    position: relative;
-    z-index: 1;
-}
-/* 深色主题下拉框优化（2025最新补丁） */
-select {
-    background-color: rgba(255,255,255,0.08) !important;
-    color: #e2e8f0 !important;
-    border: 1px solid rgba(255,255,255,0.12) !important;
-}
-select option {
-    background-color: #1e293b !important;
-    color: #e2e8f0 !important;
-}
-
-/* 音乐播放器按钮和网速按钮完全对称 */
-#music-player-btn {
-    position:fixed;
-    left:20px;               /* 左下角 */
-    bottom:20px;
-    width:54px;
-    height:54px;
-    border-radius:50%;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.15);
-    backdrop-filter:blur(10px);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    cursor:pointer;
-    z-index:99999;
-    transition:all .25s;
-    font-size:24px;
-    user-select:none;
-}
-#music-player-btn:hover {
-    transform:scale(1.08);
-    box-shadow:0 0 14px rgba(96,165,250,0.4);
-}
-.music-icon {
-    pointer-events:none;
+/* 响应式 */
+@media(max-width:860px){
+    .compress-grid{grid-template-columns:1fr}
+    .thumb{width:45%}
+    #net-monitor-panel,#music-player-panel{width:calc(100vw - 40px);left:20px!important;right:auto!important;}
 }
