@@ -1,10 +1,11 @@
-// js/modules/music-player.js   ← 直接完整替换这个文件
+// js/modules/music-player.js
+// 最终版：带歌曲列表（点击即播） + 删除随机播放 + 完全对称按钮
+
 let initialized = false;
 let audio = null;
 let panel = null;
 let playlist = [];
 let currentIndex = 0;
-let isRandom = false;
 
 export function initMusicPlayer() {
     if (initialized) {
@@ -13,52 +14,56 @@ export function initMusicPlayer() {
     }
     initialized = true;
 
-    // ============== 创建播放器面板 ==============
+    // ============== 创建面板 ==============
     panel = document.createElement('div');
     panel.id = 'music-player-panel';
     panel.style.cssText = `
-        position:fixed;left:20px;bottom:90px;width:280px;padding:16px;
+        position:fixed;left:20px;bottom:90px;width:320px;max-height:70vh;padding:16px;
         border-radius:14px;background:rgba(255,255,255,0.08);
         border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(12px);
         color:#cfe8ff;z-index:99999;display:flex;flex-direction:column;gap:12px;
-        font-size:14px;box-shadow:0 8px 32px rgba(0,0,0,0.4);
+        font-size:14px;box-shadow:0 8px 32px rgba(0,0,0,0.4);overflow:hidden;
     `;
+
     panel.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;">
             <h3 style="margin:0;font-size:16px;color:#93c5fd">音乐播放器</h3>
-            <span id="randomBtn" title="随机播放" style="cursor:pointer;opacity:0.7;font-size:18px">🔀</span>
+            <span style="font-size:18px;cursor:pointer;" id="closePanel">✕</span>
         </div>
-        <div id="songTitle" style="color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+
+        <div id="songTitle" style="color:#e2e8f0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
             加载中...
         </div>
+
         <input type="range" id="progress" value="0" max="100" step="0.1" style="width:100%">
+
         <div style="display:flex;justify-content:space-between;font-size:12px;color:#94a3b8">
             <span id="currentTime">0:00</span>
             <span id="duration">--:--</span>
         </div>
-        <div style="display:flex;justify-content:center;gap:20px;margin-top:4px">
+
+        <div style="display:flex;justify-content:center;gap:20px;margin:8px 0;">
             <button class="mini-btn">⏮</button>
             <button id="playBtn" class="mini-btn" style="font-size:22px">▶</button>
             <button class="mini-btn">⏭</button>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+
+        <div style="display:flex;align-items:center;gap:8px;">
             <span style="font-size:18px">🔈</span>
             <input type="range" id="volume" min="0" max="100" value="70" style="flex:1">
+        </div>
+
+        <!-- 新增歌曲列表 -->
+        <div id="songList" style="flex:1;overflow-y:auto;margin-top:8px;font-size:13px;color:#94a3b8;">
+            加载歌单...
         </div>
     `;
     document.body.appendChild(panel);
 
-    // ============== 注入所有必要样式 ==============
+    // ============== 样式注入 ==============
     const style = document.createElement('style');
     style.textContent = `
-        #music-player-btn {
-            position:fixed;left:20px;bottom:20px;width:54px;height:54px;
-            border-radius:50%;background:rgba(255,255,255,0.08);
-            border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(10px);
-            display:flex;align-items:center;justify-content:center;cursor:pointer;
-            z-index:99999;transition:all .25s;font-size:24px;user-select:none;
-        }
-        #music-player-btn:hover {transform:scale(1.08);box-shadow:0 0 14px rgba(96,165,250,0.4);}
+        #music-player-btn { /* 按钮样式已经在 style.css 或 index.html 中定义，无需重复 */ }
         #music-player-panel button.mini-btn {
             width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.06);
             border:1px solid rgba(255,255,255,0.1);color:#cfe8ff;cursor:pointer;
@@ -75,7 +80,12 @@ export function initMusicPlayer() {
             -webkit-appearance:none;width:15px;height:15px;border-radius:50%;
             background:#60a5fa;cursor:pointer;
         }
-        #randomBtn.active {opacity:1;color:#60a5fa;}
+        #songList div {
+            padding:6px 8px;border-radius:6px;cursor:pointer;transition:0.2s;
+        }
+        #songList div:hover {background:rgba(255,255,255,0.1);}
+        #songList div.playing {background:rgba(96,165,250,0.25);color:#fff;font-weight:600;}
+        #closePanel:hover {opacity:0.7;}
     `;
     document.head.appendChild(style);
 
@@ -85,29 +95,48 @@ export function initMusicPlayer() {
     audio.preload = 'metadata';
 
     // ============== 加载歌单 ==============
-    fetch('music/music-list.json?' + Date.now(), {cache: "no-store"})
+    fetch('music/music-list.json?' + Date.now(), {cache:'no-store'})
         .then(r => r.ok ? r.json() : Promise.reject())
         .then(list => {
             playlist = list.map(f => 'music/' + f.trim());
-            if (playlist.length > 0) {
-                currentIndex = 0;
-                loadTrack(currentIndex);
-            } else {
-                document.getElementById('songTitle').textContent = '歌单为空';
-            }
+            renderSongList();
+            if (playlist.length > 0) loadTrack(0);
         })
         .catch(() => {
-            document.getElementById('songTitle').textContent = '歌单加载失败';
+            document.getElementById('songList').textContent = '歌单加载失败';
         });
 
+    // ============== 渲染歌曲列表 ==============
+    function renderSongList() {
+        const container = document.getElementById('songList');
+        container.innerHTML = '';
+        playlist.forEach((url, i) => {
+            const name = decodeURIComponent(url.split('/').pop().replace('.mp3', ''));
+            const div = document.createElement('div');
+            div.textContent = `${i+1}. ${name}`;
+            div.onclick = () => loadTrack(i);
+            if (i === currentIndex) div.classList.add('playing');
+            container.appendChild(div);
+        });
+    }
+
+    function updateSongListHighlight() {
+        const items = document.querySelectorAll('#songList div');
+        items.forEach((el, i) => {
+            el.classList.toggle('playing', i === currentIndex);
+        });
+    }
+
+    // ============== 加载并播放 ==============
     function loadTrack(i) {
+        if (i < 0 || i >= playlist.length) return;
         currentIndex = i;
         const url = playlist[i];
         audio.src = url;
         const name = decodeURIComponent(url.split('/').pop().replace('.mp3', ''));
         document.getElementById('songTitle').textContent = name;
+        updateSongListHighlight();
         audio.load();
-        // 自动播放（浏览器可能拦截，但用户已点击按钮，所以通常允许）
         audio.play().catch(() => {});
     }
 
@@ -122,19 +151,13 @@ export function initMusicPlayer() {
     };
 
     panel.querySelectorAll('.mini-btn')[0].onclick = () => {
-        currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-        loadTrack(currentIndex);
+        loadTrack((currentIndex - 1 + playlist.length) % playlist.length);
     };
     panel.querySelectorAll('.mini-btn')[2].onclick = () => {
-        currentIndex = isRandom ? Math.floor(Math.random() * playlist.length)
-                                : (currentIndex + 1) % playlist.length;
-        loadTrack(currentIndex);
+        loadTrack((currentIndex + 1) % playlist.length);
     };
 
-    document.getElementById('randomBtn').onclick = () => {
-        isRandom = !isRandom;
-        document.getElementById('randomBtn').classList.toggle('active', isRandom);
-    };
+    document.getElementById('closePanel').onclick = () => panel.style.display = 'none';
 
     document.getElementById('progress').oninput = e => {
         if (audio.duration) audio.currentTime = (e.target.value / 100) * audio.duration;
@@ -144,9 +167,9 @@ export function initMusicPlayer() {
         audio.volume = e.target.value / 100;
     };
 
-    // ============== 进度 & 时间 ==============
+    // ============== 进度更新 ==============
     audio.ontimeupdate = () => {
-        if (audio.duration) {
+        if (audio.duration && isFinite(audio.duration)) {
             const percent = (audio.currentTime / audio.duration) * 100;
             document.getElementById('progress').value = percent;
             document.getElementById('currentTime').textContent = format(audio.currentTime);
@@ -154,7 +177,9 @@ export function initMusicPlayer() {
         }
     };
 
-    audio.onended = () => panel.querySelectorAll('.mini-btn')[2].click();
+    audio.onended = () => {
+        loadTrack((currentIndex + 1) % playlist.length);
+    };
 
     function format(s) {
         if (!isFinite(s)) return '0:00';
@@ -171,7 +196,8 @@ export function initMusicPlayer() {
     });
 }
 
-// 绑定按钮
+// DOM 加载完毕后绑定按钮
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('music-player-btn')?.addEventListener('click', initMusicPlayer);
+    const btn = document.getElementById('music-player-btn');
+    if (btn) btn.addEventListener('click', initMusicPlayer);
 });
