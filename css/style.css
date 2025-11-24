@@ -1,8 +1,12 @@
-/* ★★★★★ 关键修复：让 Vanta 永远铺满全屏 ★★★★★ */
+*{box-sizing:border-box}
 html, body { height: 100%; margin: 0; padding: 0; overflow-x: hidden; }
 
-*{box-sizing:border-box}
-html,body{font-family:"Segoe UI",Helvetica,Arial,sans-serif;background:#0f172a;color:var(--text);min-height:100vh}
+html,body{
+    font-family:"Segoe UI",Helvetica,Arial,sans-serif;
+    background:#0f172a;
+    color:var(--text);
+    min-height:100vh;
+}
 
 #time-card{position:fixed;top:12px;right:50px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid var(--border);backdrop-filter:blur(6px);font-size:14px;color:var(--accent);z-index:9999;text-align:right}
 #time-card .date{font-size:13px;color:#93c5fd}
@@ -63,3 +67,4 @@ select{padding:6px 30px 6px 8px;border:1px solid var(--border);background:var(--
 select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none}
 
 @media(max-width:860px){.compress-grid{grid-template-columns:1fr}.thumb{width:45%}}
+
