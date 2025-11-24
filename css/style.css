@@ -136,7 +136,7 @@ input[type="checkbox"]:checked::after{
     position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
 }
 
-/* ==================== 按钮 & 面板布局（保持原样） ==================== */
+/* ==================== 全新按钮 & 面板布局 ==================== */
 #bg-switcher-btn,#net-monitor-btn,#music-player-btn{
     position:fixed;width:54px;height:54px;border-radius:50%;
     background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
@@ -147,18 +147,51 @@ input[type="checkbox"]:checked::after{
     transform:scale(1.08);box-shadow:0 0 14px rgba(96,165,250,0.4);
 }
 
-#bg-switcher-btn{top:28px;left:24px;}
-#music-player-btn{bottom:28px;left:24px;}
-#net-monitor-btn{bottom:28px;right:24px;}
+/* 背景切换 → 左上角 */
+#bg-switcher-btn{
+    top:28px;
+    left:24px;
+}
 
+/* 音乐播放器 → 左下角 */
+#music-player-btn{
+    bottom:28px;
+    left:24px;
+}
+
+/* 网络监控 → 右下角 */
+#net-monitor-btn{
+    bottom:28px;
+    right:24px;
+}
+
+/* 面板位置（紧贴对应按钮） */
 #bg-switcher-panel,#net-monitor-panel,#music-player-panel{
     position:fixed;width:230px;padding:16px;border-radius:14px;
     background:rgba(255,255,255,0.08);border:1px solid var(--border);
     backdrop-filter:blur(12px);color:var(--text);display:none;z-index:99999;
 }
-#bg-switcher-panel{top:92px;left:24px;}
-#music-player-panel{bottom:92px;left:24px;}
-#net-monitor-panel{bottom:92px;right:24px;}
+#bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3{
+    margin:0 0 12px;font-size:16px;color:var(--accent);
+}
+
+/* 背景面板 → 左上角按钮下方 */
+#bg-switcher-panel{
+    top:92px;
+    left:24px;
+}
+
+/* 音乐面板 → 左下角按钮上方 */
+#music-player-panel{
+    bottom:92px;
+    left:24px;
+}
+
+/* 网络面板 → 右下角按钮上方 */
+#net-monitor-panel{
+    bottom:92px;
+    right:24px;
+}
 
 .net-item{margin:6px 0;font-size:14px;color:var(--text)}
 .bg-options{display:flex;flex-direction:column;gap:8px}
@@ -191,7 +224,27 @@ input[type="checkbox"]:checked::after{
     .thumb{width:45%}
 }
 
-/* 原有补丁保留 */
+/* ====================== 你要求的两个改动 ====================== */
+
+/* 1. 三个播放控制按钮（上一首、播放/暂停、下一首）改成圆形 */
+#prevBtn, #playBtn, #nextBtn {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 50% !important;
+    padding: 0 !important;
+    font-size: 18px !important;
+    line-height: 36px !important;
+    background: rgba(96,165,250,0.25) !important;
+    border: 1px solid var(--accent) !important;
+    margin: 0 6px !important;
+}
+
+/* 2. 进度条和音量条等长（这里统一设为 180px，与面板宽度 230px 协调） */
+#progress, #volume {
+    width: 180px !important;
+}
+
+/* 终极补丁：完美双模式（最高优先级） */
 .dropzone-title,
 #dropzone > div:first-child > div,
 #dropzoneImg > div:first-child > div,
@@ -216,110 +269,4 @@ header h1,
 
 #time-card .date {
     color: var(--date-deep) !important;
-}
-
-/* ==================== 音乐播放器最终美化版（零冲突 + 等长双轨 + 无动画）=================== */
-#music-player-btn {
-    width:56px;height:56px;font-size:26px;
-    background:rgba(255,255,255,0.12);
-    border:1px solid rgba(96,165,250,0.4);
-    box-shadow:0 8px 24px rgba(0,0,0,0.4);
-}
-#music-player-btn:hover {
-    transform:scale(1.12);
-    box-shadow:0 0 24px rgba(96,165,250,0.7);
-}
-.music-icon {animation:pulse 4s infinite;}
-@keyframes pulse {0%,100%{opacity:0.75}50%{opacity:1}}
-
-/* 面板保持原有毛玻璃 */
-#music-player-panel {
-    width:286px !important;
-    padding:18px 20px !important;
-    border-radius:18px !important;
-}
-
-/* 歌名渐变 */
-#songTitle {
-    font-size:15.5px !important;font-weight:700 !important;
-    margin:8px 0 14px !important;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    background:linear-gradient(90deg,#60a5fa,#3b82f6,#2563eb);
-    -webkit-background-clip:text;background-clip:text;
-    -webkit-text-fill-color:transparent;
-}
-
-/* 真正的等长双轨进度条（已缓冲条与播放条完全同步） */
-#progress {
-    height:5px !important;
-    background:#334155 !important;
-    border-radius:3px;
-    position:relative;
-    overflow:hidden;
-}
-#progress::before {
-    content:"";
-    position:absolute;
-    top:0;left:0;bottom:0;
-    width:100% !important;                    /* 强制等长 */
-    background:rgba(96,165,250,0.38);
-    border-radius:3px;
-    transform:scaleX(var(--buffered-ratio,0));
-    transform-origin:left;
-    transition:none !important;               /* 完全去掉动画 */
-}
-#progress::-webkit-slider-thumb {
-    width:15px;height:15px;
-    background:#60a5fa;
-    border:3px solid #fff;
-    border-radius:50%;
-    box-shadow:0 2px 8px rgba(0,0,0,0.5);
-}
-
-/* 时间文字 */
-#currentTime,#duration {
-    font-family:Consolas,monospace;
-    font-size:13px;
-    color:#94a3b8;
-}
-
-/* 控制按钮美化 */
-.mini-btn {
-    width:40px;height:40px;
-    border-radius:50%;
-    background:rgba(255,255,255,0.12);
-    border:none;
-    font-size:20px;
-    margin:0 6px;
-    transition:all .2s;
-}
-.mini-btn:hover {
-    background:#60a5fa;
-    transform:scale(1.12);
-}
-#playBtn {
-    width:48px;height:48px;
-    font-size:24px !important;
-    background:#60a5fa;
-    color:#fff;
-}
-
-/* 歌单高亮 */
-#playlistItems > div[current="true"] {
-    background:rgba(96,165,250,0.32) !important;
-    color:#fff !important;
-    font-weight:600;
-    border-left:4px solid #60a5fa;
-    padding-left:12px !important;
-}
-#playlistItems > div[current="true"]::before {
-    content:"Now Playing";
-    position:absolute;
-    left:6px;
-    font-size:12px;
-    opacity:0.8;
-}
-#playlistItems > div:hover {
-    background:rgba(96,165,250,0.25) !important;
-    transform:translateX(4px);
 }
