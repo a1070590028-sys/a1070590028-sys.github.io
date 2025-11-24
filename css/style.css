@@ -1,199 +1,134 @@
-*{box-sizing:border-box}
-html,body{
-    height:100%;margin:0;padding:0;overflow-x:hidden;
-    font-family:"Segoe UI",Helvetica,Arial,sans-serif;
-    background:#0f172a;color:#e2e8f0;
-    min-height:100vh;height:auto;
-}
-#vanta-bg{
-    position:fixed;top:0;left:0;width:100%;height:100%;z-index:-2;pointer-events:none;
-}
-
-/* 时间卡片 */
-#time-card{
-    position:fixed;top:12px;right:50px;padding:6px 12px;border-radius:8px;
-    background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-    font-size:14px;color:#60a5fa;z-index:9999;text-align:right;
-}
-#time-card .date{font-size:13px;color:#a5f3fc;font-weight:600}
-
-/* 页眉 */
-header{
-    position:relative;z-index:1;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
-    background:rgba(255,255,255,0.055);border-bottom:1px solid rgba(255,255,255,0.08);
-    padding:40px 20px;text-align:center;
-}
-header h1{margin:0 0 8px;font-size:34px;font-weight:700;color:#60a5fa;
-    text-shadow:0 0 8px rgba(96,165,250,0.35)}
-header p{margin:0;color:#cbd5e1;opacity:.85}
-
-.container{position:relative;z-index:1;max-width:980px;margin:28px auto;padding:0 16px}
-.post-card{
-    background:rgba(255,255,255,0.055);border:1px solid rgba(255,255,255,0.08);
-    backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
-    border-radius:14px;padding:20px;margin:18px 0;
-}
-.post-card h2{margin:0 0 10px;color:#93c5fd;cursor:pointer;
-    display:flex;align-items:center;justify-content:space-between;font-size:20px}
-.toggle-icon{color:#60a5fa;opacity:0.85;font-size:18px;transition:transform .3s}
-.post-card:hover .toggle-icon{transform:rotate(180deg)}
-.post-card p{margin:0;color:#94a3b8}
-
-footer{position:relative;z-index:1;text-align:center;padding:22px;font-size:14px;color:#64748b}
-footer span{color:#60a5fa}
-
-/* 布局 & 拖拽区 */
-.compress-grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
-.controls{padding:12px;display:flex;flex-direction:column;gap:10px}
-.dropzone{
-    border:2px dashed rgba(255,255,255,0.08);border-radius:10px;padding:16px;
-    text-align:center;cursor:pointer;
-    background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01))
-}
-.thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
-.thumb{width:120px;background:rgba(255,255,255,0.04);border-radius:8px;padding:8px;text-align:center;font-size:12px;color:#94a3b8}
-.thumb img{max-width:100%;max-height:80px;border-radius:6px;display:block;margin:0 auto 6px}
-
-.btn{
-    display:inline-block;padding:8px 12px;border-radius:8px;
-    border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);
-    color:#e2e8f0;cursor:pointer;margin:6px 6px 0 0;user-select:none;transition:all .2s
-}
-.btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,0.35);border-color:#60a5fa;color:#60a5fa}
-.btn.active{background:rgba(96,165,250,0.25);border-color:#60a5fa;color:#fff}
-
-/* 表单 */
-label.small,.small{font-size:13px;color:#94a3b8;display:block;margin-bottom:6px}
-input[type="number"],select,input[type="range"]{
-    width:100%;padding:6px;border-radius:8px;
-    border:1px solid rgba(255,255,255,0.08);background:transparent;color:#e2e8f0
-}
-.file-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.card-content{overflow:hidden;max-height:9999px;transition:max-height .35s ease,padding .35s ease;padding:12px 0 0 0}
-.card-content.collapsed{max-height:0;padding:0}
-
-/* 下拉框 */
-select{
-    padding:6px 30px 6px 8px;background:rgba(255,255,255,0.08);
-    background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%2360a5fa' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e");
-    background-repeat:no-repeat;background-position:right 10px center;
-    cursor:pointer;appearance:none;border-radius:8px;
-}
-select:focus{border-color:#60a5fa;box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none}
-
-/* 进度条 */
-input[type="range"]{
-    -webkit-appearance:none;appearance:none;height:5px;border-radius:3px;background:rgba(255,255,255,0.12)
-}
-input[type="range"]::-webkit-slider-thumb{
-    -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
-    background:#60a5fa;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer
+/* ==================== 终极音乐播放器面板（零改 HTML，100% 像素完美） ==================== */
+#music-player-panel{
+    position:fixed;
+    width:300px !important;           /* 固定宽度，保证圆角绝对完美 */
+    padding:20px 22px !important;
+    border-radius:22px !important;
+    background:rgba(255,255,255,0.095);
+    border:1px solid var(--border);
+    backdrop-filter:blur(15px);
+    box-shadow:0 12px 38px rgba(0,0,0,0.28);
+    color:var(--text);
+    display:none;
+    z-index:99999;
+    bottom:92px;
+    left:24px;
+    font-size:14px;
 }
 
-/* 复选框 */
-input[type="checkbox"]{
-    -webkit-appearance:none;appearance:none;width:18px;height:18px;
-    border:2px solid #60a5fa;border-radius:6px;cursor:pointer;vertical-align:middle;margin-right:8px;
-}
-input[type="checkbox"]:checked{background:#60a5fa}
-input[type="checkbox"]:checked::after{content:"Checkmark";color:#fff;font-weight:bold;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%)}
-
-/* 四角按钮 */
-#bg-switcher-btn,#net-monitor-btn,#music-player-btn{
-    position:fixed;width:54px;height:54px;border-radius:50%;
-    background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
-    backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;
-    cursor:pointer;z-index:99999;transition:all .25s;font-size:22px
-}
-#bg-switcher-btn:hover,#net-monitor-btn:hover,#music-player-btn:hover{
-    transform:scale(1.08);box-shadow:0 0 14px rgba(96,165,250,0.4)
-}
-#bg-switcher-btn{top:28px;left:24px}
-#music-player-btn{bottom:28px;left:24px}
-#net-monitor-btn{bottom:28px;right:24px}
-
-/* 面板通用 */
-#bg-switcher-panel,#net-monitor-panel,#music-player-panel{
-    position:fixed;padding:18px 20px;border-radius:16px;
-    background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);
-    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    color:#e2e8f0;display:none;z-index:99999;
-    box-shadow:0 8px 32px rgba(0,0,0,0.3)
-}
-#bg-switcher-panel{top:92px;left:24px;width:260px}
-#music-player-panel{bottom:92px;left:24px;width:260px}
-#net-monitor-panel{bottom:92px;right:24px;width:260px}
-#bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3{
-    margin:0 0 16px;font-size:17px;color:#93c5fd;
-    display:flex;justify-content:space-between;align-items:center;font-weight:600
+/* 标题 */
+#music-player-panel h3{
+    margin:0 0 18px !important;
+    font-size:17px !important;
+    color:var(--accent);
+    display:flex !important;
+    justify-content:space-between !important;
+    align-items:center !important;
+    font-weight:600;
 }
 
-/* 极简高级音乐播放器面板（你最爱的风格） */
+/* 歌曲标题 */
 #songTitle{
-    margin:0 0 16px;font-size:15px;font-weight:600;color:#fff;
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-    padding:8px 12px;background:rgba(255,255,255,0.06);border-radius:10px
+    font-weight:600;
+    font-size:15px;
+    padding:10px 14px;
+    background:rgba(255,255,255,0.08);
+    border-radius:12px;
+    margin:0 0 18px 0 !important;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    cursor:pointer;
 }
-#music-player-panel .net-item:nth-child(2){
-    margin:14px 0;font-size:13px;color:#94a3b8;
-    display:flex;align-items:center;gap:10px
-}
-#currentTime{width:36px;text-align:left}
-#duration{width:36px;text-align:right}
-#progress{flex:1;height:5px;background:rgba(255,255,255,0.12);border-radius:3px}
-#music-player-panel .net-item:nth-child(3){
-    margin:18px 0;display:flex;justify-content:center;gap:20px
-}
-#prevBtn,#playBtn,#nextBtn{
-    width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,0.08);
-    border:none;color:#e2e8f0;font-size:19px;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;transition:all .2s
-}
-#playBtn{width:50px;height:50px;background:#60a5fa;color:#fff;font-size:23px}
-#prevBtn:hover,#nextBtn:hover{background:rgba(255,255,255,0.18)}
-#playBtn:hover{transform:scale(1.08)}
+
+/* 强制让进度条和音量条区域完全等宽对齐 */
+#music-player-panel .net-item:nth-of-type(2),
 #music-player-panel .net-item:last-of-type{
-    font-size:13px;color:#94a3b8;display:flex;align-items:center;gap:12px
+    display:flex !important;
+    align-items:center !important;
+    gap:12px !important;
+    margin:18px 0 !important;
+    padding:0 !important;
+    font-size:13px;
 }
-#volume{flex:1;height:5px;background:rgba(255,255,255,0.12);border-radius:3px}
+#music-player-panel .net-item:last-of-type{margin-bottom:4px !important;}
+
+/* 时间文字固定宽度 + 等宽数字 */
+#currentTime, #duration{
+    width:40px !important;
+    flex-shrink:0 !important;
+    font-variant-numeric:tabular-nums;
+}
+#currentTime{text-align:left;}
+#duration{text-align:right;color:var(--text-muted);}
+
+/* 进度条和音量条强制等长 */
+#progress, #volume{
+    flex:1 !important;
+    height:7px !important;
+    border-radius:4px !important;
+    background:var(--range-track) !important;
+    margin:0 !important;
+}
+
+/* 播放按钮区（原来那行 .net-item） */
+#music-player-panel .net-item:nth-of-type(3){
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+    gap:24px !important;
+    margin:20px 0 16px 0 !important;
+    padding:0 !important;
+}
+
+/* 三个按钮全部正圆 */
+#prevBtn, #playBtn, #nextBtn{
+    all:unset;
+    width:44px !important;
+    height:44px !important;
+    border-radius:50% !important;
+    background:rgba(255,255,255,0.11) !important;
+    color:var(--text) !important;
+    font-size:19px !important;
+    cursor:pointer;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    transition:all .22s;
+}
+#playBtn{
+    width:56px !important;
+    height:56px !important;
+    font-size:25px !important;
+    background:var(--accent) !important;
+    color:#fff !important;
+    box-shadow:0 4px 14px rgba(96,165,250,0.45);
+}
+#prevBtn:hover, #nextBtn:hover{
+    background:rgba(255,255,255,0.22) !important;
+    transform:scale(1.1);
+}
+#playBtn:hover{transform:scale(1.08);}
+
+/* 歌单美化 */
 #playlistContainer{
-    display:none;max-height:210px;overflow-y:auto;margin-top:16px;
-    padding-top:12px;border-top:1px solid rgba(255,255,255,0.08)
+    display:none;
+    max-height:240px;
+    overflow-y:auto;
+    margin-top:18px;
+    padding-top:14px;
+    border-top:1px solid rgba(255,255,255,0.14);
 }
 #playlistItems div{
-    padding:7px 10px;border-radius:8px;cursor:pointer;
-    font-size:13.5px;transition:all .2s
+    padding:9px 12px;
+    border-radius:10px;
+    margin:3px 0;
+    cursor:pointer;
+    transition:all .2s;
 }
-#playlistItems div:hover{background:rgba(255,255,255,0.08)}
-#playlistItems div.playing{background:rgba(96,165,250,0.2);color:#93c5fd;font-weight:600}
-
-/* 背景切换 & 网络面板保持极简 */
-.bg-options{display:flex;flex-direction:column;gap:8px}
-.bg-opt{
-    padding:9px 12px;border-radius:8px;background:transparent;
-    border:1px solid rgba(255,255,255,0.08);color:#e2e8f0;
-    font-size:13.5px;cursor:pointer;transition:all .2s
-}
-.bg-opt:hover,.bg-opt.active{background:rgba(96,165,250,0.25);border-color:#60a5fa;color:#fff}
-.net-item{margin:6px 0;font-size:14px;color:#e2e8f0}
-
-/* 日志区 */
-#log,#imgLog,#pdfLog{
-    margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow-y:auto;
-    padding:10px 12px;border-radius:8px;background:rgba(0,0,0,0.25);
-    border:1px solid rgba(255,255,255,0.08);line-height:1.5;
-}
-#log::-webkit-scrollbar,#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px;background:transparent}
-#log::-webkit-scrollbar-thumb,#imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb{
-    background:rgba(255,255,255,0.15);border-radius:4px
-}
-#log::-webkit-scrollbar-thumb:hover,#imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover{
-    background:rgba(255,255,255,0.3)
-}
-
-/* 响应式 */
-@media(max-width:860px){
-    .compress-grid{grid-template-columns:1fr}
-    .thumb{width:45%}
+#playlistItems div:hover{background:rgba(255,255,255,0.12);}
+#playlistItems div.playing{
+    background:rgba(96,165,250,0.28);
+    color:var(--accent);
+    font-weight:600;
 }
