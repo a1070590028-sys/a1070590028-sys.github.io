@@ -10,18 +10,18 @@ html{
     padding:0;
 }
 body{
-    min-height:100vh;        /* 关键：用 vh 保证至少占满视口 */
-    height:auto;             /* 内容长时可以撑高 */
+    min-height:100vh;
+    height:auto;
     margin:0;
     padding:0;
     font-family:"Segoe UI",Helvetica,Arial,sans-serif;
-    background:transparent;  /* 背景交给 #vanta-bg */
+    background:transparent;
     color:var(--text);
     overflow-x:hidden;
     position:relative;
 }
 
-/* Vanta 背景层：真正固定在视口 */
+/* Vanta 背景层 */
 #vanta-bg{
     position:fixed !important;
     top:0; left:0;
@@ -30,17 +30,20 @@ body{
     pointer-events:none;
 }
 
-/* 时间卡片 */
+/* 时间卡片 → 完全跟随 accent 变量 */
 #time-card{
     position:fixed;top:12px;right:50px;
     padding:6px 12px;border-radius:8px;
     background:rgba(255,255,255,0.06);
     border:1px solid var(--border);
     backdrop-filter:blur(6px);
-    font-size:14px;color:var(--accent);
+    font-size:14px;color:var(--accent);   /* 动态颜色 */
     z-index:9999;text-align:right;
 }
-#time-card .date{font-size:13px;color:#93c5fd}
+#time-card .date{
+    font-size:13px;
+    color:var(--accent);                  /* 动态颜色 */
+}
 
 /* 页眉 */
 header{
@@ -52,7 +55,7 @@ header{
 }
 header h1{
     margin:0 0 8px;font-size:34px;font-weight:700;
-    color:var(--accent);
+    color:var(--accent);                  /* 标题也跟随主色调 */
     text-shadow:0 0 8px rgba(96,165,250,0.35);
 }
 header p{margin:0;color:var(--text-muted);opacity:.85}
@@ -71,10 +74,25 @@ header p{margin:0;color:var(--text-muted);opacity:.85}
     border-radius:14px;
     padding:20px;margin:18px 0;
 }
-.post-card h2{
-    margin:0 0 10px;color:#93c5fd;
-    cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+
+/* 大标题 + 小箭头 → 全部改用 accent 变量（核心改动！） */
+.post-card h2.card-title{
+    margin:0 0 10px;
+    color:var(--accent);                  /* 动态高亮色 */
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    font-size:20px;
 }
+.toggle-icon{
+    color:var(--accent);                  /* 小箭头也动态 */
+    opacity:0.85;
+    transition:transform .3s;
+    font-size:18px;
+}
+.post-card:hover .toggle-icon{ transform:rotate(180deg); }
+
 .post-card p{margin:0;color:var(--text-muted)}
 
 footer{
@@ -94,6 +112,10 @@ footer span{color:var(--accent)}
     border-radius:10px;padding:16px;
     text-align:center;cursor:pointer;
     background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
+}
+.dropzone > div:first-child{
+    font-weight:600;
+    color:var(--accent);                  /* 拖拽提示文字也动态（日间会变暖橙） */
 }
 
 /* 缩略图 */
@@ -115,6 +137,12 @@ footer span{color:var(--accent)}
     transform:translateY(-2px);
     box-shadow:0 8px 18px rgba(0,0,0,0.35);
     border-color:var(--accent);
+    color:var(--accent);
+}
+.btn.active{
+    background:rgba(96,165,250,0.25);
+    border-color:var(--accent);
+    color:var(--accent);
 }
 
 /* 表单元素 */
@@ -126,6 +154,13 @@ input[type="number"],select,input[type="range"]{
 .file-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .card-content{overflow:hidden;max-height:9999px;transition:max-height .35s ease,padding .35s ease;padding:12px 0 0 0}
 .card-content.collapsed{max-height:0;padding:0}
+
+/* 参数设置标题也动态 */
+.controls h3{
+    margin:0 0 8px;
+    color:var(--accent) !important;       /* 强制覆盖内联样式 */
+    font-size:15px;
+}
 
 /* 右下角三个按钮 */
 #bg-switcher-btn,#net-monitor-btn,#music-player-btn{
@@ -151,9 +186,9 @@ input[type="number"],select,input[type="range"]{
 #net-monitor-panel{bottom:90px}
 #music-player-panel{bottom:160px}
 #bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3{
-    margin:0 0 12px;font-size:16px;color:#93c5fd;
+    margin:0 0 12px;font-size:16px;color:var(--accent);
 }
-.net-item{margin:6px 0;font-size:14px}
+.net-item{margin:6px 0;font-size:14px;color:var(--text)}
 
 /* 背景切换按钮 */
 .bg-options{display:flex;flex-direction:column;gap:8px}
