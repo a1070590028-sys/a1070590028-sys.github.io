@@ -6,33 +6,10 @@
     <title>Frey 的个人网站</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="css/style.css">
-
-    <!-- ★ 优雅主题变量：白天自动深色文字，夜间浅色，风格统一 ★ -->
-    <style>
-        :root {
-            --text: #e2e8f0;
-            --text-muted: #94a3b8;
-            --border: rgba(255,255,255,0.12);
-            --card-bg: rgba(255,255,255,0.04);
-            --btn-bg: rgba(255,255,255,0.02);
-            --accent: #60a5fa;
-            --log-bg: rgba(0,0,0,0.25);
-        }
-        .theme-day,
-        .theme-auto-bright {
-            --text: #1e293b;
-            --text-muted: #475569;
-            --border: rgba(0,0,0,0.15);
-            --card-bg: rgba(15,23,42,0.18);
-            --btn-bg: rgba(15,23,42,0.12);
-            --accent: #2563eb;
-            --log-bg: rgba(0,0,0,0.12);
-        }
-    </style>
 </head>
 <body>
 
-<!-- ★ 必须！Vanta 背景全屏层 ★ -->
+<!-- Vanta 背景全屏层 -->
 <div id="vanta-bg"></div>
 
 <div id="time-card"><div class="date">0000-00-00</div><div class="time">--:--:--</div></div>
@@ -42,7 +19,7 @@
 <div class="container">
     <!-- 图片压缩&格式转换 -->
     <div class="post-card">
-        <h2 class="card-title">图片压缩&格式转换 <span class="toggle-icon">▾</span></h2>
+        <h2 class="card-title">图片压缩&格式转换 <span class="toggle-icon">down</span></h2>
         <div class="card-content">
             <p style="margin-top:8px">在浏览器内压缩图片并转换格式：上传 → 设置参数 → 压缩 → 单张或打包下载。</p>
             <div style="margin-top:12px" class="compress-grid">
@@ -95,7 +72,7 @@
 
     <!-- 图片 ↔ PDF 互转 -->
     <div class="post-card">
-        <h2 class="card-title">图片 ↔ PDF 互转 <span class="toggle-icon">▾</span></h2>
+        <h2 class="card-title">图片 ↔ PDF 互转 <span class="toggle-icon">down</span></h2>
         <div class="card-content">
             <p style="margin-top:8px">纯前端实现：多图转 PDF、PDF 转图片，全部离线处理，支持拖拽与批量下载。</p>
             <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
@@ -158,26 +135,26 @@
 
     <!-- 未来内容 -->
     <div class="post-card">
-        <h2 class="card-title">未来内容 <span class="toggle-icon">▾</span></h2>
+        <h2 class="card-title">未来内容 <span class="toggle-icon">down</span></h2>
         <div class="card-content"><p>敬请期待！</p></div>
     </div>
 </div>
 
 <footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
 
-<!-- ★ 背景切换按钮（在网络按钮上方）★ -->
-<div id="bg-switcher-btn"><div class="bg-icon">✨</div></div>
+<!-- 背景切换按钮 -->
+<div id="bg-switcher-btn"><div class="bg-icon">Sparkles</div></div>
 <div id="bg-switcher-panel">
     <h3>动态背景模式</h3>
     <div class="bg-options">
         <button data-mode="night" class="bg-opt active">夜间 · NET网格</button>
         <button data-mode="day"   class="bg-opt">日间 · BIRDS飞鸟</button>
-        <button data-mode="auto"  class="bg-opt">自动 · 云天变幻</button>
+        <!-- 已彻底删除自动模式 -->
     </div>
 </div>
 
 <!-- 网络监控 -->
-<div id="net-monitor-btn"><div class="net-icon">🌐</div></div>
+<div id="net-monitor-btn"><div class="net-icon">Globe</div></div>
 <div id="net-monitor-panel">
     <h3>网络状态监控</h3>
     <div class="net-item">网络状态：<span id="nm-status">--</span></div>
@@ -187,19 +164,19 @@
 </div>
 
 <!-- 音乐播放器 -->
-<div id="music-player-btn"><div class="music-icon">🎵</div></div>
+<div id="music-player-btn"><div class="music-icon">Music Note</div></div>
 <div id="music-player-panel">
     <h3 style="margin:0 0 10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
         <span>音乐播放器</span>
-        <span id="toggleList" style="font-size:18px;opacity:0.6;">♪</span>
+        <span id="toggleList" style="font-size:18px;opacity:0.6;">Playlist</span>
     </h3>
     <div id="songTitle" class="net-item" style="font-weight:600;cursor:pointer;" title="点击展开歌单">加载中...</div>
     <div class="net-item">进度：<input type="range" id="progress" value="0" max="100" style="width:160px;vertical-align:middle;"></div>
     <div class="net-item" style="justify-content:space-between;">
         <span id="currentTime">0:00</span>
-        <button id="prevBtn" class="mini-btn">⏮</button>
-        <button id="playBtn" class="mini-btn">▶</button>
-        <button id="nextBtn" class="mini-btn">⏭</button>
+        <button id="prevBtn" class="mini-btn">Previous</button>
+        <button id="playBtn" class="mini-btn">Play</button>
+        <button id="nextBtn" class="mini-btn">Next</button>
         <span id="duration">--:--</span>
     </div>
     <div class="net-item">音量：<input type="range" id="volume" min="0" max="100" value="70" style="width:140px;vertical-align:middle;"></div>
