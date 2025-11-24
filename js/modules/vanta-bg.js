@@ -1,148 +1,108 @@
-// js/modules/vanta-bg.js
-// 支持 NET / BIRDS / CLOUDS 三种效果 + 自动时间天空
+// js/modules/vanta-bg.js   ← 完全离线可用版，复制粘贴即可
 
 let currentVanta = null;
 
-// 销毁当前效果（切换时必须调用）
-const destroyCurrent = () => {
+// 销毁当前效果
+const destroy = () => {
     if (currentVanta) {
         currentVanta.destroy();
         currentVanta = null;
     }
 };
 
-// 统一 resize 处理（你原来的逻辑，任何情况都能铺满）
-const safeResize = () => {
-    if (currentVanta && typeof currentVanta.resize === 'function') {
-        currentVanta.resize();
-    }
+// resize 保持铺满（你原来的需求）
+const resize = () => {
+    if (currentVanta && currentVanta.resize) currentVanta.resize();
 };
-window.addEventListener('resize', safeResize);
+window.addEventListener('resize', resize);
+setTimeout(resize, 150);   // 首次强制铺满
 
-// 页面加载后强制一次 resize（解决首次未铺满问题）
-setTimeout(safeResize, 100);
-
-// 一天六段真实天空配色（自动模式用）
-const skyPresets = [
-    { h: [0,6],   name:"深夜", sky:0x0f172a, cloud:0x1e293b, sun:0x1e40af },
-    { h: [6,9],   name:"清晨", sky:0xff9e6b, cloud:0xffffff, sun:0xff6b00 },
-    { h: [9,12],  name:"上午", sky:0x87CEEB, cloud:0xffffff, sun:0xff8c00 },
-    { h: [12,16], name:"下午", sky:0x60a5fa, cloud:0xf0f9ff, sun:0xffb700 },
-    { h: [16,19], name:"傍晚", sky:0xff6b6b, cloud:0xff8fa3, sun:0xff4500 },
-    { h: [19,24], name:"夜晚", sky:0x1e293b, cloud:0x64748b, sun:0x1e40af }
+// 自动模式天空配色
+const sky = [
+    {h:[0,6],   sky:0x0f172a, cloud:0x1e293b, sun:0x1e40af},
+    {h:[6,9],   sky:0xff9e6b, cloud:0xffffff, sun:0xff6b00},
+    {h:[9,12],  sky:0x87CEEB, cloud:0xffffff, sun:0xff8c00},
+    {h:[12,16], sky:0x60a5fa, cloud:0xf0f9ff, sun:0xffb700},
+    {h:[16,19], sky:0xff6b6b, cloud:0xff8fa3, sun:0xff4500},
+    {h:[19,24], sky:0x1e293b, cloud:0x64748b, sun:0x1e40af}
 ];
+const getSky = () => sky.find(p => {
+    const h = new Date().getHours();
+    return h >= p.h[0] && h < p.h[1];
+}) || sky[0];
 
-const getCurrentSky = () => {
-    const hour = new Date().getHours();
-    return skyPresets.find(p => hour >= p.h[0] && hour < p.h[1]) || skyPresets[0];
-};
-
-// 三种模式实现
+// 三种模式
 const modes = {
     night: () => {
-        destroyCurrent();
-        currentVanta = VANTA.NET({
+        destroy();
+        currentVanta = window.VANTA.NET({
             el: document.body,
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200,
-            minWidth: 200,
-            scale: 1.0,
-            scaleMobile: 1.0,
+            mouseControls: true,  touchControls: true,  gyroControls: false,
+            minHeight: 200, minWidth: 200,
+            scale: 1, scaleMobile: 1,
             color: 0x60a5fa,
             backgroundColor: 0x0f172a,
-            points: 12,
-            maxDistance: 22,
-            spacing: 16
+            points: 12, maxDistance: 22, spacing: 16
         });
-        safeResize();
+        resize();
     },
 
     day: () => {
-        destroyCurrent();
-        currentVanta = VANTA.BIRDS({
+        destroy();
+        currentVanta = window.VANTA.BIRDS({
             el: document.body,
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200,
-            minWidth: 200,
-            scale: 1.0,
-            scaleMobile: 1.0,
+            mouseControls: true,  touchControls: true,  gyroControls: false,
+            minHeight: 200, minWidth: 200,
+            scale: 1, scaleMobile: 1,
             backgroundColor: 0x87CEEB,
             color: 0x60a5fa,
-            birdSize: 1.5,
-            wingSpan: 30,
-            speedLimit: 5,
-            separation: 60,
-            alignment: 30,
-            cohesion: 20,
+            birdSize: 1.5, wingSpan: 30, speedLimit: 5,
+            separation: 60, alignment: 30, cohesion: 20,
             quantity: 4
         });
-        safeResize();
+        resize();
     },
 
     auto: () => {
-        destroyCurrent();
-        const preset = getCurrentSky();
-        currentVanta = VANTA.CLOUDS({
+        destroy();
+        const s = getSky();
+        currentVanta = window.VANTA.CLOUDS({
             el: document.body,
-            mouseControls: true,
-            touchControls: true,
-            gyroControls: false,
-            minHeight: 200,
-            minWidth: 200,
-            scale: 1.0,
-            scaleMobile: 1.0,
-            skyColor: preset.sky,
-            cloudColor: preset.cloud,
+            mouseControls: true,  touchControls: true,  gyroControls: false,
+            minHeight: 200, minWidth: 200,
+            scale: 1, scaleMobile: 1,
+            skyColor: s.sky,
+            cloudColor: s.cloud,
             cloudShadowColor: 0x172033,
-            sunColor: preset.sun,
-            sunGlareColor: preset.sun,
+            sunColor: s.sun,
+            sunGlareColor: s.sun,
             sunlightColor: 0xffffff,
             speed: 1.0
         });
-        safeResize();
-
-        // 自动模式下，每小时刷新一次天空颜色
-        const now = new Date();
-        const msTillNextHour = (60 - now.getMinutes()) * 60 * 1000 - now.getSeconds() * 1000;
-        setTimeout(() => {
-            modes.auto(); // 跨小时时重新生成
-            setInterval(modes.auto, 3600000);
-        }, msTillNextHour);
+        resize();
     }
 };
 
-// 切换函数
-const switchMode = (mode) => {
+// 切换核心
+const apply = (mode) => {
     modes[mode]();
     document.querySelectorAll('.bg-opt').forEach(b => b.classList.remove('active'));
-    const btn = document.querySelector(`[data-mode="${mode}"]`);
-    if (btn) btn.classList.add('active');
-
-    // 保存选择
+    document.querySelector(`[data-mode="${mode}"]`)?.classList.add('active');
     localStorage.setItem('frey-bg-mode', mode);
 };
 
-// —— 按钮交互（和网络面板完全一致）——
+// 按钮交互
 document.getElementById('bg-switcher-btn')?.addEventListener('click', () => {
-    const panel = document.getElementById('bg-switcher-panel');
-    const visible = panel.style.display === 'block';
-    panel.style.display = visible ? 'none' : 'block';
-
-    // 互斥：点开背景面板时自动关闭网络和音乐面板
+    const p = document.getElementById('bg-switcher-panel');
+    p.style.display = (p.style.display === 'block') ? 'none' : 'block';
     document.getElementById('net-monitor-panel').style.display = 'none';
     document.getElementById('music-player-panel').style.display = 'none';
 });
 
 document.querySelectorAll('.bg-opt').forEach(btn => {
-    btn.addEventListener('click', () => {
-        switchMode(btn.dataset.mode);
-    });
+    btn.addEventListener('click', () => apply(btn.dataset.mode));
 });
 
-// —— 初始化：恢复上次选择，默认夜间 ——
-const savedMode = localStorage.getItem('frey-bg-mode') || 'night';
-switchMode(savedMode);
+// 启动：默认 NET + 恢复上次选择
+const saved = localStorage.getItem('frey-bg-mode') || 'night';
+apply(saved);
