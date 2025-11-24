@@ -103,3 +103,18 @@ document.querySelectorAll('.bg-opt').forEach(b => b.addEventListener('click', ()
 const saved = localStorage.getItem('frey-bg-mode') || 'night';
 apply(saved);
 
+/* 彻底解决行内颜色残留 —— 最终补丁 */
+.dropzone-title,
+#dropzoneImg > div:first-child {
+    font-weight: 600 !important;
+    color: var(--accent-light) !important;
+}
+
+.params-title,
+.controls h3 {
+    margin: 0 0 8px !important;
+    color: var(--accent-light) !important;
+    font-size: 15px !important;
+}
+
+
