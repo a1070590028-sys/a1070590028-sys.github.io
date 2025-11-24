@@ -174,7 +174,7 @@ input[type="checkbox"]:checked::after{
     .thumb{width:45%}
 }
 
-/* ──────────────────────── 终极补丁：标题高亮色完美双模式适配（最高优先级） ──────────────────────── */
+/* ──────────────────────── 终极补丁（最终版）──────────────────────── */
 .dropzone-title,
 #dropzone > div:first-child > div,
 #dropzoneImg > div:first-child > div,
@@ -187,17 +187,27 @@ input[type="checkbox"]:checked::after{
     font-size: 15px !important;
 }
 
-/* 主高亮元素统一使用 accent（保持不变） */
+/* 标题颜色完全统一 */
 header h1,
 .post-card h2.card-title,
 .toggle-icon,
-#time-card,
-.btn:hover,
-.bg-opt:hover,
-.bg-opt.active {
+#time-card {
     color: var(--accent) !important;
 }
+#time-card .date { color: var(--date-deep) !important; }
 
-#time-card .date {
-    color: var(--date-deep) !important;
+/* 夜间模式下拉框文字强制高对比 */
+select {
+    background: var(--select-bg, var(--card-bg)) !important;
+    color: var(--select-color, var(--text)) !important;
+    border: 1px solid var(--border) !important;
 }
+
+/* 夜间模式下拉箭头也保持可见 */
+select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%2360a5fa' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e") !important;
+}
+.theme-day select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%23ff6b52' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e") !important;
+}
+
