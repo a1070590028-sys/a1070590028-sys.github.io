@@ -226,7 +226,9 @@ input[type="checkbox"]:checked::after{
 
 /* ====================== 你要求的两个改动 ====================== */
 
-/* 1. 三个播放控制按钮（上一首、播放/暂停、下一首）改成圆形 */
+/* ====================== 音乐播放器终极完美对齐版 ====================== */
+
+/* 三个圆形按钮 */
 #prevBtn, #playBtn, #nextBtn {
     width: 36px !important;
     height: 36px !important;
@@ -237,36 +239,69 @@ input[type="checkbox"]:checked::after{
     background: rgba(96,165,250,0.25) !important;
     border: 1px solid var(--accent) !important;
     margin: 0 6px !important;
+    flex-shrink: 0;
 }
 
-/* 2. 进度条和音量条等长（这里统一设为 180px，与面板宽度 230px 协调） */
+/* 进度条 & 音量条：完全等长 + 居中对齐 */
 #progress, #volume {
-    width: 180px !important;
+    width: 178px !important;     /* 严格相等 */
+    flex: 0 0 178px !important;  /* 禁止伸缩 */
+    margin: 0 10px !important;   /* 两端留相同间距 */
 }
 
-/* 终极补丁：完美双模式（最高优先级） */
-.dropzone-title,
-#dropzone > div:first-child > div,
-#dropzoneImg > div:first-child > div,
-#dropzonePdf > div:first-child > div,
-.params-title,
-.controls h3 {
-    font-weight: 600 !important;
-    color: var(--accent-light) !important;
-    margin: 0 0 8px 0 !important;
-    font-size: 15px !important;
+/* 进度行：时间在两端，进度条居中 */
+#music-player-panel .net-item:nth-of-type(2) {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin: 12px 0 !important;
+    gap: 0 !important;
+    padding: 0 !important;
+}
+#currentTime { 
+    min-width: 42px; 
+    text-align: right; 
+    color: var(--accent); 
+    font-weight: 500;
+}
+#duration { 
+    min-width: 42px; 
+    text-align: left; 
+    color: var(--accent); 
+    font-weight: 500;
 }
 
-header h1,
-.post-card h2.card-title,
-.toggle-icon,
-#time-card,
-.btn:hover,
-.bg-opt:hover,
-.bg-opt.active {
-    color: var(--accent) !important;
+/* 音量行：图标在两端，音量条居中，完全与进度条对齐 */
+#music-player-panel .net-item:nth-of-type(4) {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin: 10px 0 6px 0 !important;
+    gap: 0 !important;
+    padding: 0 !important;
 }
 
-#time-card .date {
-    color: var(--date-deep) !important;
+/* 隐藏“音量：”文字 */
+#music-player-panel .net-item:nth-of-type(4) > *:first-child { 
+    display: none !important; 
+}
+
+/* 左右音量图标 */
+#music-player-panel .net-item:nth-of-type(4)::before {
+    content: "low volume";
+    font-size: 15px;
+    margin-right: 10px;
+    opacity: 0.8;
+}
+#music-player-panel .net-item:nth-of-type(4)::after {
+    content: "high volume";
+    font-size: 15px;
+    margin-left: 10px;
+    opacity: 0.8;
+}
+
+/* 播放控制按钮那一行居中 */
+#music-player-panel .net-item:nth-of-type(3) {
+    justify-content: center !important;
+    margin: 14px 0 !important;
 }
