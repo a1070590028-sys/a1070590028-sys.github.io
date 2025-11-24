@@ -20,28 +20,16 @@ body{
 }
 #time-card .date{font-size:13px;color:var(--date-deep);font-weight:600;}
 
-/* Header：永久透明高级毛玻璃（日夜统一） */
+/* 页眉 - 关键修复：日间与下方卡片完全统一 */
 header{
-    position:relative;z-index:1;
-    background: rgba(255,255,255,0.01) !important;
-    backdrop-filter: blur(14px) !important;
-    -webkit-backdrop-filter: blur(14px) !important;
-    border-bottom: 1px solid rgba(255,255,255,0.12) !important;
+    position:relative;z-index:1;backdrop-filter:blur(5px);
+    background:var(--card-bg) !important;        /* 日间不再半透明，和下方卡片完全一致 */
+    border-bottom:1px solid var(--border);
     padding:40px 20px;text-align:center;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
 }
-header::before{
-    content:"";
-    position:absolute;inset:0;
-    background: linear-gradient(to bottom,
-        rgba(255,255,255,0.14),
-        rgba(255,255,255,0.04) 50%,
-        transparent);
-    pointer-events:none;z-index:-1;
-}
-header h1{margin:0 0 8px;font-size:34px;font-weight:700;color:var(--accent)!important;
-    text-shadow:0 0 12px rgba(96,165,250,0.35);}
-header p{margin:0;color:var(--text-muted)!important;opacity:0.9;}
+header h1{margin:0 0 8px;font-size:34px;font-weight:700;color:var(--accent);
+    text-shadow:0 0 8px rgba(96,165,250,0.35);}
+header p{margin:0;color:var(--text-muted);opacity:.85}
 
 .container{position:relative;z-index:1;max-width:980px;margin:28px auto;padding:0 16px;}
 .post-card{
@@ -59,15 +47,18 @@ header p{margin:0;color:var(--text-muted)!important;opacity:0.9;}
 footer{position:relative;z-index:1;text-align:center;padding:22px;font-size:14px;color:var(--text-muted);}
 footer span{color:var(--accent)}
 
+/* 布局 */
 .compress-grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
 .controls{padding:12px;display:flex;flex-direction:column;gap:10px;}
 
+/* 拖拽区 */
 .dropzone{
     border:2px dashed var(--border);border-radius:10px;padding:16px;
     text-align:center;cursor:pointer;
     background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
 }
 
+/* 缩略图 & 按钮 */
 .thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
 .thumb{width:120px;background:var(--card-bg);border-radius:8px;padding:8px;text-align:center;font-size:12px;color:var(--text-muted);}
 .thumb img{max-width:100%;max-height:80px;border-radius:6px;display:block;margin:0 auto 6px;}
@@ -80,6 +71,7 @@ footer span{color:var(--accent)}
 .btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,0.35);border-color:var(--accent);color:var(--accent);}
 .btn.active{background:rgba(96,165,250,0.25);border-color:var(--accent);color:var(--accent);}
 
+/* 表单元素 */
 label.small,.small{font-size:13px;color:var(--text-muted);display:block;margin-bottom:6px}
 input[type="number"],select,input[type="range"]{
     width:100%;padding:6px;border-radius:8px;
@@ -89,6 +81,7 @@ input[type="number"],select,input[type="range"]{
 .card-content{overflow:hidden;max-height:9999px;transition:max-height .35s ease,padding .35s ease;padding:12px 0 0 0}
 .card-content.collapsed{max-height:0;padding:0}
 
+/* 下拉框箭头 */
 select{
     padding:6px 30px 6px 8px;background:var(--card-bg);
     background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='var(--select-arrow)' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e");
@@ -97,6 +90,7 @@ select{
 }
 select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
 
+/* 夜间模式 select 高对比下拉菜单（箭头颜色完全不受影响） */
 @media (prefers-color-scheme: dark),
 body.theme-night {
     select {
@@ -110,6 +104,7 @@ body.theme-night {
     }
 }
 
+/* 进度条 */
 input[type="range"]{
     -webkit-appearance:none;appearance:none;height:6px;border-radius:3px;
     background:var(--range-track);
@@ -119,7 +114,15 @@ input[type="range"]::-webkit-slider-thumb{
     background:var(--range-thumb);border:2px solid #fff;
     box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;
 }
+input[type="range"]::-moz-range-track{
+    height:6px;border-radius:3px;background:var(--range-track);border:none;
+}
+input[type="range"]::-moz-range-thumb{
+    background:var(--range-thumb);border:2px solid #fff;
+    box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;
+}
 
+/* 复选框 */
 input[type="checkbox"]{
     -webkit-appearance:none;appearance:none;
     width:18px;height:18px;border:2px solid var(--checkbox-border);
@@ -133,6 +136,7 @@ input[type="checkbox"]:checked::after{
     position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
 }
 
+/* 右下角按钮 & 面板 */
 #bg-switcher-btn,#net-monitor-btn,#music-player-btn{
     position:fixed;right:20px;width:54px;height:54px;border-radius:50%;
     background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
@@ -153,6 +157,7 @@ input[type="checkbox"]:checked::after{
 #bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3{
     margin:0 0 12px;font-size:16px;color:var(--accent);
 }
+.net-item{margin:6px 0;font-size:14px;color:var(--text)}
 
 .bg-options{display:flex;flex-direction:column;gap:8px}
 .bg-opt{
@@ -164,10 +169,18 @@ input[type="checkbox"]:checked::after{
     background:rgba(96,165,250,0.25);border-color:var(--accent);color:#fff;
 }
 
+/* 日志区 */
 #log,#imgLog,#pdfLog{
-    margin-top:6px;color:var(--text-muted);font-size:18px;max-height:160px;overflow:auto;
+    margin-top:6px;color:var(--text-muted);font-size:13px;max-height:160px;overflow:auto;
     padding:10px 12px;border-radius:8px;background:var(--log-bg);
     border:1px solid var(--border);line-height:1.5;
+}
+#log::-webkit-scrollbar,#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px;background:transparent}
+#log::-webkit-scrollbar-thumb,#imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,0.15);border-radius:4px;
+}
+#log::-webkit-scrollbar-thumb:hover,#imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover{
+    background:rgba(255,255,255,0.3);
 }
 
 /* 响应式 */
@@ -176,7 +189,7 @@ input[type="checkbox"]:checked::after{
     .thumb{width:45%}
 }
 
-/* 终极补丁（保持原样） */
+/* ──────────────────────── 终极补丁：完美双模式（最高优先级） ──────────────────────── */
 .dropzone-title,
 #dropzone > div:first-child > div,
 #dropzoneImg > div:first-child > div,
@@ -184,7 +197,7 @@ input[type="checkbox"]:checked::after{
 .params-title,
 .controls h3 {
     font-weight: 600 !important;
-    color: var(--accent-light) !important;
+    color: var(--accent-light) !important;   /* 日间 #ffb387 / 夜间 #cfe8ff */
     margin: 0 0 8px 0 !important;
     font-size: 15px !important;
 }
@@ -202,4 +215,3 @@ header h1,
 #time-card .date {
     color: var(--date-deep) !important;
 }
-
