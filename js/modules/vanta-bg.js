@@ -1,5 +1,5 @@
 // js/modules/vanta-bg.js  
-// 2025 双模式终极版（最终修复版）
+// 2025 双模式终极版 + 完全动态日/月图标（最终版）
 
 let currentVanta = null;
 
@@ -37,9 +37,9 @@ const modes = {
         r.style.setProperty('--card-bg', 'rgba(255,255,255,0.055)');
         r.style.setProperty('--btn-bg', 'rgba(255,255,255,0.04)');
         r.style.setProperty('--accent', '#60a5fa');
-        r.style.setProperty('--accent-light', '#cfe8ff');     // 标题高亮（醒目浅蓝）
-        r.style.setProperty('--select-bg', 'rgba(15,23,42,0.7)');   // 夜间下拉框背景加深
-        r.style.setProperty('--select-color', '#ffffff');          // 强制白字
+        r.style.setProperty('--accent-light', '#cfe8ff');
+        r.style.setProperty('--select-bg', 'rgba(15,23,42,0.7)');
+        r.style.setProperty('--select-color', '#ffffff');
         r.style.setProperty('--log-bg', 'rgba(0,0,0,0.32)');
         r.style.setProperty('--select-arrow', '#60a5fa');
         r.style.setProperty('--range-track', 'rgba(96,165,250,0.3)');
@@ -70,7 +70,7 @@ const modes = {
         r.style.setProperty('--card-bg', 'rgba(255,248,240,0.82)');
         r.style.setProperty('--btn-bg', 'rgba(255,248,240,0.72)');
         r.style.setProperty('--accent', '#ff6b52');
-        r.style.setProperty('--accent-light', '#ffb599');    // 日间标题高亮：醒目温暖橙（和夜间cfe8ff同级别显眼）
+        r.style.setProperty('--accent-light', '#ffb599');
         r.style.setProperty('--select-bg', 'rgba(255,248,240,0.9)');
         r.style.setProperty('--select-color', '#2c1e1a');
         r.style.setProperty('--log-bg', 'rgba(255,230,210,0.4)');
@@ -94,14 +94,35 @@ const apply = (mode) => {
     localStorage.setItem('frey-bg-mode', mode);
 };
 
-// 交互同之前
+// ──────────────────────── 完全动态 ☀/🌙 图标 + 点按钮自动收起 ────────────────────────
+const bgIconSpan = document.getElementById('bg-icon');
+
+const updateBgIcon = (mode) => {
+    bgIconSpan.textContent = mode === 'day' ? 'Sun' : 'Moon';
+};
+
+// 劫持 apply，每次切换都自动更新图标 + 收起面板
+const originalApply = apply;
+apply = function (mode) {
+    originalApply(mode);
+    updateBgIcon(mode);
+    // 点击切换后自动隐藏面板（用户体验更好）
+    document.getElementById('bg-switcher-panel').style.display = 'none';
+};
+
+// ──────────────────────── 按钮交互 ────────────────────────
 document.getElementById('bg-switcher-btn')?.addEventListener('click', () => {
-    const p = document.getElementById('bg-switcher-panel');
-    p.style.display = (p.style.display === 'block') ? 'none' : 'block';
+    const panel = document.getElementById('bg-switcher-panel');
+    panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+    // 同时关闭其他面板
     document.getElementById('net-monitor-panel').style.display = 'none';
     document.getElementById('music-player-panel').style.display = 'none';
 });
-document.querySelectorAll('.bg-opt').forEach(b => b.addEventListener('click', () => apply(b.dataset.mode)));
 
+document.querySelectorAll('.bg-opt').forEach(b => {
+    b.addEventListener('click', () => apply(b.dataset.mode));
+});
+
+// ──────────────────────── 初始化 ────────────────────────
 const saved = localStorage.getItem('frey-bg-mode') || 'night';
-apply(saved);
+apply(saved);   // 这句会自动触发一次图标更新
