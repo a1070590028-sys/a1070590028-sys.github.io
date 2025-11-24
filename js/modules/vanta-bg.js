@@ -83,7 +83,7 @@ const modes = {
         r.style.setProperty('--checkbox-border', '#ff6b52');
         r.style.setProperty('--date-deep', '#b8473a');
 
-        if (bgIcon) bgIcon.textContent = '☀'; // 日间显示太阳
+        if (bgIcon) bgIcon.textContent = '☀️'; // 日间显示太阳
 
         resize();
     }
@@ -115,3 +115,4 @@ document.querySelectorAll('.bg-opt').forEach(b =>
 // 初始化
 const saved = localStorage.getItem('frey-bg-mode') || 'night';
 apply(saved);
+
