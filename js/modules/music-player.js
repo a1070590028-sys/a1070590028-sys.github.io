@@ -1,5 +1,5 @@
 // js/modules/music-player.js
-// 终极丝滑 + 颜值拉满版
+// 终极丝滑版：等整首歌缓冲完成再播放 → 拖进度条秒进不卡
 
 let audio = null;
 let playlist = [];
@@ -12,7 +12,7 @@ export function initMusicPlayer() {
 
     audio = new Audio();
     audio.volume = 0.7;
-    audio.preload = 'auto';
+    audio.preload = 'auto';                 // 强制尽量缓存整首歌
 
     // 面板开关
     btn.onclick = () => {
@@ -32,7 +32,7 @@ export function initMusicPlayer() {
             renderPlaylist();
             if (playlist.length > 0) {
                 currentIndex = 0;
-                loadAndPlayIndex(0);
+                loadAndPlayIndex(0);            // 使用新函数加载第一首
             }
         })
         .catch(() => {});
@@ -47,21 +47,21 @@ export function initMusicPlayer() {
         document.getElementById('toggleList').textContent = visible ? '♪' : '−';
     };
 
-    // 渲染歌单（美化版）
+    // 渲染歌单
     function renderPlaylist() {
         const container = document.getElementById('playlistItems');
         container.innerHTML = '';
         playlist.forEach((song, i) => {
             const div = document.createElement('div');
             div.textContent = song.name;
-            div.dataset.index = i;
+            div.style.cssText = 'padding:6px 4px;cursor:pointer;border-radius:4px;margin:2px 0;transition:0.2s;';
             if (i === currentIndex) {
-                div.setAttribute('current', 'true');
+                div.style.background = 'rgba(96,165,250,0.3)';
+                div.style.fontWeight = '600';
             }
             div.onclick = () => loadAndPlayIndex(i);
             container.appendChild(div);
         });
-
         if (currentIndex >= 0) {
             setTimeout(() => {
                 const el = container.children[currentIndex];
@@ -70,11 +70,11 @@ export function initMusicPlayer() {
         }
     }
 
-    // 核心加载函数
+    // 核心：等整首歌缓冲完成再播放（拖进度条丝滑）
     function loadAndPlayIndex(i) {
         if (i < 0 || i >= playlist.length) return;
 
-        // 释放本地文件
+        // 释放上一个本地文件
         if (playlist[currentIndex]?.type === 'local' && playlist[currentIndex]?.objectURL) {
             URL.revokeObjectURL(playlist[currentIndex].objectURL);
         }
@@ -86,72 +86,63 @@ export function initMusicPlayer() {
         audio.src = song.url;
         audio.currentTime = 0;
 
-        // UI 加载状态
+        // UI 进入加载状态
         document.getElementById('songTitle').textContent = song.name + ' (加载中...)';
-        document.getElementById('playBtn').textContent = 'Play';
+        document.getElementById('playBtn').textContent = '▶';
         document.getElementById('progress').value = 0;
-        document.getElementById('progress').style.setProperty('--buffered', '0%');
         document.getElementById('currentTime').textContent = '0:00';
         document.getElementById('duration').textContent = '0:00';
         renderPlaylist();
 
-        audio.load();
+        audio.load();   // 开始缓冲
 
+        // 成功：整首歌缓冲完成 → 自动播放
         const onCanPlayThrough = () => {
             cleanup();
             audio.play().then(() => {
-                document.getElementById('playBtn').textContent = 'Pause';
+                document.getElementById('playBtn').textContent = '⏸';
                 document.getElementById('songTitle').textContent = song.name;
             }).catch(() => {});
         };
 
+        // 失败处理
         const onError = () => {
             cleanup();
             document.getElementById('songTitle').textContent = song.name + ' (加载失败)';
-            document.getElementById('playBtn').textContent = 'Play';
+            document.getElementById('playBtn').textContent = '▶';
         };
 
+        // 时长已知后显示总时长（用户可以提前手动点播放）
         const onLoadedMetadata = () => {
             document.getElementById('duration').textContent = format(audio.duration || 0);
-        };
-
-        // 已缓冲进度（双轨效果）
-        const onProgress = () => {
-            if (audio.buffered.length > 0) {
-                const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
-                const percent = (bufferedEnd / audio.duration) * 100;
-                document.getElementById('progress').style.setProperty('--buffered', percent + '%');
-            }
         };
 
         const cleanup = () => {
             audio.removeEventListener('canplaythrough', onCanPlayThrough);
             audio.removeEventListener('error', onError);
             audio.removeEventListener('loadedmetadata', onLoadedMetadata);
-            audio.removeEventListener('progress', onProgress);
         };
 
         audio.addEventListener('canplaythrough', onCanPlayThrough);
         audio.addEventListener('error', onError);
         audio.addEventListener('loadedmetadata', onLoadedMetadata);
-        audio.addEventListener('progress', onProgress);
     }
 
-    // 播放/暂停按钮
+    // 播放/暂停按钮（支持加载中手动点）
     document.getElementById('playBtn').onclick = () => {
         if (audio.paused) {
             audio.play().then(() => {
-                document.getElementById('playBtn').textContent = 'Pause';
+                document.getElementById('playBtn').textContent = '⏸';
             }).catch(() => {});
         } else {
             audio.pause();
-            document.getElementById('playBtn').textContent = 'Play';
+            document.getElementById('playBtn').textContent = '▶';
         }
     };
 
-    // 全局事件
-    audio.onplaying = () => document.getElementById('playBtn').textContent = 'Pause';
-    audio.onpause = audio.onended = () => document.getElementById('playBtn').textContent = 'Play';
+    // 全局事件（只绑定一次）
+    audio.onplaying = () => document.getElementById('playBtn').textContent = '⏸';
+    audio.onpause = audio.onended = () => document.getElementById('playBtn').textContent = '▶';
 
     audio.ontimeupdate = () => {
         if (audio.duration) {
@@ -163,11 +154,11 @@ export function initMusicPlayer() {
 
     audio.onended = () => document.getElementById('nextBtn').click();
 
-    // 切歌
+    // 前后切歌
     document.getElementById('prevBtn').onclick = () => loadAndPlayIndex((currentIndex - 1 + playlist.length) % playlist.length);
     document.getElementById('nextBtn').onclick = () => loadAndPlayIndex((currentIndex + 1) % playlist.length);
 
-    // 进度条 & 音量
+    // 进度条拖动 & 音量
     document.getElementById('progress').oninput = e => {
         if (audio.duration) audio.currentTime = (e.target.value / 100) * audio.duration;
     };
