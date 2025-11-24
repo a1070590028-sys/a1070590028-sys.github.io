@@ -132,7 +132,7 @@ input[type="checkbox"]:checked{
     background:var(--checkbox-border);
 }
 input[type="checkbox"]:checked::after{
-    content:"Checkmark";color:#fff;font-weight:bold;
+    content:"🗸";color:#fff;font-weight:bold;
     position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
 }
 
@@ -215,3 +215,4 @@ header h1,
 #time-card .date {
     color: var(--date-deep) !important;
 }
+
