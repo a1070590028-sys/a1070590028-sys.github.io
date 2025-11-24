@@ -174,10 +174,11 @@ input[type="checkbox"]:checked::after{
     .thumb{width:45%}
 }
 
-/* ──────────────────────── 终极补丁：彻底消灭所有行内硬编码颜色（放在最底部最高优先级） ──────────────────────── */
+/* ──────────────────────── 终极补丁：标题高亮色完美双模式适配（最高优先级） ──────────────────────── */
 .dropzone-title,
-#dropzone > div:first-child,
-#dropzoneImg > div:first-child,
+#dropzone > div:first-child > div,
+#dropzoneImg > div:first-child > div,
+#dropzonePdf > div:first-child > div,
 .params-title,
 .controls h3 {
     font-weight: 600 !important;
@@ -186,17 +187,17 @@ input[type="checkbox"]:checked::after{
     font-size: 15px !important;
 }
 
-/* 确保主高亮元素也完全正确 */
+/* 主高亮元素统一使用 accent（保持不变） */
 header h1,
 .post-card h2.card-title,
 .toggle-icon,
 #time-card,
-#time-card .date,
-.dropzone-title,
-.params-title,
-.controls h3 {
+.btn:hover,
+.bg-opt:hover,
+.bg-opt.active {
     color: var(--accent) !important;
 }
+
 #time-card .date {
     color: var(--date-deep) !important;
 }
