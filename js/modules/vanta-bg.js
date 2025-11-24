@@ -53,7 +53,7 @@ const modes = {
         r.style.setProperty('--range-track', 'rgba(96,165,250,0.3)');
         r.style.setProperty('--range-thumb', '#60a5fa');
         r.style.setProperty('--checkbox-border', '#60a5fa');
-        r.style.setProperty('--date-deep', '#60a5fa');
+        r.style.setProperty('--date-deep', '#67e8f9');
 
         // 动态切换为月亮图标
         const icon = document.getElementById('bg-icon');
@@ -104,7 +104,7 @@ const modes = {
 
         // 动态切换为太阳图标
         const icon = document.getElementById('bg-icon');
-        if (icon) icon.textContent = '☀';
+        if (icon) icon.textContent = '☀️';
 
         resize();
     }
@@ -148,5 +148,6 @@ document.querySelectorAll('.bg-opt').forEach(btn => {
 // ==================== 初始化 ====================
 const savedMode = localStorage.getItem('frey-bg-mode') || 'night';
 apply(savedMode);
+
 
 
