@@ -20,10 +20,10 @@ body{
 }
 #time-card .date{font-size:13px;color:var(--date-deep);font-weight:600;}
 
-/* 页眉 - 关键修复：日间与下方卡片完全统一 */
+/* 页眉 */
 header{
     position:relative;z-index:1;backdrop-filter:blur(5px);
-    background:var(--card-bg) !important;        /* 日间不再半透明，和下方卡片完全一致 */
+    background:var(--card-bg) !important;
     border-bottom:1px solid var(--border);
     padding:40px 20px;text-align:center;
 }
@@ -90,7 +90,7 @@ select{
 }
 select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
 
-/* 夜间模式 select 高对比下拉菜单（箭头颜色完全不受影响） */
+/* 夜间模式 select 高对比下拉菜单 */
 @media (prefers-color-scheme: dark),
 body.theme-night {
     select {
@@ -132,33 +132,68 @@ input[type="checkbox"]:checked{
     background:var(--checkbox-border);
 }
 input[type="checkbox"]:checked::after{
-    content:"🗸";color:#fff;font-weight:bold;
+    content:"✓";color:#fff;font-weight:bold;
     position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
 }
 
-/* 右下角按钮 & 面板 */
+/* ==================== 全新按钮 & 面板布局 ==================== */
 #bg-switcher-btn,#net-monitor-btn,#music-player-btn{
-    position:fixed;right:20px;width:54px;height:54px;border-radius:50%;
+    position:fixed;width:54px;height:54px;border-radius:50%;
     background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
     backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;
     cursor:pointer;z-index:99999;transition:all .25s;font-size:22px;
 }
-#bg-switcher-btn{bottom:150px}#net-monitor-btn{bottom:20px}#music-player-btn{bottom:90px}
 #bg-switcher-btn:hover,#net-monitor-btn:hover,#music-player-btn:hover{
     transform:scale(1.08);box-shadow:0 0 14px rgba(96,165,250,0.4);
 }
 
+/* 背景切换 → 左上角 */
+#bg-switcher-btn{
+    top:28px;
+    left:24px;
+}
+
+/* 音乐播放器 → 左下角 */
+#music-player-btn{
+    bottom:28px;
+    left:24px;
+}
+
+/* 网络监控 → 右下角 */
+#net-monitor-btn{
+    bottom:28px;
+    right:24px;
+}
+
+/* 面板位置（紧贴对应按钮） */
 #bg-switcher-panel,#net-monitor-panel,#music-player-panel{
-    position:fixed;right:20px;width:230px;padding:16px;border-radius:14px;
+    position:fixed;width:230px;padding:16px;border-radius:14px;
     background:rgba(255,255,255,0.08);border:1px solid var(--border);
     backdrop-filter:blur(12px);color:var(--text);display:none;z-index:99999;
 }
-#bg-switcher-panel{bottom:220px}#net-monitor-panel{bottom:90px}#music-player-panel{bottom:160px}
 #bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3{
     margin:0 0 12px;font-size:16px;color:var(--accent);
 }
-.net-item{margin:6px 0;font-size:14px;color:var(--text)}
 
+/* 背景面板 → 左上角按钮下方 */
+#bg-switcher-panel{
+    top:92px;
+    left:24px;
+}
+
+/* 音乐面板 → 左下角按钮上方 */
+#music-player-panel{
+    bottom:92px;
+    left:24px;
+}
+
+/* 网络面板 → 右下角按钮上方 */
+#net-monitor-panel{
+    bottom:92px;
+    right:24px;
+}
+
+.net-item{margin:6px 0;font-size:14px;color:var(--text)}
 .bg-options{display:flex;flex-direction:column;gap:8px}
 .bg-opt{
     padding:9px 12px;border-radius:8px;background:transparent;
@@ -189,7 +224,7 @@ input[type="checkbox"]:checked::after{
     .thumb{width:45%}
 }
 
-/* ──────────────────────── 终极补丁：完美双模式（最高优先级） ──────────────────────── */
+/* 终极补丁：完美双模式（最高优先级） */
 .dropzone-title,
 #dropzone > div:first-child > div,
 #dropzoneImg > div:first-child > div,
@@ -197,7 +232,7 @@ input[type="checkbox"]:checked::after{
 .params-title,
 .controls h3 {
     font-weight: 600 !important;
-    color: var(--accent-light) !important;   /* 日间 #ffb387 / 夜间 #cfe8ff */
+    color: var(--accent-light) !important;
     margin: 0 0 8px 0 !important;
     font-size: 15px !important;
 }
@@ -215,4 +250,3 @@ header h1,
 #time-card .date {
     color: var(--date-deep) !important;
 }
-
