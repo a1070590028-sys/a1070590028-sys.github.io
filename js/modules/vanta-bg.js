@@ -1,5 +1,4 @@
-// js/modules/vanta-bg.js  ← 直接完整替换
-
+// js/modules/vanta-bg.js
 let currentVanta = null;
 
 const destroy = () => {
@@ -15,7 +14,6 @@ const resize = () => {
 window.addEventListener('resize', resize);
 setTimeout(resize, 150);
 
-// 自动模式天空配色
 const skyPresets = [
     { h:[0,6],   sky:0x0f172a, cloud:0x1e293b, sun:0x1e40af },
     { h:[6,9],   sky:0xff9e6b, cloud:0xffffff, sun:0xff6b00 },
@@ -81,8 +79,25 @@ const apply = (mode) => {
         document.body.classList.add('theme-day');
         modes.day();
     } else if (mode === 'auto') {
+        const bright = isBright();
+        document.body.classList.add(bright ? 'theme-auto-bright' : 'theme-auto-dark');
         modes.auto();
-        document.body.classList.add(isBright() ? 'theme-auto-bright' : 'theme-auto-dark');
+
+        // 自动模式夜间也用 NET 网格（更酷）
+        if (!bright) {
+            setTimeout(() => {
+                destroy();
+                currentVanta = window.VANTA.NET({
+                    el: vantaEl,
+                    mouseControls: true, touchControls: true,
+                    minHeight: 200, minWidth: 200,
+                    color: 0x7dd3fc,
+                    backgroundColor: 0x0f172a,
+                    points: 10, maxDistance: 20, spacing: 15
+                });
+                resize();
+            }, 400);
+        }
     }
 
     document.querySelectorAll('.bg-opt').forEach(b => b.classList.remove('active'));
