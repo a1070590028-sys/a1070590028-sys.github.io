@@ -4,6 +4,11 @@ document.documentElement.style.height = '100%';
 document.body.style.height = '100%';
 document.body.style.minHeight = '100vh';
 document.body.style.margin = '0';
+document.body.style.padding = '0';
+document.body.style.position = 'fixed';   // ← 这一行是灵魂！
+document.body.style.top = '0';
+document.body.style.left = '0';
+document.body.style.width = '100%';
 document.body.style.overflowX = 'hidden';
 
 let currentVanta = null;
@@ -103,4 +108,5 @@ document.querySelectorAll('.bg-opt').forEach(b => b.addEventListener('click', ()
 // 启动
 const saved = localStorage.getItem('frey-bg-mode') || 'night';
 apply(saved);
+
 
