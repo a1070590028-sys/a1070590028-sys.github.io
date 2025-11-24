@@ -180,3 +180,41 @@ body{min-height:100vh;height:auto;}
     border-color:#60a5fa;
     color:#fff;
 }
+
+/* ==================== 背景切换自动文字配色 ==================== */
+
+/* 夜间模式（NET）—— 保持你原来的浅色文字 */
+body.theme-night,
+body.theme-night * { color: #e2e8f0 !important; }
+
+/* 日间模式（BIRDS）—— 强制深色文字 + 浅色背景卡片 */
+body.theme-day {
+    background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%) !important;
+}
+body.theme-day *,
+body.theme-day .post-card,
+body.theme-day header,
+body.theme-day footer,
+body.theme-day .dropzone,
+body.theme-day .btn,
+body.theme-day .controls,
+body.theme-day input,
+body.theme-day select,
+body.theme-day label,
+body.theme-day .thumb {
+    color: #1e293b !important;
+    background-color: rgba(255, 255, 255, 0.85) !important;
+    border-color: rgba(0, 0, 0, 0.12) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+/* 自动模式（CLOUDS）—— 根据天空亮度自动切换文字颜色 */
+body.theme-auto-bright * { color: #1e293b !important; }
+body.theme-auto-dark   * { color: #e2e8f0 !important; }
+
+/* 卡片在白天也保持可读 */
+body.theme-day .post-card,
+body.theme-auto-bright .post-card {
+    background: rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08) !important;
+}
