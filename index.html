@@ -6,6 +6,8 @@
     <title>Frey 的个人网站</title>
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="css/style.css">
+
+    <!-- ★ 优雅主题变量：白天自动深色文字，夜间浅色，风格统一 ★ -->
     <style>
         :root {
             --text: #e2e8f0;
@@ -29,7 +31,10 @@
     </style>
 </head>
 <body>
+
+<!-- ★ 必须！Vanta 背景全屏层 ★ -->
 <div id="vanta-bg"></div>
+
 <div id="time-card"><div class="date">0000-00-00</div><div class="time">--:--:--</div></div>
 
 <header><h1>Frey 的个人网站</h1><p>记录 · 思考 · 成长 · 前进</p></header>
@@ -57,7 +62,7 @@
                         </div>
                     </div>
                     <div style="margin-top:8px" class="small">
-                        处理日志：<div id="log" style="margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);line-height:1.5;"></div>
+                        处理日志：<div id="log"></div>
                     </div>
                 </div>
                 <div class="controls post-card" style="padding:14px">
@@ -112,9 +117,7 @@
                             <button class="btn" id="generatePdf">生成 PDF</button>
                         </div>
                     </div>
-                    <div class="small" style="margin-top:8px">
-                        处理日志：<div id="imgLog" style="margin-top:6px"></div>
-                    </div>
+                    <div class="small" style="margin-top:8px">处理日志：<div id="imgLog"></div></div>
                 </div>
                 <div class="controls post-card" style="padding:14px;height:fit-content">
                     <h3 style="margin:0 0 8px;color:#93c5fd">参数设置</h3>
@@ -148,9 +151,7 @@
                         <button class="btn" id="downloadAllImages">打包下载</button>
                     </div>
                 </div>
-                <div class="small" style="margin-top:8px">
-                    处理日志：<div id="pdfLog" style="margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);line-height:1.5;"></div>
-                </div>
+                <div class="small" style="margin-top:8px">处理日志：<div id="pdfLog"></div></div>
             </div>
         </div>
     </div>
@@ -164,7 +165,7 @@
 
 <footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
 
-<!-- 背景切换按钮（在网络按钮上方） -->
+<!-- ★ 背景切换按钮（在网络按钮上方）★ -->
 <div id="bg-switcher-btn"><div class="bg-icon">✨</div></div>
 <div id="bg-switcher-panel">
     <h3>动态背景模式</h3>
@@ -175,7 +176,7 @@
     </div>
 </div>
 
-<!-- 网络监控按钮 -->
+<!-- 网络监控 -->
 <div id="net-monitor-btn"><div class="net-icon">🌐</div></div>
 <div id="net-monitor-panel">
     <h3>网络状态监控</h3>
@@ -185,7 +186,7 @@
     <div class="net-item">网络延迟：<span id="nm-latency">--</span></div>
 </div>
 
-<!-- 音乐播放器按钮 & 面板 -->
+<!-- 音乐播放器 -->
 <div id="music-player-btn"><div class="music-icon">🎵</div></div>
 <div id="music-player-panel">
     <h3 style="margin:0 0 10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
@@ -221,19 +222,16 @@
 <script src="js/lib/jspdf.umd.min.js"></script>
 <script src="js/lib/pdf.min.js"></script>
 
-<!-- 关键修复：让 type="module" 能访问 Vanta 全局对象 -->
+<!-- 修复 type="module" 能访问 Vanta 全局对象 -->
 <script>
     window.VANTA = window.VANTA || {};
-    // 确保所有效果都暴露到全局
-    if (window.VANTA?.NET)    window.VANTA.NET = window.VANTA.NET;
-    if (window.VANTA?.BIRDS)  window.VANTA.BIRDS = window.VANTA.BIRDS;
-    if (window.VANTA?.CLOUDS) window.VANTA.CLOUDS = window.VANTA.CLOUDS;
+    Object.assign(window.VANTA, window.VANTA || {});
 </script>
 
 <!-- 自己的模块入口 -->
 <script type="module" src="js/main.js"></script>
 
-<!-- 内联脚本（PDF Tab 等） -->
+<!-- 内联脚本（PDF Tab + 日志样式） -->
 <script>
 // Tab 切换
 document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
@@ -248,7 +246,7 @@ document.getElementById('pageSize').onchange = e => {
 };
 // 日志样式统一
 const style = document.createElement('style');
-style.textContent = `#imgLog,#pdfLog{margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);line-height:1.5;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.15) transparent;}
+style.textContent = `#imgLog,#pdfLog{margin-top:6px;color:var(--text-muted);font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;background:var(--log-bg);border:1px solid var(--border);line-height:1.5;scrollbar-width:thin}
 #imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px;background:transparent}
 #imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
 #imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.3)}`;
