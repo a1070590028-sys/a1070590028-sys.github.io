@@ -1,9 +1,4 @@
-// js/modules/vanta-bg.js   ← 直接完整替换
-
-// ★★★★★ 强制铺满全屏（双保险）★★★★★
-document.documentElement.style.height = '100%';
-document.body.style.height = '100%';
-document.body.style.minHeight = '100vh';
+// js/modules/vanta-bg.js  ← 直接完整替换
 
 let currentVanta = null;
 
@@ -20,7 +15,7 @@ const resize = () => {
 window.addEventListener('resize', resize);
 setTimeout(resize, 150);
 
-// 自动天空配色
+// 自动模式天空配色
 const skyPresets = [
     { h:[0,6],   sky:0x0f172a, cloud:0x1e293b, sun:0x1e40af },
     { h:[6,9],   sky:0xff9e6b, cloud:0xffffff, sun:0xff6b00 },
@@ -35,11 +30,14 @@ const getSky = () => {
 };
 const isBright = () => new Date().getHours() >= 6 && new Date().getHours() < 19;
 
+const vantaEl = document.getElementById('vanta-bg');
+
 const modes = {
     night: () => {
         destroy();
         currentVanta = window.VANTA.NET({
-            el: document.body, mouseControls: true, touchControls: true, gyroControls: false,
+            el: vantaEl,
+            mouseControls: true, touchControls: true, gyroControls: false,
             minHeight: 200, minWidth: 200, scale: 1, scaleMobile: 1,
             color: 0x60a5fa, backgroundColor: 0x0f172a,
             points: 12, maxDistance: 22, spacing: 16
@@ -49,7 +47,8 @@ const modes = {
     day: () => {
         destroy();
         currentVanta = window.VANTA.BIRDS({
-            el: document.body, mouseControls: true, touchControls: true, gyroControls: false,
+            el: vantaEl,
+            mouseControls: true, touchControls: true, gyroControls: false,
             minHeight: 200, minWidth: 200, scale: 1, scaleMobile: 1,
             backgroundColor: 0x87CEEB, color: 0x60a5fa,
             birdSize: 1.5, wingSpan: 30, speedLimit: 5,
@@ -61,7 +60,8 @@ const modes = {
         destroy();
         const s = getSky();
         currentVanta = window.VANTA.CLOUDS({
-            el: document.body, mouseControls: true, touchControls: true, gyroControls: false,
+            el: vantaEl,
+            mouseControls: true, touchControls: true, gyroControls: false,
             minHeight: 200, minWidth: 200, scale: 1, scaleMobile: 1,
             skyColor: s.sky, cloudColor: s.cloud,
             cloudShadowColor: 0x172033, sunColor: s.sun,
