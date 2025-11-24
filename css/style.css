@@ -224,81 +224,86 @@ input[type="checkbox"]:checked::after{
     .thumb{width:45%}
 }
 
-/* ====================== 音乐播放器终极完美对齐版 ====================== */
+/* ===================== 音乐播放器 · 最终锁死完美版 ===================== */
 
-/* 三个圆形按钮 */
+/* 圆形播放按钮（上一首、播放、下一首） */
 #prevBtn, #playBtn, #nextBtn {
-    width: 36px !important;
-    height: 36px !important;
+    width: 38px !important;
+    height: 38px !important;
     border-radius: 50% !important;
     padding: 0 !important;
-    font-size: 18px !important;
-    line-height: 36px !important;
-    background: rgba(96,165,250,0.25) !important;
-    border: 1px solid var(--accent) !important;
-    margin: 0 6px !important;
+    font-size: 19px !important;
+    line-height: 38px !important;
+    background: rgba(96,165,250,0.28) !important;
+    border: 1.5px solid var(--accent) !important;
+    margin: 0 10px !important;
     flex-shrink: 0;
 }
 
-/* 进度条 & 音量条：完全等长 + 居中对齐 */
-#progress, #volume {
-    width: 178px !important;     /* 严格相等 */
-    flex: 0 0 178px !important;  /* 禁止伸缩 */
-    margin: 0 10px !important;   /* 两端留相同间距 */
+/* 删除“进度：”和“音量：”文字 */
+#music-player-panel .net-item:nth-of-type(2) > :first-child,
+#music-player-panel .net-item:nth-of-type(4) > :first-child {
+    display: none !important;
 }
 
-/* 进度行：时间在两端，进度条居中 */
+/* 进度条行：时间在两端，进度条固定长度并严格居中 */
 #music-player-panel .net-item:nth-of-type(2) {
     display: flex !important;
     align-items: center;
-    justify-content: center;
-    margin: 12px 0 !important;
-    gap: 0 !important;
+    justify-content: center !important;
+    margin: 16px 0 12px !important;
+    gap: 12px !important;              /* 左右时间与滑块的固定间距 */
     padding: 0 !important;
 }
-#currentTime { 
-    min-width: 42px; 
-    text-align: right; 
-    color: var(--accent); 
-    font-weight: 500;
+#currentTime, #duration {
+    font-weight: 600;
+    color: var(--accent);
+    font-size: 13.5px;
+    width: 46px !important;
+    flex-shrink: 0;
 }
-#duration { 
-    min-width: 42px; 
-    text-align: left; 
-    color: var(--accent); 
-    font-weight: 500;
+#currentTime { text-align: right; }
+#duration     { text-align: left; }
+#progress {
+    flex: 0 0 182px !important;        /* 锁死长度 */
+    height: 6px !important;
+    margin: 0 !important;
 }
 
-/* 音量行：图标在两端，音量条居中，完全与进度条对齐 */
+/* 音量条行：图标在两端，音量条与进度条完全等长、等间距 */
 #music-player-panel .net-item:nth-of-type(4) {
     display: flex !important;
     align-items: center;
-    justify-content: center;
-    margin: 10px 0 6px 0 !important;
-    gap: 0 !important;
+    justify-content: center !important;
+    margin: 10px 0 4px !important;
+    gap: 12px !important;              /* 和上面进度条完全相同的间距 */
     padding: 0 !important;
 }
-
-/* 隐藏“音量：”文字 */
-#music-player-panel .net-item:nth-of-type(4) > *:first-child { 
-    display: none !important; 
+#volume {
+    flex: 0 0 182px !important;        /* 和 #progress 完全一样长 */
+    height: 6px !important;
+    margin: 0 !important;
 }
 
-/* 左右音量图标 */
+/* 左右音量图标（固定位置） */
 #music-player-panel .net-item:nth-of-type(4)::before {
     content: "🔈";
-    font-size: 15px;
-    margin-right: 10px;
-    opacity: 0.8;
+    font-size: 17px;
+    width: 46px;
+    text-align: right;
+    flex-shrink: 0;
+    opacity: 0.9;
 }
 #music-player-panel .net-item:nth-of-type(4)::after {
     content: "🔊";
-    font-size: 15px;
-    margin-left: 10px;
-    opacity: 0.8;
+    font-size: 17px;
+    width: 46px;
+    text-align: left;
+    flex-shrink: 0;
+    opacity: 0.9;
 }
 
-/* 播放控制按钮那一行居中 */
+/* 播放按钮那一行保持居中 */
 #music-player-panel .net-item:nth-of-type(3) {
     justify-content: center !important;
     margin: 14px 0 !important;
