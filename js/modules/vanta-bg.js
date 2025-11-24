@@ -37,6 +37,7 @@ const modes = {
         r.style.setProperty('--card-bg', 'rgba(255,255,255,0.04)');
         r.style.setProperty('--btn-bg', 'rgba(255,255,255,0.02)');
         r.style.setProperty('--accent', '#60a5fa');
+        r.style.setProperty('--accent-light', '#ff8c6b');
         r.style.setProperty('--log-bg', 'rgba(0,0,0,0.25)');
         r.style.setProperty('--select-arrow', '#60a5fa');
         r.style.setProperty('--range-track', 'rgba(96,165,250,0.25)');
@@ -101,3 +102,4 @@ document.querySelectorAll('.bg-opt').forEach(b => b.addEventListener('click', ()
 // 启动
 const saved = localStorage.getItem('frey-bg-mode') || 'night';
 apply(saved);
+
