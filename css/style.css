@@ -224,8 +224,6 @@ input[type="checkbox"]:checked::after{
     .thumb{width:45%}
 }
 
-/* ====================== 你要求的两个改动 ====================== */
-
 /* ====================== 音乐播放器终极完美对齐版 ====================== */
 
 /* 三个圆形按钮 */
@@ -288,13 +286,13 @@ input[type="checkbox"]:checked::after{
 
 /* 左右音量图标 */
 #music-player-panel .net-item:nth-of-type(4)::before {
-    content: "low volume";
+    content: "🔈";
     font-size: 15px;
     margin-right: 10px;
     opacity: 0.8;
 }
 #music-player-panel .net-item:nth-of-type(4)::after {
-    content: "high volume";
+    content: "🔊";
     font-size: 15px;
     margin-left: 10px;
     opacity: 0.8;
@@ -305,3 +303,4 @@ input[type="checkbox"]:checked::after{
     justify-content: center !important;
     margin: 14px 0 !important;
 }
+
