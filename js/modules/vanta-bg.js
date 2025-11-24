@@ -1,15 +1,9 @@
 // js/modules/vanta-bg.js   ← 直接完整替换
 
+// ★★★★★ 强制铺满全屏（双保险）★★★★★
 document.documentElement.style.height = '100%';
 document.body.style.height = '100%';
 document.body.style.minHeight = '100vh';
-document.body.style.margin = '0';
-document.body.style.padding = '0';
-document.body.style.position = 'fixed';   // ← 这一行是灵魂！
-document.body.style.top = '0';
-document.body.style.left = '0';
-document.body.style.width = '100%';
-document.body.style.overflowX = 'hidden';
 
 let currentVanta = null;
 
@@ -26,7 +20,7 @@ const resize = () => {
 window.addEventListener('resize', resize);
 setTimeout(resize, 150);
 
-// 自动模式天空配色
+// 自动天空配色
 const skyPresets = [
     { h:[0,6],   sky:0x0f172a, cloud:0x1e293b, sun:0x1e40af },
     { h:[6,9],   sky:0xff9e6b, cloud:0xffffff, sun:0xff6b00 },
@@ -108,5 +102,3 @@ document.querySelectorAll('.bg-opt').forEach(b => b.addEventListener('click', ()
 // 启动
 const saved = localStorage.getItem('frey-bg-mode') || 'night';
 apply(saved);
-
-
