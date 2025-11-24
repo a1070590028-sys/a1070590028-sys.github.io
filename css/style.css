@@ -1,19 +1,29 @@
-/* ==================== Frey 的个人网站 - 最终完整 CSS ==================== */
-
+/* ==================== Frey 的个人网站 - 2025 终极完美版 CSS ==================== */
 *{box-sizing:border-box}
-html,body{
-    height:100%;margin:0;padding:0;
+
+/* 关键修复：让背景永远牢牢贴在视口，永不飘走 */
+html{
+    height:100%;
+    margin:0;
+    padding:0;
+}
+body{
+    min-height:100vh;        /* 关键：用 vh 保证至少占满视口 */
+    height:auto;             /* 内容长时可以撑高 */
+    margin:0;
+    padding:0;
     font-family:"Segoe UI",Helvetica,Arial,sans-serif;
-    background:#0f172a;
+    background:transparent;  /* 背景交给 #vanta-bg */
     color:var(--text);
     overflow-x:hidden;
+    position:relative;
 }
 
-/* Vanta 背景全屏层（必须！） */
+/* Vanta 背景层：真正固定在视口 */
 #vanta-bg{
-    position:fixed;
-    top:0;left:0;
-    width:100%;height:100%;
+    position:fixed !important;
+    top:0; left:0;
+    width:100%; height:100%;
     z-index:-1;
     pointer-events:none;
 }
@@ -48,7 +58,7 @@ header p{margin:0;color:var(--text-muted);opacity:.85}
 /* 主容器 */
 .container{
     position:relative;z-index:1;
-    max-width:980px;margin:28px auto;padding:0 Praxis 16px;
+    max-width:980px;margin:28px auto;padding:0 16px;
 }
 
 /* 卡片 */
@@ -73,64 +83,30 @@ footer{
 footer span{color:var(--accent)}
 
 /* 布局网格 */
-.compress-grid{
-    display:grid;
-    grid-template-columns:1fr 340px;
-    gap:18px;
-    align-items:start;
-}
-.controls{
-    padding:12px;
-    display:flex;
-    flex-direction:column;
-    gap:10px;
-}
+.compress-grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
+.controls{padding:12px;display:flex;flex-direction:column;gap:10px}
 
 /* 拖拽区 */
 .dropzone{
     border:2px dashed var(--border);
-    border-radius:10px;
-    padding:16px;
-    text-align:center;
-    cursor:pointer;
+    border-radius:10px;padding:16px;
+    text-align:center;cursor:pointer;
     background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
 }
 
 /* 缩略图 */
-.thumbs{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    margin-top:12px;
-}
+.thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
 .thumb{
-    width:120px;
-    background:var(--card-bg);
-    border-radius:8px;
-    padding:8px;
-    text-align:center;
-    font-size:12px;
-    color:var(--text-muted);
+    width:120px;background:var(--card-bg);border-radius:8px;
+    padding:8px;text-align:center;font-size:12px;color:var(--text-muted);
 }
-.thumb img{
-    max-width:100%;
-    max-height:80px;
-    border-radius:6px;
-    display:block;
-    margin:0 auto 6px;
-}
+.thumb img{max-width:100%;max-height:80px;border-radius:6px;display:block;margin:0 auto 6px}
 
 /* 按钮 */
 .btn{
-    display:inline-block;
-    padding:8px 12px;
-    border-radius:8px;
-    border:1px solid var(--border);
-    background:var(--btn-bg);
-    color:var(--text);
-    cursor:pointer;
-    margin:6px 6px 0 0;
-    user-select:none;
+    display:inline-block;padding:8px 12px;border-radius:8px;
+    border:1px solid var(--border);background:var(--btn-bg);
+    color:var(--text);cursor:pointer;margin:6px 6px 0 0;user-select:none;
     transition:all .2s;
 }
 .btn:hover{
@@ -140,161 +116,75 @@ footer span{color:var(--accent)}
 }
 
 /* 表单元素 */
-label.small,.small{
-    font-size:13px;
-    color:var(--text-muted);
-    display:block;
-    margin-bottom:6px;
-}
+label.small,.small{font-size:13px;color:var(--text-muted);display:block;margin-bottom:6px}
 input[type="number"],select,input[type="range"]{
-    width:100%;
-    padding:6px;
-    border-radius:8px;
-    border:1px solid var(--border);
-    background:transparent;
-    color:var(--text);
+    width:100%;padding:6px;border-radius:8px;
+    border:1px solid var(--border);background:transparent;color:var(--text);
 }
-.file-row{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:8px;
-}
-.card-content{
-    overflow:hidden;
-    max-height:9999px;
-    transition:max-height .35s ease,padding .35s ease;
-    padding:12px 0 0 0;
-}
-.card-content.collapsed{
-    max-height:0;
-    padding:0;
-}
+.file-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card-content{overflow:hidden;max-height:9999px;transition:max-height .35s ease,padding .35s ease;padding:12px 0 0 0}
+.card-content.collapsed{max-height:0;padding:0}
 
-/* 右下角功能按钮（背景、网络、音乐） */
+/* 右下角三个按钮 */
 #bg-switcher-btn,#net-monitor-btn,#music-player-btn{
-    position:fixed;
-    right:20px;
-    width:54px;height:54px;
-    border-radius:50%;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.15);
-    backdrop-filter:blur(10px);
-    display:flex;align-items:center;justify-content:center;
-    cursor:pointer;
-    z-index:99999;
-    transition:all .25s;
-    font-size:22px;
+    position:fixed;right:20px;width:54px;height:54px;border-radius:50%;
+    background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+    backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;z-index:99999;transition:all .25s;font-size:22px;
 }
 #bg-switcher-btn{bottom:150px}
 #net-monitor-btn{bottom:20px}
 #music-player-btn{bottom:90px}
-#bg-switcher-btn:hover,
-#net-monitor-btn:hover,
-#music-player-btn:hover{
-    transform:scale(1.08);
-    box-shadow:0 0 14px rgba(96,165,250,0.4);
+#bg-switcher-btn:hover,#net-monitor-btn:hover,#music-player-btn:hover{
+    transform:scale(1.08);box-shadow:0 0 14px rgba(96,165,250,0.4);
 }
 
 /* 面板 */
 #bg-switcher-panel,#net-monitor-panel,#music-player-panel{
-    position:fixed;
-    right:20px;
-    width:230px;
-    padding:16px;
-    border-radius:14px;
-    background:rgba(255,255,255,0.08);
-    border:1px solid var(--border);
-    backdrop-filter:blur(12px);
-    color:var(--text);
-    display:none;
-    z-index:99999;
+    position:fixed;right:20px;width:230px;padding:16px;border-radius:14px;
+    background:rgba(255,255,255,0.08);border:1px solid var(--border);
+    backdrop-filter:blur(12px);color:var(--text);display:none;z-index:99999;
 }
 #bg-switcher-panel{bottom:220px}
 #net-monitor-panel{bottom:90px}
 #music-player-panel{bottom:160px}
-#bg-switcher-panel h3,
-#net-monitor-panel h3,
-#music-player-panel h3{
-    margin:0 0 12px;
-    font-size:16px;
-    color:#93c5fd;
+#bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3{
+    margin:0 0 12px;font-size:16px;color:#93c5fd;
 }
-.net-item{
-    margin:6px 0;
-    font-size:14px;
-}
+.net-item{margin:6px 0;font-size:14px}
 
-/* 背景切换面板按钮 */
-.bg-options{
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-}
+/* 背景切换按钮 */
+.bg-options{display:flex;flex-direction:column;gap:8px}
 .bg-opt{
-    padding:9px 12px;
-    border-radius:8px;
-    background:transparent;
-    border:1px solid var(--border);
-    color:var(--text);
-    font-size:13.5px;
-    cursor:pointer;
-    transition:all .2s;
-    text-align:left;
+    padding:9px 12px;border-radius:8px;background:transparent;
+    border:1px solid var(--border);color:var(--text);font-size:13.5px;
+    cursor:pointer;transition:all .2s;text-align:left;
 }
-.bg-opt:hover,
-.bg-opt.active{
-    background:rgba(96,165,250,0.25);
-    border-color:var(--accent);
-    color:#fff;
+.bg-opt:hover,.bg-opt.active{
+    background:rgba(96,165,250,0.25);border-color:var(--accent);color:#fff;
 }
 
 /* 日志区 */
 #log,#imgLog,#pdfLog{
-    margin-top:6px;
-    color:var(--text-muted);
-    font-size:13px;
-    max-height:160px;
-    overflow:auto;
-    padding:10px 12px;
-    border-radius:8px;
-    background:var(--log-bg);
-    border:1px solid var(--border);
-    line-height:1.5;
+    margin-top:6px;color:var(--text-muted);font-size:13px;max-height:160px;overflow:auto;
+    padding:10px 12px;border-radius:8px;background:var(--log-bg);
+    border:1px solid var(--border);line-height:1.5;
 }
-#log::-webkit-scrollbar,
-#imgLog::-webkit-scrollbar,
-#pdfLog::-webkit-scrollbar{
-    width:8px;
-    background:transparent;
+#log::-webkit-scrollbar,#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px;background:transparent}
+#log::-webkit-scrollbar-thumb,#imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,0.15);border-radius:4px;
 }
-#log::-webkit-scrollbar-thumb,
-#imgLog::-webkit-scrollbar-thumb,
-#pdfLog::-webkit-scrollbar-thumb{
-    background:rgba(255,255,255,0.15);
-    border-radius:4px;
-}
-#log::-webkit-scrollbar-thumb:hover,
-#imgLog::-webkit-scrollbar-thumb:hover,
-#pdfLog::-webkit-scrollbar-thumb:hover{
+#log::-webkit-scrollbar-thumb:hover,#imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover{
     background:rgba(255,255,255,0.3);
 }
 
-/* 下拉框美化 */
+/* 下拉框 */
 select{
-    padding:6px 30px 6px 8px;
-    border:1px solid var(--border);
+    padding:6px 30px 6px 8px;border:1px solid var(--border);
     background:var(--card-bg) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%2360a5fa' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e") no-repeat right 10px center;
-    color:var(--text);
-    border-radius:8px;
-    cursor:pointer;
-    appearance:none;
+    color:var(--text);border-radius:8px;cursor:pointer;appearance:none;
 }
-select:focus{
-    border-color:var(--accent);
-    box-shadow:0 0 8px rgba(96,165,250,0.3);
-    outline:none;
-}
+select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none}
 
 /* 响应式 */
 @media(max-width:860px){
