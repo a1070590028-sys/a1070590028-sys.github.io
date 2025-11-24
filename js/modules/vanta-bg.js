@@ -19,7 +19,7 @@ setTimeout(resize, 150);
 const vantaEl = document.getElementById('vanta-bg');
 
 const modes = {
-    // ──────────────────────── 夜间模式（原汁原味） ────────────────────────
+    // ──────────────────────── 夜间模式（冷蓝深空） ────────────────────────
     night: () => {
         destroy();
         currentVanta = window.VANTA.NET({
@@ -37,18 +37,18 @@ const modes = {
         r.style.setProperty('--card-bg', 'rgba(255,255,255,0.04)');
         r.style.setProperty('--btn-bg', 'rgba(255,255,255,0.02)');
         r.style.setProperty('--accent', '#60a5fa');
-        r.style.setProperty('--accent-light', '#ff8c6b');
+        r.style.setProperty('--accent-light', '#cfe8ff');  // 夜间标题高亮：浅冷蓝
         r.style.setProperty('--log-bg', 'rgba(0,0,0,0.25)');
         r.style.setProperty('--select-arrow', '#60a5fa');
         r.style.setProperty('--range-track', 'rgba(96,165,250,0.25)');
         r.style.setProperty('--range-thumb', '#60a5fa');
         r.style.setProperty('--checkbox-border', '#60a5fa');
-        r.style.setProperty('--date-deep', '#60a5fa');   // 日期与主色一致
+        r.style.setProperty('--date-deep', '#60a5fa');
 
         resize();
     },
 
-    // ──────────────────────── 日间模式（温暖杏橘治愈） ────────────────────────
+    // ──────────────────────── 日间模式（温暖杏橘飞鸟） ────────────────────────
     day: () => {
         destroy();
         currentVanta = window.VANTA.BIRDS({
@@ -56,31 +56,32 @@ const modes = {
             mouseControls: true, touchControls: true, gyroControls: false,
             minHeight: 200, minWidth: 200, scale: 1, scaleMobile: 1,
             backgroundColor: 0xc0d6e4,
-            color: 0xff8c6b,                  // 温暖珊瑚橙飞鸟
+            color: 0xff8c6b,
             birdSize: 1.5, wingSpan: 30, speedLimit: 5,
             separation: 60, alignment: 30, cohesion: 20, quantity: 4
         });
 
         const r = document.documentElement;
-        r.style.setProperty('--text', '#2c1e1a');          // 深暖棕主文字
-        r.style.setProperty('--text-muted', '#73554a');   // 红棕辅助
+        r.style.setProperty('--text', '#2c1e1a');
+        r.style.setProperty('--text-muted', '#73554a');
         r.style.setProperty('--border', 'rgba(0,0,0,0.11)');
         r.style.setProperty('--card-bg', 'rgba(255,248,240,0.78)');
         r.style.setProperty('--btn-bg', 'rgba(255,248,240,0.68)');
-        r.style.setProperty('--accent', '#ff6b52');        // 主高亮色
+        r.style.setProperty('--accent', '#ff6b52');
+        r.style.setProperty('--accent-light', '#fed7aa');  // 日间标题高亮：柔和淡杏橘（比其他橙色更浅更奶）
         r.style.setProperty('--log-bg', 'rgba(255,230,210,0.35)');
         r.style.setProperty('--select-arrow', '#ff6b52');
         r.style.setProperty('--range-track', 'rgba(255,107,82,0.25)');
         r.style.setProperty('--range-thumb', '#ff6b52');
         r.style.setProperty('--checkbox-border', '#ff6b52');
-        r.style.setProperty('--date-deep', '#b8473a');     // 日期专用深红棕（更醒目）
+        r.style.setProperty('--date-deep', '#b8473a');
 
         resize();
     }
 };
 
 const apply = (mode) => {
-    document.body.className = '';  // 彻底清理旧类
+    document.body.className = '';
     document.body.classList.add(mode === 'day' ? 'theme-day' : 'theme-night');
 
     modes[mode]();
@@ -97,9 +98,9 @@ document.getElementById('bg-switcher-btn')?.addEventListener('click', () => {
     document.getElementById('net-monitor-panel').style.display = 'none';
     document.getElementById('music-player-panel').style.display = 'none';
 });
+
 document.querySelectorAll('.bg-opt').forEach(b => b.addEventListener('click', () => apply(b.dataset.mode)));
 
 // 启动
 const saved = localStorage.getItem('frey-bg-mode') || 'night';
 apply(saved);
-
