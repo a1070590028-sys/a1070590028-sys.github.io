@@ -20,21 +20,43 @@ body{
 }
 #time-card .date{font-size:13px;color:var(--date-deep);font-weight:600;}
 
-/* 页眉 - 关键修复：日间与下方卡片完全统一 */
+/* 页眉 - 最终版：日间+夜间都和下方所有卡片 100% 统一 */
 header{
-    position:relative;z-index:1;backdrop-filter:blur(5px);
-    background:var(--card-bg) !important;        /* 日间不再半透明，和下方卡片完全一致 */
+    position:relative;
+    z-index:1;
+    backdrop-filter:blur(6px);                    /* 和 .post-card 保持一致 */
+    background:var(--card-bg) !important;         /* 完全跟随变量 */
+    background-color:var(--card-bg) !important;   /* 双保险 */
+    background-image:none !important;
     border-bottom:1px solid var(--border);
-    padding:40px 20px;text-align:center;
+    border-radius:14px 14px 0 0;                   /* 可选：顶部圆角和卡片一致（更统一） */
+    padding:40px 20px;
+    text-align:center;
+    margin:28px auto 0 auto;                      /* 与 .container 对齐 */
+    max-width:980px;                              /* 跟内容区同宽 */
+    box-sizing:border-box;
 }
-header h1{margin:0 0 8px;font-size:34px;font-weight:700;color:var(--accent);
-    text-shadow:0 0 8px rgba(96,165,250,0.35);}
-header p{margin:0;color:var(--text-muted);opacity:.85}
+header h1{
+    margin:0 0 8px;font-size:34px;font-weight:700;color:var(--accent);
+    text-shadow:0 0 8px rgba(96,165,250,0.35);
+}
+header p{
+    margin:0;color:var(--text-muted);opacity:.85;
+}
 
-.container{position:relative;z-index:1;max-width:980px;margin:28px auto;padding:0 16px;}
+.container{
+    position:relative;z-index:1;
+    max-width:980px;margin:0 auto 28px auto;padding:0 16px;
+}
+
+/* 所有内容卡片（已统一） */
 .post-card{
-    background:var(--card-bg);border:1px solid var(--border);
-    backdrop-filter:blur(6px);border-radius:14px;padding:20px;margin:18px 0;
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    backdrop-filter:blur(6px);
+    border-radius:14px;
+    padding:20px;
+    margin:18px 0;
 }
 .post-card h2.card-title{
     margin:0 0 10px;color:var(--accent);cursor:pointer;
@@ -44,7 +66,11 @@ header p{margin:0;color:var(--text-muted);opacity:.85}
 .post-card:hover .toggle-icon{transform:rotate(180deg);}
 .post-card p{margin:0;color:var(--text-muted)}
 
-footer{position:relative;z-index:1;text-align:center;padding:22px;font-size:14px;color:var(--text-muted);}
+footer{
+    position:relative;z-index:1;text-align:center;padding:22px;font-size:14px;color:var(--text-muted);
+    background:var(--card-bg);border-top:1px solid var(--border);
+    backdrop-filter:blur(6px);
+}
 footer span{color:var(--accent)}
 
 /* 布局 */
@@ -90,21 +116,21 @@ select{
 }
 select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
 
-/* 夜间模式 select 高对比下拉菜单（箭头颜色完全不受影响） */
+/* 夜间模式 select 高对比（箭头颜色完全不受影响） */
 @media (prefers-color-scheme: dark),
 body.theme-night {
     select {
-        background: rgba(15, 23, 42, 0.95) !important;
-        color: #e2e8f0 !important;
-        border-color: rgba(96, 165, 250, 0.4) !important;
+        background:#1e293b !important;
+        color:#e2e8f0 !important;
+        border-color:rgba(96,165,250,0.5) !important;
     }
     select option {
-        background: #1e293b !important;
-        color: #cbd5e1 !important;
+        background:#1e293b !important;
+        color:#cbd5e1 !important;
     }
 }
 
-/* 进度条 */
+/* 进度条、复选框等保持原样 */
 input[type="range"]{
     -webkit-appearance:none;appearance:none;height:6px;border-radius:3px;
     background:var(--range-track);
@@ -114,23 +140,15 @@ input[type="range"]::-webkit-slider-thumb{
     background:var(--range-thumb);border:2px solid #fff;
     box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;
 }
-input[type="range"]::-moz-range-track{
-    height:6px;border-radius:3px;background:var(--range-track);border:none;
-}
-input[type="range"]::-moz-range-thumb{
-    background:var(--range-thumb);border:2px solid #fff;
-    box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;
-}
+input[type="range"]::-moz-range-track{height:6px;border-radius:3px;background:var(--range-track);border:none;}
+input[type="range"]::-moz-range-thumb{background:var(--range-thumb);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;}
 
-/* 复选框 */
 input[type="checkbox"]{
-    -webkit-appearance:none;appearance:none;
-    width:18px;height:18px;border:2px solid var(--checkbox-border);
-    border-radius:6px;position:relative;cursor:pointer;vertical-align:middle;margin-right:8px;
+    -webkit-appearance:none;appearance:none;width:18px;height:18px;
+    border:2px solid var(--checkbox-border);border-radius:6px;position:relative;
+    cursor:pointer;vertical-align:middle;margin-right:8px;
 }
-input[type="checkbox"]:checked{
-    background:var(--checkbox-border);
-}
+input[type="checkbox"]:checked{background:var(--checkbox-border);}
 input[type="checkbox"]:checked::after{
     content:"Checkmark";color:#fff;font-weight:bold;
     position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
@@ -187,9 +205,10 @@ input[type="checkbox"]:checked::after{
 @media(max-width:860px){
     .compress-grid{grid-template-columns:1fr}
     .thumb{width:45%}
+    header{margin:20px 16px 0 16px;border-radius:14px;}
 }
 
-/* ──────────────────────── 终极补丁：完美双模式（最高优先级） ──────────────────────── */
+/* ──────────────────────── 终极补丁：像素级双模式统一（最高优先级） ──────────────────────── */
 .dropzone-title,
 #dropzone > div:first-child > div,
 #dropzoneImg > div:first-child > div,
@@ -197,7 +216,7 @@ input[type="checkbox"]:checked::after{
 .params-title,
 .controls h3 {
     font-weight: 600 !important;
-    color: var(--accent-light) !important;   /* 日间 #ffb387 / 夜间 #cfe8ff */
+    color: var(--accent-light) !important;   /* 日间 #ffb387（醒目） / 夜间 #cfe8ff */
     margin: 0 0 8px 0 !important;
     font-size: 15px !important;
 }
