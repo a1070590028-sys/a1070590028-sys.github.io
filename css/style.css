@@ -20,10 +20,11 @@ body{
 }
 #time-card .date{font-size:13px;color:var(--date-deep);font-weight:600;}
 
-/* 页眉 */
+/* 页眉 - 关键修复：日间与下方卡片完全统一 */
 header{
     position:relative;z-index:1;backdrop-filter:blur(5px);
-    background:rgba(255,255,255,0.04);border-bottom:1px solid var(--border);
+    background:var(--card-bg) !important;        /* 日间不再半透明，和下方卡片完全一致 */
+    border-bottom:1px solid var(--border);
     padding:40px 20px;text-align:center;
 }
 header h1{margin:0 0 8px;font-size:34px;font-weight:700;color:var(--accent);
@@ -89,6 +90,20 @@ select{
 }
 select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
 
+/* 夜间模式 select 高对比下拉菜单（箭头颜色完全不受影响） */
+@media (prefers-color-scheme: dark),
+body.theme-night {
+    select {
+        background: rgba(15, 23, 42, 0.95) !important;
+        color: #e2e8f0 !important;
+        border-color: rgba(96, 165, 250, 0.4) !important;
+    }
+    select option {
+        background: #1e293b !important;
+        color: #cbd5e1 !important;
+    }
+}
+
 /* 进度条 */
 input[type="range"]{
     -webkit-appearance:none;appearance:none;height:6px;border-radius:3px;
@@ -117,7 +132,7 @@ input[type="checkbox"]:checked{
     background:var(--checkbox-border);
 }
 input[type="checkbox"]:checked::after{
-    content:"✓";color:#fff;font-weight:bold;
+    content:"Checkmark";color:#fff;font-weight:bold;
     position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
 }
 
@@ -174,7 +189,7 @@ input[type="checkbox"]:checked::after{
     .thumb{width:45%}
 }
 
-/* ──────────────────────── 终极补丁（最终完美版）──────────────────────── */
+/* ──────────────────────── 终极补丁：完美双模式（最高优先级） ──────────────────────── */
 .dropzone-title,
 #dropzone > div:first-child > div,
 #dropzoneImg > div:first-child > div,
@@ -182,28 +197,21 @@ input[type="checkbox"]:checked::after{
 .params-title,
 .controls h3 {
     font-weight: 600 !important;
-    color: var(--accent-light) !important;
+    color: var(--accent-light) !important;   /* 日间 #ffb387 / 夜间 #cfe8ff */
     margin: 0 0 8px 0 !important;
     font-size: 15px !important;
 }
 
-/* 标题颜色完全统一为 --accent（日间顶部不再偏浅） */
 header h1,
 .post-card h2.card-title,
 .toggle-icon,
-#time-card {
+#time-card,
+.btn:hover,
+.bg-opt:hover,
+.bg-opt.active {
     color: var(--accent) !important;
 }
-#time-card .date { 
-    color: var(--date-deep) !important; 
-}
 
-/* 夜间模式下拉框文字高对比 + 背景加深（箭头保持 var(--select-arrow) 不动！） */
-select {
-    background-color: var(--select-bg, var(--card-bg)) !important;
-    color: var(--select-color, var(--text)) !important;
-    /* 箭头完全复用你原来的变量，绝不硬编码 */
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='var(--select-arrow)' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e") !important;
-    background-repeat: no-repeat;
-    background-position: right 10px center;
+#time-card .date {
+    color: var(--date-deep) !important;
 }
