@@ -1,5 +1,5 @@
 // js/modules/vanta-bg.js  
-// 2025 双模式终极版：夜间冷蓝深空 ↔ 日间温暖杏橘飞鸟（完全隔离 · 零污染）
+// 2025 双模式终极版（最终修复版）
 
 let currentVanta = null;
 
@@ -19,7 +19,7 @@ setTimeout(resize, 150);
 const vantaEl = document.getElementById('vanta-bg');
 
 const modes = {
-    // ──────────────────────── 夜间模式（冷蓝深空） ────────────────────────
+    // ──────────────────────── 夜间模式 ────────────────────────
     night: () => {
         destroy();
         currentVanta = window.VANTA.NET({
@@ -31,16 +31,18 @@ const modes = {
         });
 
         const r = document.documentElement;
-        r.style.setProperty('--text', '#e2e8f0');
-        r.style.setProperty('--text-muted', '#94a3b8');
-        r.style.setProperty('--border', 'rgba(255,255,255,0.12)');
-        r.style.setProperty('--card-bg', 'rgba(255,255,255,0.04)');
-        r.style.setProperty('--btn-bg', 'rgba(255,255,255,0.02)');
+        r.style.setProperty('--text', '#f1f5f9');
+        r.style.setProperty('--text-muted', '#cbd5e1');
+        r.style.setProperty('--border', 'rgba(255,255,255,0.14)');
+        r.style.setProperty('--card-bg', 'rgba(255,255,255,0.055)');
+        r.style.setProperty('--btn-bg', 'rgba(255,255,255,0.04)');
         r.style.setProperty('--accent', '#60a5fa');
-        r.style.setProperty('--accent-light', '#cfe8ff');  // 夜间标题高亮：浅冷蓝
-        r.style.setProperty('--log-bg', 'rgba(0,0,0,0.25)');
+        r.style.setProperty('--accent-light', '#cfe8ff');     // 标题高亮（醒目浅蓝）
+        r.style.setProperty('--select-bg', 'rgba(15,23,42,0.7)');   // 夜间下拉框背景加深
+        r.style.setProperty('--select-color', '#ffffff');          // 强制白字
+        r.style.setProperty('--log-bg', 'rgba(0,0,0,0.32)');
         r.style.setProperty('--select-arrow', '#60a5fa');
-        r.style.setProperty('--range-track', 'rgba(96,165,250,0.25)');
+        r.style.setProperty('--range-track', 'rgba(96,165,250,0.3)');
         r.style.setProperty('--range-thumb', '#60a5fa');
         r.style.setProperty('--checkbox-border', '#60a5fa');
         r.style.setProperty('--date-deep', '#60a5fa');
@@ -48,7 +50,7 @@ const modes = {
         resize();
     },
 
-    // ──────────────────────── 日间模式（温暖杏橘飞鸟） ────────────────────────
+    // ──────────────────────── 日间模式 ────────────────────────
     day: () => {
         destroy();
         currentVanta = window.VANTA.BIRDS({
@@ -65,13 +67,15 @@ const modes = {
         r.style.setProperty('--text', '#2c1e1a');
         r.style.setProperty('--text-muted', '#73554a');
         r.style.setProperty('--border', 'rgba(0,0,0,0.11)');
-        r.style.setProperty('--card-bg', 'rgba(255,248,240,0.78)');
-        r.style.setProperty('--btn-bg', 'rgba(255,248,240,0.68)');
+        r.style.setProperty('--card-bg', 'rgba(255,248,240,0.82)');
+        r.style.setProperty('--btn-bg', 'rgba(255,248,240,0.72)');
         r.style.setProperty('--accent', '#ff6b52');
-        r.style.setProperty('--accent-light', '#fed7aa');  // 日间标题高亮：柔和淡杏橘（比其他橙色更浅更奶）
-        r.style.setProperty('--log-bg', 'rgba(255,230,210,0.35)');
+        r.style.setProperty('--accent-light', '#ffb599');    // 日间标题高亮：醒目温暖橙（和夜间cfe8ff同级别显眼）
+        r.style.setProperty('--select-bg', 'rgba(255,248,240,0.9)');
+        r.style.setProperty('--select-color', '#2c1e1a');
+        r.style.setProperty('--log-bg', 'rgba(255,230,210,0.4)');
         r.style.setProperty('--select-arrow', '#ff6b52');
-        r.style.setProperty('--range-track', 'rgba(255,107,82,0.25)');
+        r.style.setProperty('--range-track', 'rgba(255,107,82,0.28)');
         r.style.setProperty('--range-thumb', '#ff6b52');
         r.style.setProperty('--checkbox-border', '#ff6b52');
         r.style.setProperty('--date-deep', '#b8473a');
@@ -83,7 +87,6 @@ const modes = {
 const apply = (mode) => {
     document.body.className = '';
     document.body.classList.add(mode === 'day' ? 'theme-day' : 'theme-night');
-
     modes[mode]();
 
     document.querySelectorAll('.bg-opt').forEach(b => b.classList.remove('active'));
@@ -91,16 +94,14 @@ const apply = (mode) => {
     localStorage.setItem('frey-bg-mode', mode);
 };
 
-// 交互
+// 交互同之前
 document.getElementById('bg-switcher-btn')?.addEventListener('click', () => {
     const p = document.getElementById('bg-switcher-panel');
     p.style.display = (p.style.display === 'block') ? 'none' : 'block';
     document.getElementById('net-monitor-panel').style.display = 'none';
     document.getElementById('music-player-panel').style.display = 'none';
 });
-
 document.querySelectorAll('.bg-opt').forEach(b => b.addEventListener('click', () => apply(b.dataset.mode)));
 
-// 启动
 const saved = localStorage.getItem('frey-bg-mode') || 'night';
 apply(saved);
