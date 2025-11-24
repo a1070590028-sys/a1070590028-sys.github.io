@@ -23,7 +23,7 @@ body{
 /* ──────── 关键修改：Header 永远是纯透明高级毛玻璃（完全独立） ──────── */
 header{
     position:relative;z-index:1;
-    background: rgba(255,255,255,0.04) !important;        /* 极轻微白色，只为统一质感 */
+    background: rgba(255,255,255,0.02) !important;        /* 极轻微白色，只为统一质感 */
     backdrop-filter: blur(14px) !important;
     -webkit-backdrop-filter: blur(14px) !important;
     border-bottom: 1px solid rgba(255,255,255,0.12) !important;
@@ -228,3 +228,4 @@ header h1,
 #time-card .date {
     color: var(--date-deep) !important;
 }
+
