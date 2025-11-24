@@ -250,3 +250,110 @@ header h1,
 #time-card .date {
     color: var(--date-deep) !important;
 }
+
+/* ==================== 音乐播放器 · 终极美化版（新增）=================== */
+#music-player-btn{
+    width:56px;height:56px;font-size:26px;
+    background:rgba(15,23,42,0.75);
+    border:1px solid rgba(96,165,250,0.5);
+    box-shadow:0 8px 24px rgba(0,0,0,0.5);
+}
+#music-player-btn:hover{
+    transform:scale(1.12) !important;
+    box-shadow:0 0 24px rgba(96,165,250,0.7) !important;
+}
+.music-icon{
+    animation:pulse 4s infinite;
+}
+@keyframes pulse{
+    0%,100%{opacity:0.7}
+    50%{opacity:1}
+}
+
+#music-player-panel{
+    width:286px !important;
+    padding:18px 20px !important;
+    background:rgba(15,23,42,0.88) !important;
+    border:1px solid rgba(96,165,250,0.4) !important;
+    box-shadow:0 16px 42px rgba(0,0,0,0.65) !important;
+    backdrop-filter:blur(16px) !important;
+    border-radius:18px !important;
+}
+
+#music-player-panel h3{
+    font-size:17px !important;
+    margin:0 0 12px !important;
+    display:flex;justify-content:space-between;align-items:center;
+}
+#toggleList{
+    font-size:24px !important;
+    transition:0.3s;opacity:0.7;
+}
+#toggleList:hover{transform:scale(1.2);opacity:1 !important;}
+
+#songTitle{
+    font-size:15.5px !important;font-weight:700 !important;
+    color:#fff !important;margin:8px 0 12px !important;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    background:linear-gradient(90deg,#60a5fa,#3b82f6,#2563eb);
+    -webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+#progress{
+    height:5px !important;background:#334155;border-radius:3px;
+    position:relative;overflow:hidden;--buffered:0%;
+}
+#progress::before{
+    content:"";position:absolute;top:0;left:0;height:100%;
+    width:var(--buffered);background:rgba(96,165,250,0.45);
+    border-radius:3px;transition:width 0.3s ease;
+}
+#progress::-webkit-slider-thumb{
+    width:14px;height:14px;background:#60a5fa;
+    border:3px solid #fff;border-radius:50%;
+    box-shadow:0 2px 8px rgba(0,0,0,0.5);
+}
+
+#currentTime,#duration{
+    font-family:Consolas,Menlo,monospace;font-size:13px;color:#94a3b8;
+}
+
+.mini-btn{
+    width:40px;height:40px;border-radius:50%;
+    background:rgba(255,255,255,0.12);border:none;
+    font-size:20px;margin:0 6px;transition:all .2s;cursor:pointer;
+}
+.mini-btn:hover{
+    background:#60a5fa !important;transform:scale(1.12);
+    box-shadow:0 0 16px rgba(96,165,250,0.6);
+}
+#playBtn{
+    width:48px;height:48px;font-size:24px !important;
+    background:#60a5fa;color:#fff;
+}
+
+#volume{width:100px;}
+#volume::-webkit-slider-thumb{background:#60a5fa;}
+
+#playlistContainer{
+    margin-top:12px;border-top:1px solid rgba(96,165,250,0.35);padding-top:8px;
+}
+#playlistItems > div{
+    padding:10px 8px !important;border-radius:8px;margin:4px 0;
+    transition:all .2s;position:relative;font-size:14px;cursor:pointer;
+}
+#playlistItems > div:hover{
+    background:rgba(96,165,250,0.25) !important;transform:translateX(4px);
+}
+#playlistItems > div[current="true"]{
+    background:rgba(96,165,250,0.38) !important;color:#fff !important;
+    font-weight:600;border-left:4px solid #60a5fa;padding-left:12px !important;
+}
+#playlistItems > div[current="true"]::before{
+    content:"Now Playing";position:absolute;left:6px;font-size:12px;opacity:0.8;
+}
+
+#playlistContainer > div:last-child{
+    color:#64748b !important;font-size:11.5px;padding:10px 0 4px !important;text-align:center;
+}
