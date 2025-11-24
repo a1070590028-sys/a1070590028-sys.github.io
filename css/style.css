@@ -20,20 +20,20 @@ body{
 }
 #time-card .date{font-size:13px;color:var(--date-deep);font-weight:600;}
 
-/* 页眉 - 最终版：日间+夜间都和下方所有卡片 100% 统一 */
+/* 页眉 - 基础结构保留，但外观被后面的终极补丁完全接管 */
 header{
     position:relative;
     z-index:1;
-    backdrop-filter:blur(6px);                    /* 和 .post-card 保持一致 */
-    background:var(--card-bg) !important;         /* 完全跟随变量 */
-    background-color:var(--card-bg) !important;   /* 双保险 */
+    backdrop-filter:blur(6px);
+    background:var(--card-bg) !important;
+    background-color:var(--card-bg) !important;
     background-image:none !important;
     border-bottom:1px solid var(--border);
-    border-radius:14px 14px 0 0;                   /* 可选：顶部圆角和卡片一致（更统一） */
+    border-radius:14px 14px 0 0;
     padding:40px 20px;
     text-align:center;
-    margin:28px auto 0 auto;                      /* 与 .container 对齐 */
-    max-width:980px;                              /* 跟内容区同宽 */
+    margin:28px auto 0 auto;
+    max-width:980px;
     box-sizing:border-box;
 }
 header h1{
@@ -116,7 +116,7 @@ select{
 }
 select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
 
-/* 夜间模式 select 高对比（箭头颜色完全不受影响） */
+/* 夜间模式 select 高对比 */
 @media (prefers-color-scheme: dark),
 body.theme-night {
     select {
@@ -130,7 +130,7 @@ body.theme-night {
     }
 }
 
-/* 进度条、复选框等保持原样 */
+/* 进度条、复选框等 */
 input[type="range"]{
     -webkit-appearance:none;appearance:none;height:6px;border-radius:3px;
     background:var(--range-track);
@@ -195,7 +195,7 @@ input[type="checkbox"]:checked::after{
 }
 #log::-webkit-scrollbar,#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px;background:transparent}
 #log::-webkit-scrollbar-thumb,#imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb{
-    background:rgba(255,255,255,0.15);border-radius:4px;
+    background: rgba(255,255,255,0.15);border-radius:4px;
 }
 #log::-webkit-scrollbar-thumb:hover,#imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover{
     background:rgba(255,255,255,0.3);
@@ -208,7 +208,29 @@ input[type="checkbox"]:checked::after{
     header{margin:20px 16px 0 16px;border-radius:14px;}
 }
 
-/* ──────────────────────── 终极补丁：像素级双模式统一（最高优先级） ──────────────────────── */
+/* ──────────────────────── 终极补丁：Header 永久统一为夜间冷蓝毛玻璃外观（文字颜色智能跟随当前主题） ──────────────────────── */
+header {
+    background: rgba(255,255,255,0.055) !important;
+    background-color: rgba(255,255,255,0.055) !important;
+    background-image: none !important;
+    border: 1px solid rgba(255,255,255,0.14) !important;
+    border-radius: 14px !important;
+    padding: 40px 20px !important;
+    margin: 28px auto 0 auto !important;
+    max-width: 980px !important;
+    backdrop-filter: blur(6px) !important;
+    box-shadow: none !important;
+}
+
+/* 夜间模式：冷蓝标题 */
+body.theme-night header h1 { color: #60a5fa !important; text-shadow: 0 0 8px rgba(96,165,250,0.35) !important; }
+body.theme-night header p  { color: #cbd5e1 !important; opacity: .85 !important; }
+
+/* 白天模式：保留暖橙标题 */
+body.theme-day header h1   { color: #ff6b52 !important; text-shadow: 0 0 8px rgba(255,107,82,0.35) !important; }
+body.theme-day header p    { color: #73554a !important; opacity: .85 !important; }
+
+/* 高优先级标题颜色统一（防止其他补丁覆盖） */
 .dropzone-title,
 #dropzone > div:first-child > div,
 #dropzoneImg > div:first-child > div,
@@ -216,7 +238,7 @@ input[type="checkbox"]:checked::after{
 .params-title,
 .controls h3 {
     font-weight: 600 !important;
-    color: var(--accent-light) !important;   /* 日间 #ffb387（醒目） / 夜间 #cfe8ff */
+    color: var(--accent-light) !important;
     margin: 0 0 8px 0 !important;
     font-size: 15px !important;
 }
