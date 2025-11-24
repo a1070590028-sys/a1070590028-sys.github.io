@@ -1,21 +1,36 @@
 html, body {width:100%;height:100%;margin:0;padding:0;overflow-x:hidden;}
 #vanta-bg{position:fixed !important;inset:0;width:100%;height:100%;z-index:-1;}
+/* ==================== Frey 的个人网站 - 2025 终极完美版 CSS ==================== */
 *{box-sizing:border-box}
 
-html{height:100%;margin:0;padding:0;}
+/* 关键修复：让背景永远牢牢贴在视口，永不飘走 */
+html{
+    height:100%;
+    margin:0;
+    padding:0;
+}
 body{
-    min-height:100vh;height:auto;margin:0;padding:0;
+    min-height:100vh;        /* 关键：用 vh 保证至少占满视口 */
+    height:auto;             /* 内容长时可以撑高 */
+    margin:0;
+    padding:0;
     font-family:"Segoe UI",Helvetica,Arial,sans-serif;
-    background:transparent;color:var(--text);
-    overflow-x:hidden;position:relative;
+    background:transparent;  /* 背景交给 #vanta-bg */
+    color:var(--text);
+    overflow-x:hidden;
+    position:relative;
 }
 
+/* Vanta 背景层：真正固定在视口 */
 #vanta-bg{
-    position:fixed !important;top:0;left:0;width:100%;height:100%;
-    z-index:-1;pointer-events:none;
+    position:fixed !important;
+    top:0; left:0;
+    width:100%; height:100%;
+    z-index:-1;
+    pointer-events:none;
 }
 
-/* 时间卡片（日期略深更醒目） */
+/* 时间卡片（夜间原样 #93c5fd，日间深暖橙） */
 #time-card{
     position:fixed;top:12px;right:50px;
     padding:6px 12px;border-radius:8px;
@@ -25,11 +40,9 @@ body{
     font-size:14px;color:var(--accent);
     z-index:9999;text-align:right;
 }
-#time-card .date{
-    font-size:13px;color:var(--accent);font-weight:600;
-}
+#time-card .date{font-size:13px;color:#93c5fd}
 body.theme-day #time-card .date{
-    color:#b8473a !important;   /* 日间专属深红棕，更醒目 */
+    color:#b8473a;  /* 日间专属：略深红棕，更醒目 */
 }
 
 /* 页眉 */
@@ -47,8 +60,13 @@ header h1{
 }
 header p{margin:0;color:var(--text-muted);opacity:.85}
 
-/* 主容器 & 卡片 */
-.container{position:relative;z-index:1;max-width:980px;margin:28px auto;padding:0 16px;}
+/* 主容器 */
+.container{
+    position:relative;z-index:1;
+    max-width:980px;margin:28px auto;padding:0 16px;
+}
+
+/* 卡片 */
 .post-card{
     background:var(--card-bg);
     border:1px solid var(--border);
@@ -56,16 +74,13 @@ header p{margin:0;color:var(--text-muted);opacity:.85}
     border-radius:14px;
     padding:20px;margin:18px 0;
 }
-.post-card h2.card-title{
-    margin:0 0 10px;color:var(--accent);
+.post-card h2{
+    margin:0 0 10px;color:#93c5fd;  /* 夜间原样 */
     cursor:pointer;display:flex;align-items:center;justify-content:space-between;
-    font-size:20px;
 }
-.toggle-icon{
-    color:var(--accent);opacity:0.85;font-size:18px;
-    transition:transform .3s;
+body.theme-day .post-card h2{
+    color:#ff6b52;  /* 日间暖橙 */
 }
-.post-card:hover .toggle-icon{transform:rotate(180deg);}
 .post-card p{margin:0;color:var(--text-muted)}
 
 footer{
@@ -75,7 +90,7 @@ footer{
 }
 footer span{color:var(--accent)}
 
-/* 布局 */
+/* 布局网格 */
 .compress-grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
 .controls{padding:12px;display:flex;flex-direction:column;gap:10px}
 
@@ -87,7 +102,11 @@ footer span{color:var(--accent)}
     background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
 }
 .dropzone > div:first-child{
-    font-weight:600;color:var(--accent);
+    font-weight:600;
+    color:#cfe8ff;  /* 夜间原样 */
+}
+body.theme-day .dropzone > div:first-child{
+    color:#ff8c6b;  /* 日间珊瑚橙 */
 }
 
 /* 缩略图 */
@@ -108,11 +127,18 @@ footer span{color:var(--accent)}
 .btn:hover{
     transform:translateY(-2px);
     box-shadow:0 8px 18px rgba(0,0,0,0.35);
-    border-color:var(--accent);color:var(--accent);
+    border-color:var(--accent);
+}
+body.theme-day .btn:hover{
+    color:var(--accent);  /* 日间 hover 文字也暖 */
 }
 .btn.active{
-    background:rgba(96,165,250,0.25);
-    border-color:var(--accent);color:var(--accent);
+    background:rgba(96,165,250,0.25);  /* 夜间原样 */
+    border-color:var(--accent);
+    color:var(--accent);
+}
+body.theme-day .btn.active{
+    background:rgba(255,107,82,0.25);  /* 日间暖橙背景 */
 }
 
 /* 表单元素 */
@@ -125,96 +151,52 @@ input[type="number"],select,input[type="range"]{
 .card-content{overflow:hidden;max-height:9999px;transition:max-height .35s ease,padding .35s ease;padding:12px 0 0 0}
 .card-content.collapsed{max-height:0;padding:0}
 
-/* 参数设置标题 */
+/* 参数设置标题（夜间原样 #93c5fd，日间暖橙） */
 .controls h3{
-    margin:0 0 8px;color:var(--accent);font-size:15px;
+    margin:0 0 8px;color:#93c5fd;  /* 夜间原样 */
+    font-size:15px;
+}
+body.theme-day .controls h3{
+    color:#ff6b52;
 }
 
-/* 下拉框小箭头（动态颜色） */
-select{
-    padding:6px 30px 6px 8px;border:1px solid var(--border);
-    background:var(--card-bg) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%23ff6b52' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e") no-repeat right 10px center;
-    color:var(--text);border-radius:8px;cursor:pointer;appearance:none;
-}
-body.theme-night select,
-body:not(.theme-day) select{
-    background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%2360a5fa' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e");
-}
-select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none}
-
-/* 进度条（质量、音量、播放进度）美化 + 动态颜色 */
-input[type="range"]{
-    -webkit-appearance:none;appearance:none;
-    height:6px;border-radius:3px;background:rgba(255,107,82,0.25);
-}
-input[type="range"]::-webkit-slider-thumb{
-    -webkit-appearance:none;appearance:none;
-    width:16px;height:16px;border-radius:50%;
-    background:var(--accent);border:2px solid #fff;
-    box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;
-}
-input[type="range"]::-moz-range-track{
-    height:6px;border-radius:3px;background:rgba(255,107,82,0.25);border:none;
-}
-input[type="range"]::-moz-range-thumb{
-    width:16px;height:16px;border-radius:50%;
-    background:var(--accent);border:2px solid #fff;
-    box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;
-}
-body.theme-night input[type="range"],
-body.theme-night input[type="range"]::-webkit-slider-runnable-track,
-body.theme-night input[type="range"]::-moz-range-track{
-    background:rgba(96,165,250,0.25);
-}
-body.theme-night input[type="range"]::-webkit-slider-thumb,
-body.theme-night input[type="range"]::-moz-range-thumb{
-    background:#60a5fa;
-}
-
-/* 复选框美化 + 动态颜色 */
-input[type="checkbox"]{
-    -webkit-appearance:none;appearance:none;
-    width:18px;height:18px;border:2px solid var(--accent);
-    border-radius:6px;position:relative;cursor:pointer;
-    vertical-align:middle;margin-right:8px;
-}
-input[type="checkbox"]:checked{
-    background:var(--accent);
-}
-input[type="checkbox"]:checked::after{
-    content:"✓";color:#fff;font-weight:bold;
-    position:absolute;top:50%;left:50%;
-    transform:translate(-50%,-50%);
-}
-body.theme-night input[type="checkbox"]{
-    border-color:#60a5fa;
-}
-body.theme-night input[type="checkbox"]:checked{
-    background:#60a5fa;
-}
-
-/* 右下角按钮 & 面板 */
+/* 右下角三个按钮 */
 #bg-switcher-btn,#net-monitor-btn,#music-player-btn{
     position:fixed;right:20px;width:54px;height:54px;border-radius:50%;
     background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
     backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;
     cursor:pointer;z-index:99999;transition:all .25s;font-size:22px;
 }
-#bg-switcher-btn{bottom:150px}#net-monitor-btn{bottom:20px}#music-player-btn{bottom:90px}
+#bg-switcher-btn{bottom:150px}
+#net-monitor-btn{bottom:20px}
+#music-player-btn{bottom:90px}
 #bg-switcher-btn:hover,#net-monitor-btn:hover,#music-player-btn:hover{
-    transform:scale(1.08);box-shadow:0 0 14px rgba(96,165,250,0.4);
+    transform:scale(1.08);box-shadow:0 0 14px rgba(96,165,250,0.4);  /* 夜间原样 */
+}
+body.theme-day #bg-switcher-btn:hover,
+body.theme-day #net-monitor-btn:hover,
+body.theme-day #music-player-btn:hover{
+    box-shadow:0 0 14px rgba(255,107,82,0.4);  /* 日间暖橙 glow */
 }
 
+/* 面板 */
 #bg-switcher-panel,#net-monitor-panel,#music-player-panel{
     position:fixed;right:20px;width:230px;padding:16px;border-radius:14px;
     background:rgba(255,255,255,0.08);border:1px solid var(--border);
     backdrop-filter:blur(12px);color:var(--text);display:none;z-index:99999;
 }
-#bg-switcher-panel{bottom:220px}#net-monitor-panel{bottom:90px}#music-player-panel{bottom:160px}
+#bg-switcher-panel{bottom:220px}
+#net-monitor-panel{bottom:90px}
+#music-player-panel{bottom:160px}
 #bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3{
-    margin:0 0 12px;font-size:16px;color:var(--accent);
+    margin:0 0 12px;font-size:16px;color:#93c5fd;  /* 夜间原样 */
 }
-.net-item{margin:6px 0;font-size:14px;color:var(--text)}
+body.theme-day #bg-switcher-panel h3,
+body.theme-day #net-monitor-panel h3,
+body.theme-day #music-player-panel h3{
+    color:#ff6b52;  /* 日间暖橙 */
+}
+.net-item{margin:6px 0;font-size:14px;color:var(--text)}  /* 统一用变量 */
 
 /* 背景切换按钮 */
 .bg-options{display:flex;flex-direction:column;gap:8px}
@@ -224,7 +206,12 @@ body.theme-night input[type="checkbox"]:checked{
     cursor:pointer;transition:all .2s;text-align:left;
 }
 .bg-opt:hover,.bg-opt.active{
-    background:rgba(96,165,250,0.25);border-color:var(--accent);color:#fff;
+    background:rgba(96,165,250,0.25);  /* 夜间原样 */
+    border-color:var(--accent);color:#fff;
+}
+body.theme-day .bg-opt:hover,
+body.theme-day .bg-opt.active{
+    background:rgba(255,107,82,0.25);  /* 日间暖橙 */
 }
 
 /* 日志区 */
@@ -239,6 +226,68 @@ body.theme-night input[type="checkbox"]:checked{
 }
 #log::-webkit-scrollbar-thumb:hover,#imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover{
     background:rgba(255,255,255,0.3);
+}
+
+/* 下拉框（箭头夜间冷蓝，日间暖橙） */
+select{
+    padding:6px 30px 6px 8px;border:1px solid var(--border);
+    background:var(--card-bg) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%2360a5fa' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e") no-repeat right 10px center;
+    color:var(--text);border-radius:8px;cursor:pointer;appearance:none;
+}
+body.theme-day select{
+    background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%23ff6b52' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e");
+}
+select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none}
+
+/* 进度条（质量、音量、播放）夜间冷蓝，日间暖橙轨道+滑块 */
+input[type="range"]{
+    -webkit-appearance:none;appearance:none;
+    height:6px;border-radius:3px;
+    background:rgba(96,165,250,0.25);  /* 夜间原样轨道 */
+}
+body.theme-day input[type="range"]{
+    background:rgba(255,107,82,0.25);  /* 日间暖橙轨道 */
+}
+input[type="range"]::-webkit-slider-thumb{
+    -webkit-appearance:none;appearance:none;
+    width:16px;height:16px;border-radius:50%;
+    background:var(--accent);border:2px solid #fff;
+    box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;
+}
+input[type="range"]::-moz-range-track{
+    height:6px;border-radius:3px;
+    background:rgba(96,165,250,0.25);border:none;  /* 夜间轨道 */
+}
+body.theme-day input[type="range"]::-moz-range-track{
+    background:rgba(255,107,82,0.25);  /* 日间轨道 */
+}
+input[type="range"]::-moz-range-thumb{
+    width:16px;height:16px;border-radius:50%;
+    background:var(--accent);border:2px solid #fff;
+    box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;
+}
+
+/* 复选框（夜间冷蓝边框+蓝背景，日间暖橙） */
+input[type="checkbox"]{
+    -webkit-appearance:none;appearance:none;
+    width:18px;height:18px;border:2px solid #60a5fa;  /* 夜间原样边框 */
+    border-radius:6px;position:relative;cursor:pointer;
+    vertical-align:middle;margin-right:8px;
+    background:transparent;
+}
+body.theme-day input[type="checkbox"]{
+    border-color:#ff6b52;  /* 日间暖橙边框 */
+}
+input[type="checkbox"]:checked{
+    background:#60a5fa;  /* 夜间蓝背景 */
+}
+body.theme-day input[type="checkbox"]:checked{
+    background:#ff6b52;  /* 日间暖橙背景 */
+}
+input[type="checkbox"]:checked::after{
+    content:"✓";color:#fff;font-weight:bold;
+    position:absolute;top:50%;left:50%;
+    transform:translate(-50%,-50%);
 }
 
 /* 响应式 */
