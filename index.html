@@ -14,8 +14,7 @@
 <header><h1>Frey 的个人网站</h1><p>记录 · 思考 · 成长 · 前进</p></header>
 
 <div class="container">
-
-    <!-- 图片压缩&格式转换（保持原样） -->
+    <!-- 图片压缩&格式转换 -->
     <div class="post-card">
         <h2 class="card-title">图片压缩&格式转换 <span class="toggle-icon">▾</span></h2>
         <div class="card-content">
@@ -42,7 +41,6 @@
                 </div>
                 <div class="controls post-card" style="padding:14px">
                     <h3 style="margin:0 0 8px;color:#93c5fd">参数设置</h3>
-
                     <div class="compress-param"><label class="small">最大宽度或高度（像素）</label><input id="maxSide" type="number" value="1024" min="64" step="1"></div>
                     <div class="compress-param"><label class="small">目标文件大小（最大，MB）</label><input id="maxSizeMB" type="number" value="1" min="0.05" step="0.05"></div>
                     <div>
@@ -60,9 +58,7 @@
                         <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.80">
                     </div>
                     <div class="compress-param"><label class="small"><input id="useWorker" type="checkbox" checked> 使用 Web Worker（更快，推荐）</label></div>
-
                     <div><label class="small"><input type="checkbox" id="onlyConvert"> 仅修改图片格式（不压缩）</label></div>
-
                     <div style="margin-top:8px" class="small">
                         提示：勾选「仅修改图片格式」后将无损转换格式，压缩相关参数会变灰。<br>AVIF 压缩率最高，WebP 兼容性最佳。
                     </div>
@@ -71,20 +67,15 @@
         </div>
     </div>
 
-    <!-- 图片 ↔ PDF 互转（已完全统一风格） -->
+    <!-- 图片 ↔ PDF 互转 -->
     <div class="post-card">
         <h2 class="card-title">图片 ↔ PDF 互转 <span class="toggle-icon">▾</span></h2>
         <div class="card-content">
-
             <p style="margin-top:8px">纯前端实现：多图转 PDF、PDF 转图片，全部离线处理，支持拖拽与批量下载。</p>
-
-            <!-- Tab 按钮 -->
             <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
                 <button class="btn active" data-tab="img2pdf">图片 → PDF</button>
                 <button class="btn" data-tab="pdf2img">PDF → 图片</button>
             </div>
-
-            <!-- 图片 → PDF -->
             <div id="img2pdf" class="compress-grid" style="margin-top:12px;gap:18px">
                 <div style="padding:12px">
                     <div id="dropzoneImg" class="dropzone">
@@ -93,7 +84,6 @@
                         <input type="file" id="imgInput" accept="image/*" multiple style="display:none">
                     </div>
                     <div class="thumbs" id="imgThumbs"></div>
-
                     <div class="file-row" style="margin-top:12px">
                         <div class="small">已选：<span id="imgCount">0</span> 张</div>
                         <div>
@@ -101,13 +91,10 @@
                             <button class="btn" id="generatePdf">生成 PDF</button>
                         </div>
                     </div>
-
                     <div class="small" style="margin-top:8px">
                         处理日志：<div id="imgLog" style="margin-top:6px"></div>
                     </div>
                 </div>
-
-                <!-- 参数区（与压缩卡片完全一致） -->
                 <div class="controls post-card" style="padding:14px;height:fit-content">
                     <h3 style="margin:0 0 8px;color:#93c5fd">参数设置</h3>
                     <div class="compress-param"><label class="small">页面尺寸</label>
@@ -125,8 +112,6 @@
                     <div class="compress-param"><label class="small">边距（px）</label><input id="margin" type="number" value="20" min="0"></div>
                 </div>
             </div>
-
-            <!-- PDF → 图片 -->
             <div id="pdf2img" style="display:none;padding:12px">
                 <div id="dropzonePdf" class="dropzone">
                     <div style="font-weight:600;color:#cfe8ff">拖拽 PDF 文件到这里，或点击选择</div>
@@ -134,7 +119,6 @@
                     <input type="file" id="pdfInput" accept=".pdf" style="display:none">
                 </div>
                 <div class="thumbs" id="pdfThumbs"></div>
-            
                 <div class="file-row" style="margin-top:12px">
                     <div class="small">共 <span id="pdfPageCount">0</span> 页</div>
                     <div>
@@ -143,85 +127,24 @@
                         <button class="btn" id="downloadAllImages">打包下载</button>
                     </div>
                 </div>
-            
                 <div class="small" style="margin-top:8px">
                     处理日志：<div id="pdfLog" style="margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);line-height:1.5;"></div>
                 </div>
             </div>
         </div>
-    </div> 
-    
+    </div>
+
     <!-- 未来内容 -->
     <div class="post-card">
         <h2 class="card-title">未来内容 <span class="toggle-icon">▾</span></h2>
         <div class="card-content"><p>敬请期待！</p></div>
     </div>
-
 </div>
 
 <footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
 
-<div id="net-monitor-btn"><div class="net-icon">🌐</div></div>
-<div id="net-monitor-panel">
-    <h3>网络状态监控</h3>
-    <div class="net-item">网络状态：<span id="nm-status">--</span></div>
-    <div class="net-item">请求耗时：<span id="nm-request">--</span></div>
-    <div class="net-item">下载速度：<span id="nm-speed">--</span></div>
-    <div class="net-item">网络延迟：<span id="nm-latency">--</span></div>
-</div>
-<!-- ====================== 音乐播放器按钮（和网速按钮完全对称） ====================== -->
-<div id="music-player-btn"><div class="music-icon">🎵</div></div>
-
-<!-- 音乐播放器面板（初始隐藏） -->
-<div id="music-player-panel">
-    <h3 style="margin:0 0 10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
-        <span>音乐播放器</span>
-        <span id="toggleList" style="font-size:18px;opacity:0.6;">♪</span>
-    </h3>
-
-    <div id="songTitle" class="net-item" style="font-weight:600;cursor:pointer;" title="点击展开歌单">
-        加载中...
-    </div>
-
-    <div class="net-item">
-        进度：<input type="range" id="progress" value="0" max="100" style="width:160px;vertical-align:middle;">
-    </div>
-    
-    <div class="net-item" style="justify-content:space-between;">
-        <span id="currentTime">0:00</span>
-        <button id="prevBtn" class="mini-btn">⏮</button>
-        <button id="playBtn" class="mini-btn">▶</button>
-        <button id="nextBtn" class="mini-btn">⏭</button>
-        <span id="duration">--:--</span>
-    </div>
-    
-    <div class="net-item">
-        音量：<input type="range" id="volume" min="0" max="100" value="70" style="width:140px;vertical-align:middle;">
-    </div>
-
-    <!-- 可展开的歌曲列表 + 支持拖拽本地 mp3 -->
-    <div id="playlistContainer" style="display:none;max-height:180px;overflow-y:auto;margin-top:8px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;">
-        
-        <!-- 新增：Frey AI 生成标识 -->
-        <div style="text-align:center;color:#60a5fa;font-size:12px;padding:4px 0;margin-bottom:8px;
-                    border-bottom:1px solid rgba(96,165,250,0.3);font-weight:600;">
-            以下所有音乐均由 Frey 使用 AI 生成
-        </div>
-
-        <div id="playlistItems" style="font-size:13px;"></div>
-        
-        <div style="padding:8px 0;color:#64748b;font-size:12px;text-align:center;">
-            可拖拽本地 mp3 到此处添加
-        </div>
-    </div>
-</div>
-
-<!-- 背景切换按钮（和网络检测完全一致） -->
-<div id="bg-switcher-btn">
-    <div class="bg-icon">✨</div>
-</div>
-
-<!-- 背景切换面板（毛玻璃风格） -->
+<!-- 背景切换按钮（在网络按钮上方） -->
+<div id="bg-switcher-btn"><div class="bg-icon">✨</div></div>
 <div id="bg-switcher-panel">
     <h3>动态背景模式</h3>
     <div class="bg-options">
@@ -230,8 +153,44 @@
         <button data-mode="auto"  class="bg-opt">自动 · 云天变幻</button>
     </div>
 </div>
-    
-<!-- 第三方库 -->
+
+<!-- 网络监控按钮 -->
+<div id="net-monitor-btn"><div class="net-icon">🌐</div></div>
+<div id="net-monitor-panel">
+    <h3>网络状态监控</h3>
+    <div class="net-item">网络状态：<span id="nm-status">--</span></div>
+    <div class="net-item">请求耗时：<span id="nm-request">--</span></div>
+    <div class="net-item">下载速度：<span id="nm-speed">--</span></div>
+    <div class="net-item">网络延迟：<span id="nm-latency">--</span></div>
+</div>
+
+<!-- 音乐播放器按钮 & 面板 -->
+<div id="music-player-btn"><div class="music-icon">🎵</div></div>
+<div id="music-player-panel">
+    <h3 style="margin:0 0 10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+        <span>音乐播放器</span>
+        <span id="toggleList" style="font-size:18px;opacity:0.6;">♪</span>
+    </h3>
+    <div id="songTitle" class="net-item" style="font-weight:600;cursor:pointer;" title="点击展开歌单">加载中...</div>
+    <div class="net-item">进度：<input type="range" id="progress" value="0" max="100" style="width:160px;vertical-align:middle;"></div>
+    <div class="net-item" style="justify-content:space-between;">
+        <span id="currentTime">0:00</span>
+        <button id="prevBtn" class="mini-btn">⏮</button>
+        <button id="playBtn" class="mini-btn">▶</button>
+        <button id="nextBtn" class="mini-btn">⏭</button>
+        <span id="duration">--:--</span>
+    </div>
+    <div class="net-item">音量：<input type="range" id="volume" min="0" max="100" value="70" style="width:140px;vertical-align:middle;"></div>
+    <div id="playlistContainer" style="display:none;max-height:180px;overflow-y:auto;margin-top:8px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;">
+        <div style="text-align:center;color:#60a5fa;font-size:12px;padding:4px 0;margin-bottom:8px;border-bottom:1px solid rgba(96,165,250,0.3);font-weight:600;">
+            以下所有音乐均由 Frey 使用 AI 生成
+        </div>
+        <div id="playlistItems" style="font-size:13px;"></div>
+        <div style="padding:8px 0;color:#64748b;font-size:12px;text-align:center;">可拖拽本地 mp3 到此处添加</div>
+    </div>
+</div>
+
+<!-- 第三方库（全部本地） -->
 <script src="js/lib/three.min.js"></script>
 <script src="js/lib/vanta.net.min.js"></script>
 <script src="js/lib/vanta.birds.min.js"></script>
@@ -241,10 +200,19 @@
 <script src="js/lib/jspdf.umd.min.js"></script>
 <script src="js/lib/pdf.min.js"></script>
 
+<!-- 关键修复：让 type="module" 能访问 Vanta 全局对象 -->
+<script>
+    window.VANTA = window.VANTA || {};
+    // 确保所有效果都暴露到全局
+    if (window.VANTA?.NET)    window.VANTA.NET = window.VANTA.NET;
+    if (window.VANTA?.BIRDS)  window.VANTA.BIRDS = window.VANTA.BIRDS;
+    if (window.VANTA?.CLOUDS) window.VANTA.CLOUDS = window.VANTA.CLOUDS;
+</script>
+
 <!-- 自己的模块入口 -->
 <script type="module" src="js/main.js"></script>
 
-<!-- 仅 10 行内联脚本，保证 PDF 卡片完美统一 + 功能正常 -->
+<!-- 内联脚本（PDF Tab 等） -->
 <script>
 // Tab 切换
 document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
@@ -253,17 +221,14 @@ document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
     b.classList.add('active');
     document.getElementById(b.dataset.tab).style.display = b.dataset.tab === 'img2pdf' ? 'grid' : 'block';
 });
-
 // 自定义尺寸显隐
 document.getElementById('pageSize').onchange = e => {
     document.getElementById('customSizeRow').style.display = e.target.value === 'custom' ? 'block' : 'none';
 };
-
-// 让两个日志框完全复用 #log 的样式（包括滚动条）
+// 日志样式统一
 const style = document.createElement('style');
 style.textContent = `#imgLog,#pdfLog{margin-top:6px;color:#94a3b8;font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);line-height:1.5;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.15) transparent;}
-#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px}
-#imgLog::-webkit-scrollbar-track,#pdfLog::-webkit-scrollbar-track{background:transparent}
+#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px;background:transparent}
 #imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
 #imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.3)}`;
 document.head.appendChild(style);
