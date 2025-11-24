@@ -20,7 +20,7 @@ body{
 }
 #time-card .date{font-size:13px;color:var(--date-deep);font-weight:600;}
 
-/* 页眉 & 主标题 */
+/* 页眉 */
 header{
     position:relative;z-index:1;backdrop-filter:blur(5px);
     background:rgba(255,255,255,0.04);border-bottom:1px solid var(--border);
@@ -50,23 +50,11 @@ footer span{color:var(--accent)}
 .compress-grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
 .controls{padding:12px;display:flex;flex-direction:column;gap:10px;}
 
-/* 拖拽区提示文字 → 现在完全动态（日间为柔和珊瑚橙） */
+/* 拖拽区 */
 .dropzone{
     border:2px dashed var(--border);border-radius:10px;padding:16px;
     text-align:center;cursor:pointer;
     background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
-}
-.dropzone > div:first-child,
-#dropzoneImg > div:first-child {
-    font-weight:600;
-    color:var(--accent-light);   /* 关键！日间变成温暖淡橙，夜间自动变回亮蓝 */
-}
-
-/* 参数设置标题 → 也使用淡橙（更协调） */
-.controls h3{
-    margin:0 0 8px;
-    color:var(--accent-light);
-    font-size:15px;
 }
 
 /* 缩略图 & 按钮 */
@@ -92,7 +80,7 @@ input[type="number"],select,input[type="range"]{
 .card-content{overflow:hidden;max-height:9999px;transition:max-height .35s ease,padding .35s ease;padding:12px 0 0 0}
 .card-content.collapsed{max-height:0;padding:0}
 
-/* 下拉框箭头（纯变量） */
+/* 下拉框箭头 */
 select{
     padding:6px 30px 6px 8px;background:var(--card-bg);
     background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='var(--select-arrow)' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e");
@@ -184,4 +172,31 @@ input[type="checkbox"]:checked::after{
 @media(max-width:860px){
     .compress-grid{grid-template-columns:1fr}
     .thumb{width:45%}
+}
+
+/* ──────────────────────── 终极补丁：彻底消灭所有行内硬编码颜色（放在最底部最高优先级） ──────────────────────── */
+.dropzone-title,
+#dropzone > div:first-child,
+#dropzoneImg > div:first-child,
+.params-title,
+.controls h3 {
+    font-weight: 600 !important;
+    color: var(--accent-light) !important;
+    margin: 0 0 8px 0 !important;
+    font-size: 15px !important;
+}
+
+/* 确保主高亮元素也完全正确 */
+header h1,
+.post-card h2.card-title,
+.toggle-icon,
+#time-card,
+#time-card .date,
+.dropzone-title,
+.params-title,
+.controls h3 {
+    color: var(--accent) !important;
+}
+#time-card .date {
+    color: var(--date-deep) !important;
 }
