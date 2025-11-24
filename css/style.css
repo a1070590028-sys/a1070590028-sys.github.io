@@ -20,7 +20,7 @@ body{
 }
 #time-card .date{font-size:13px;color:var(--date-deep);font-weight:600;}
 
-/* 页眉 & 卡片标题 */
+/* 页眉 & 主标题 */
 header{
     position:relative;z-index:1;backdrop-filter:blur(5px);
     background:rgba(255,255,255,0.04);border-bottom:1px solid var(--border);
@@ -46,15 +46,28 @@ header p{margin:0;color:var(--text-muted);opacity:.85}
 footer{position:relative;z-index:1;text-align:center;padding:22px;font-size:14px;color:var(--text-muted);}
 footer span{color:var(--accent)}
 
-/* 布局 & 拖拽区 */
+/* 布局 */
 .compress-grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
 .controls{padding:12px;display:flex;flex-direction:column;gap:10px;}
+
+/* 拖拽区提示文字 → 现在完全动态（日间为柔和珊瑚橙） */
 .dropzone{
     border:2px dashed var(--border);border-radius:10px;padding:16px;
     text-align:center;cursor:pointer;
     background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
 }
-.dropzone > div:first-child{font-weight:600;color:var(--accent);}
+.dropzone > div:first-child,
+#dropzoneImg > div:first-child {
+    font-weight:600;
+    color:var(--accent-light);   /* 关键！日间变成温暖淡橙，夜间自动变回亮蓝 */
+}
+
+/* 参数设置标题 → 也使用淡橙（更协调） */
+.controls h3{
+    margin:0 0 8px;
+    color:var(--accent-light);
+    font-size:15px;
+}
 
 /* 缩略图 & 按钮 */
 .thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
@@ -78,7 +91,6 @@ input[type="number"],select,input[type="range"]{
 .file-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .card-content{overflow:hidden;max-height:9999px;transition:max-height .35s ease,padding .35s ease;padding:12px 0 0 0}
 .card-content.collapsed{max-height:0;padding:0}
-.controls h3{margin:0 0 8px;color:var(--accent);font-size:15px;}
 
 /* 下拉框箭头（纯变量） */
 select{
@@ -89,7 +101,7 @@ select{
 }
 select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
 
-/* 进度条（质量、音量、播放进度） */
+/* 进度条 */
 input[type="range"]{
     -webkit-appearance:none;appearance:none;height:6px;border-radius:3px;
     background:var(--range-track);
