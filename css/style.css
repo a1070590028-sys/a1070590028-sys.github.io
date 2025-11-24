@@ -167,7 +167,7 @@ input[type="checkbox"]:checked::after{
 
 /* 面板位置（紧贴对应按钮） */
 #bg-switcher-panel,#net-monitor-panel,#music-player-panel{
-    position:fixed;width:300px;padding:16px;border-radius:14px;
+    position:fixed;width:280px;padding:16px;border-radius:14px;
     background:rgba(255,255,255,0.08);border:1px solid var(--border);
     backdrop-filter:blur(12px);color:var(--text);display:none;z-index:99999;
 }
@@ -269,3 +269,4 @@ header h1,
 #time-card .date {
     color: var(--date-deep) !important;
 }
+
