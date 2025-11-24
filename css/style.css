@@ -1,198 +1,195 @@
-from pypandoc import convert_text
-
-css = """
-/* ================================================
-   Frey Personal Site - Complete Theme CSS (2025)
-   Full day / night / auto themes + unified glow
-   Fully compatible replacement for style.css
-   ================================================ */
-
-/* Reset */
 html, body {width:100%;height:100%;margin:0;padding:0;overflow-x:hidden;}
-* { box-sizing: border-box; }
+#vanta-bg{position:fixed !important;inset:0;width:100%;height:100%;z-index:-1;}
+/* ==================== Frey 的个人网站 - 2025 终极完美版 CSS ==================== */
+*{box-sizing:border-box}
 
-/* Root (night theme as base) */
-:root {
-    --text: #e2e8f0;
-    --text-muted: #94a3b8;
-    --border: rgba(255,255,255,0.12);
-    --card-bg: rgba(255,255,255,0.04);
-    --btn-bg: rgba(255,255,255,0.02);
-    --accent: #60a5fa;
-    --log-bg: rgba(0,0,0,0.25);
+/* 关键修复：让背景永远牢牢贴在视口，永不飘走 */
+html{
+    height:100%;
+    margin:0;
+    padding:0;
+}
+body{
+    min-height:100vh;        /* 关键：用 vh 保证至少占满视口 */
+    height:auto;             /* 内容长时可以撑高 */
+    margin:0;
+    padding:0;
+    font-family:"Segoe UI",Helvetica,Arial,sans-serif;
+    background:transparent;  /* 背景交给 #vanta-bg */
+    color:var(--text);
+    overflow-x:hidden;
+    position:relative;
 }
 
-/* Day Theme (Soft White) */
-.theme-day {
-    --text: #1f2937;
-    --text-muted: #6b7280;
-    --border: rgba(0,0,0,0.12);
-    --card-bg: rgba(255,255,255,0.6);
-    --btn-bg: rgba(255,255,255,0.55);
-    --accent: #3b82f6;
-    --log-bg: rgba(255,255,255,0.55);
+/* Vanta 背景层：真正固定在视口 */
+#vanta-bg{
+    position:fixed !important;
+    top:0; left:0;
+    width:100%; height:100%;
+    z-index:-1;
+    pointer-events:none;
 }
 
-/* Auto Dark */
-.theme-auto-dark {
-    --text: #e2e8f0;
-    --text-muted: #94a3b8;
-    --border: rgba(255,255,255,0.12);
-    --card-bg: rgba(255,255,255,0.04);
-    --btn-bg: rgba(255,255,255,0.03);
-    --accent: #60a5fa;
-    --log-bg: rgba(0,0,0,0.22);
+/* 时间卡片 */
+#time-card{
+    position:fixed;top:12px;right:50px;
+    padding:6px 12px;border-radius:8px;
+    background:rgba(255,255,255,0.06);
+    border:1px solid var(--border);
+    backdrop-filter:blur(6px);
+    font-size:14px;color:var(--accent);
+    z-index:9999;text-align:right;
+}
+#time-card .date{font-size:13px;color:#93c5fd}
+
+/* 页眉 */
+header{
+    position:relative;z-index:1;
+    backdrop-filter:blur(5px);
+    background:rgba(255,255,255,0.04);
+    border-bottom:1px solid var(--border);
+    padding:40px 20px;text-align:center;
+}
+header h1{
+    margin:0 0 8px;font-size:34px;font-weight:700;
+    color:var(--accent);
+    text-shadow:0 0 8px rgba(96,165,250,0.35);
+}
+header p{margin:0;color:var(--text-muted);opacity:.85}
+
+/* 主容器 */
+.container{
+    position:relative;z-index:1;
+    max-width:980px;margin:28px auto;padding:0 16px;
 }
 
-/* Auto Bright (Soft White + Dynamic Light) */
-.theme-auto-bright {
-    --text: #1f2937;
-    --text-muted: #6b7280;
-    --border: rgba(0,0,0,0.1);
-    --card-bg: rgba(255,255,255,0.65);
-    --btn-bg: rgba(255,255,255,0.55);
-    --accent: #3b82f6;
-    --log-bg: rgba(255,255,255,0.45);
+/* 卡片 */
+.post-card{
+    background:var(--card-bg);
+    border:1px solid var(--border);
+    backdrop-filter:blur(6px);
+    border-radius:14px;
+    padding:20px;margin:18px 0;
+}
+.post-card h2{
+    margin:0 0 10px;color:#93c5fd;
+    cursor:pointer;display:flex;align-items:center;justify-content:space-between;
+}
+.post-card p{margin:0;color:var(--text-muted)}
+
+footer{
+    position:relative;z-index:1;
+    text-align:center;padding:22px;
+    font-size:14px;color:var(--text-muted);
+}
+footer span{color:var(--accent)}
+
+/* 布局网格 */
+.compress-grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
+.controls{padding:12px;display:flex;flex-direction:column;gap:10px}
+
+/* 拖拽区 */
+.dropzone{
+    border:2px dashed var(--border);
+    border-radius:10px;padding:16px;
+    text-align:center;cursor:pointer;
+    background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
 }
 
-/* Body */
-body {
-    font-family:"Segoe UI", Helvetica, Arial, sans-serif;
-    background: transparent;
-    color: var(--text);
-    text-shadow: 0 0 6px rgba(96,165,250,0.35);
-    position: relative;
+/* 缩略图 */
+.thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.thumb{
+    width:120px;background:var(--card-bg);border-radius:8px;
+    padding:8px;text-align:center;font-size:12px;color:var(--text-muted);
+}
+.thumb img{max-width:100%;max-height:80px;border-radius:6px;display:block;margin:0 auto 6px}
+
+/* 按钮 */
+.btn{
+    display:inline-block;padding:8px 12px;border-radius:8px;
+    border:1px solid var(--border);background:var(--btn-bg);
+    color:var(--text);cursor:pointer;margin:6px 6px 0 0;user-select:none;
+    transition:all .2s;
+}
+.btn:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 18px rgba(0,0,0,0.35);
+    border-color:var(--accent);
 }
 
-/* Vanta */
-#vanta-bg {
-    position: fixed !important;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: -1;
-    pointer-events: none;
+/* 表单元素 */
+label.small,.small{font-size:13px;color:var(--text-muted);display:block;margin-bottom:6px}
+input[type="number"],select,input[type="range"]{
+    width:100%;padding:6px;border-radius:8px;
+    border:1px solid var(--border);background:transparent;color:var(--text);
+}
+.file-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.card-content{overflow:hidden;max-height:9999px;transition:max-height .35s ease,padding .35s ease;padding:12px 0 0 0}
+.card-content.collapsed{max-height:0;padding:0}
+
+/* 右下角三个按钮 */
+#bg-switcher-btn,#net-monitor-btn,#music-player-btn{
+    position:fixed;right:20px;width:54px;height:54px;border-radius:50%;
+    background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
+    backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;
+    cursor:pointer;z-index:99999;transition:all .25s;font-size:22px;
+}
+#bg-switcher-btn{bottom:150px}
+#net-monitor-btn{bottom:20px}
+#music-player-btn{bottom:90px}
+#bg-switcher-btn:hover,#net-monitor-btn:hover,#music-player-btn:hover{
+    transform:scale(1.08);box-shadow:0 0 14px rgba(96,165,250,0.4);
 }
 
-/* Header */
-header {
-    backdrop-filter: blur(5px);
-    background: var(--card-bg);
-    border-bottom: 1px solid var(--border);
-    padding: 40px 20px;
-    text-align: center;
+/* 面板 */
+#bg-switcher-panel,#net-monitor-panel,#music-player-panel{
+    position:fixed;right:20px;width:230px;padding:16px;border-radius:14px;
+    background:rgba(255,255,255,0.08);border:1px solid var(--border);
+    backdrop-filter:blur(12px);color:var(--text);display:none;z-index:99999;
+}
+#bg-switcher-panel{bottom:220px}
+#net-monitor-panel{bottom:90px}
+#music-player-panel{bottom:160px}
+#bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3{
+    margin:0 0 12px;font-size:16px;color:#93c5fd;
+}
+.net-item{margin:6px 0;font-size:14px}
+
+/* 背景切换按钮 */
+.bg-options{display:flex;flex-direction:column;gap:8px}
+.bg-opt{
+    padding:9px 12px;border-radius:8px;background:transparent;
+    border:1px solid var(--border);color:var(--text);font-size:13.5px;
+    cursor:pointer;transition:all .2s;text-align:left;
+}
+.bg-opt:hover,.bg-opt.active{
+    background:rgba(96,165,250,0.25);border-color:var(--accent);color:#fff;
 }
 
-header h1 {
-    margin: 0 0 8px;
-    font-size: 34px;
-    font-weight: 700;
-    color: var(--accent);
-    text-shadow: 0 0 8px rgba(96,165,250,0.35);
+/* 日志区 */
+#log,#imgLog,#pdfLog{
+    margin-top:6px;color:var(--text-muted);font-size:13px;max-height:160px;overflow:auto;
+    padding:10px 12px;border-radius:8px;background:var(--log-bg);
+    border:1px solid var(--border);line-height:1.5;
+}
+#log::-webkit-scrollbar,#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px;background:transparent}
+#log::-webkit-scrollbar-thumb,#imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,0.15);border-radius:4px;
+}
+#log::-webkit-scrollbar-thumb:hover,#imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover{
+    background:rgba(255,255,255,0.3);
 }
 
-header p {
-    margin: 0;
-    color: var(--text-muted);
+/* 下拉框 */
+select{
+    padding:6px 30px 6px 8px;border:1px solid var(--border);
+    background:var(--card-bg) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%2360a5fa' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e") no-repeat right 10px center;
+    color:var(--text);border-radius:8px;cursor:pointer;appearance:none;
 }
+select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none}
 
-/* Container */
-.container {
-    max-width: 980px;
-    margin: 28px auto;
-    padding: 0 16px;
+/* 响应式 */
+@media(max-width:860px){
+    .compress-grid{grid-template-columns:1fr}
+    .thumb{width:45%}
 }
-
-/* Cards */
-.post-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    backdrop-filter: blur(6px);
-    border-radius: 14px;
-    padding: 20px;
-    margin: 18px 0;
-}
-
-.post-card h2 {
-    margin: 0 0 10px;
-    color: var(--accent);
-    display: flex;
-    justify-content: space-between;
-    cursor: pointer;
-}
-
-.post-card p {
-    margin: 0;
-    color: var(--text-muted);
-}
-
-/* Buttons */
-.btn {
-    padding: 8px 12px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--btn-bg);
-    color: var(--text);
-    cursor: pointer;
-    transition: .2s;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    border-color: var(--accent);
-    box-shadow: 0 8px 18px rgba(0,0,0,0.35);
-}
-
-/* Footer */
-footer {
-    text-align: center;
-    padding: 22px;
-    font-size: 14px;
-    color: var(--text-muted);
-}
-
-footer span {
-    color: var(--accent);
-}
-
-/* Inputs */
-input[type="number"], select, input[type="range"] {
-    width: 100%;
-    padding: 6px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--text);
-}
-
-/* Logs */
-#log, #imgLog, #pdfLog {
-    color: var(--text-muted);
-    background: var(--log-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
-    max-height: 160px;
-    overflow: auto;
-    line-height: 1.5;
-}
-
-/* Panels */
-#bg-switcher-btn, #net-monitor-btn, #music-player-btn {
-    position: fixed;
-    right: 20px;
-    width: 54px;
-    height: 54px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.08);
-    border: 1px solid var(--border);
-    backdrop-filter: blur(10px);
-    cursor: pointer;
-    z-index: 9999;
-}
-
-"""
-
-output_path = "/mnt/data/style.css"
-convert_text(css, 'plain', format='md', outputfile=output_path, extra_args=['--standalone'])
-output_path
