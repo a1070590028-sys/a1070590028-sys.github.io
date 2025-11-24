@@ -149,3 +149,4 @@ document.querySelectorAll('.bg-opt').forEach(btn => {
 const savedMode = localStorage.getItem('frey-bg-mode') || 'night';
 apply(savedMode);
 
+
