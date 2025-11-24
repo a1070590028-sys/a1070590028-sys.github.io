@@ -25,7 +25,7 @@
             <div style="margin-top:12px" class="compress-grid">
                 <div style="padding:12px">
                     <div id="dropzone" class="dropzone">
-                        <div style="font-weight:600;color:#cfe8ff">拖拽图片到这里，或点击选择文件（支持多选）</div>
+                        <div class="dropzone-title">拖拽图片到这里，或点击选择文件（支持多选）</div>
                         <div class="small" style="margin-top:6px">支持 JPEG / PNG / WebP / AVIF / GIF（静帧）以及几乎所有浏览器可打开的图片格式</div>
                         <input id="fileInput" type="file" accept="image/*" multiple style="display:none">
                     </div>
@@ -43,7 +43,7 @@
                     </div>
                 </div>
                 <div class="controls post-card" style="padding:14px">
-                    <h3 style="margin:0 0 8px;color:#93c5fd">参数设置</h3>
+                    <h3 class="params-title">参数设置</h3>
                     <div class="compress-param"><label class="small">最大宽度或高度（像素）</label><input id="maxSide" type="number" value="1024" min="64" step="1"></div>
                     <div class="compress-param"><label class="small">目标文件大小（最大，MB）</label><input id="maxSizeMB" type="number" value="1" min="0.05" step="0.05"></div>
                     <div>
@@ -82,7 +82,7 @@
             <div id="img2pdf" class="compress-grid" style="margin-top:12px;gap:18px">
                 <div style="padding:12px">
                     <div id="dropzoneImg" class="dropzone">
-                        <div style="font-weight:600;color:#cfe8ff">拖拽图片到这里，或点击选择（支持多选）</div>
+                        <div class="dropzone-title">拖拽图片到这里，或点击选择（支持多选）</div>
                         <div class="small" style="margin-top:6px">支持 JPG / PNG / WebP / GIF（静帧）</div>
                         <input type="file" id="imgInput" accept="image/*" multiple style="display:none">
                     </div>
@@ -97,7 +97,7 @@
                     <div class="small" style="margin-top:8px">处理日志：<div id="imgLog"></div></div>
                 </div>
                 <div class="controls post-card" style="padding:14px;height:fit-content">
-                    <h3 style="margin:0 0 8px;color:#93c5fd">参数设置</h3>
+                    <h3 class="params-title">参数设置</h3>
                     <div class="compress-param"><label class="small">页面尺寸</label>
                         <select id="pageSize">
                             <option value="a4">A4（竖版）</option>
