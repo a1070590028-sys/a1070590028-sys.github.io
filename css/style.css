@@ -1,3 +1,5 @@
+html, body {width:100%;height:100%;margin:0;padding:0;overflow-x:hidden;}
+#vanta-bg{position:fixed !important;inset:0;width:100%;height:100%;z-index:-1;}
 /* ==================== Frey 的个人网站 - 2025 终极完美版 CSS ==================== */
 *{box-sizing:border-box}
 
