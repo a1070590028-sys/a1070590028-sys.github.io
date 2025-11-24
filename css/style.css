@@ -1,5 +1,8 @@
+/* ★★★★★ 关键修复：让 Vanta 永远铺满全屏 ★★★★★ */
+html, body { height: 100%; margin: 0; padding: 0; overflow-x: hidden; }
+
 *{box-sizing:border-box}
-html,body{height:100%;margin:0;padding:0;font-family:"Segoe UI",Helvetica,Arial,sans-serif;background:#0f172a;color:var(--text);overflow-x:hidden}
+html,body{font-family:"Segoe UI",Helvetica,Arial,sans-serif;background:#0f172a;color:var(--text);min-height:100vh}
 
 #time-card{position:fixed;top:12px;right:50px;padding:6px 12px;border-radius:8px;background:rgba(255,255,255,0.06);border:1px solid var(--border);backdrop-filter:blur(6px);font-size:14px;color:var(--accent);z-index:9999;text-align:right}
 #time-card .date{font-size:13px;color:#93c5fd}
@@ -32,36 +35,31 @@ input[type="number"],select,input[type="range"]{width:100%;padding:6px;border-ra
 .card-content{overflow:hidden;max-height:9999px;transition:max-height .35s ease,padding .35s ease;padding:12px 0 0 0}
 .card-content.collapsed{max-height:0;padding:0}
 
-/* 按钮与面板（保持你原来的毛玻璃美感） */
-#net-monitor-btn,#bg-switcher-btn,#music-player-btn{position:fixed;right:20px;width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:99999;transition:.25s}
+/* 右下角功能按钮 */
+#net-monitor-btn,#bg-switcher-btn,#music-player-btn{position:fixed;right:20px;width:54px;height:54px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:99999;transition:.25s;font-size:22px}
 #bg-switcher-btn{bottom:150px}
 #net-monitor-btn{bottom:20px}
 #music-player-btn{bottom:90px}
 #net-monitor-btn:hover,#bg-switcher-btn:hover,#music-player-btn:hover{transform:scale(1.08);box-shadow:0 0 14px rgba(96,165,250,0.4)}
 
+/* 面板 */
 #net-monitor-panel,#bg-switcher-panel,#music-player-panel{position:fixed;right:20px;width:230px;padding:16px;border-radius:14px;background:rgba(255,255,255,0.08);border:1px solid var(--border);backdrop-filter:blur(12px);color:var(--text);display:none;z-index:99999}
 #bg-switcher-panel{bottom:220px}
 #net-monitor-panel{bottom:90px}
 #music-player-panel{bottom:160px}
 #net-monitor-panel h3,#bg-switcher-panel h3,#music-player-panel h3{margin:0 0 12px;font-size:16px;color:#93c5fd}
-.net-item{margin:6px 0;font-size:14px}
 
 .bg-options{display:flex;flex-direction:column;gap:8px}
 .bg-opt{padding:9px 12px;border-radius:8px;background:transparent;border:1px solid var(--border);color:var(--text);font-size:13.5px;cursor:pointer;transition:.2s;text-align:left}
 .bg-opt:hover,.bg-opt.active{background:rgba(96,165,250,0.25);border-color:var(--accent);color:#fff}
 
-/* 日志框统一 */
+/* 日志统一 */
 #log,#imgLog,#pdfLog{margin-top:6px;color:var(--text-muted);font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;background:var(--log-bg);border:1px solid var(--border);line-height:1.5}
 #log::-webkit-scrollbar,#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px;background:transparent}
 #log::-webkit-scrollbar-thumb,#imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:4px}
 
-/* 下拉框美化 */
-select{
-    padding:6px 30px 6px 8px;border:1px solid var(--border);
-    background:var(--card-bg) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%2360a5fa' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e") no-repeat right 10px center;
-    color:var(--text);border-radius:8px;cursor:pointer;appearance:none;
-}
+/* 下拉框 */
+select{padding:6px 30px 6px 8px;border:1px solid var(--border);background:var(--card-bg) url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%2360a5fa' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e") no-repeat right 10px center;color:var(--text);border-radius:8px;cursor:pointer;appearance:none}
 select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none}
 
-/* 响应式 */
 @media(max-width:860px){.compress-grid{grid-template-columns:1fr}.thumb{width:45%}}
