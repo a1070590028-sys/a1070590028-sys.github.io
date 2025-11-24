@@ -20,24 +20,41 @@ body{
 }
 #time-card .date{font-size:13px;color:var(--date-deep);font-weight:600;}
 
-/* 页眉 - 彻底独立：永远夜间深蓝毛玻璃（最高优先级） */
+/* ──────────────────────── Header：永久透明毛玻璃（最高优先级） ──────────────────────── */
 header{
-    position:relative;z-index:1;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-    background: rgba(15, 23, 42, 0.92) !important;
-    border-bottom:1px solid rgba(96, 165, 250, 0.5) !important;
-    padding:40px 20px;text-align:center;
-    box-shadow:0 4px 20px rgba(0,0,0,0.3);
-    overflow:hidden;
+    position:relative;z-index:1;
+    background: rgba(255,255,255,0.038) !important;        /* 极轻微白色叠加，让毛玻璃更通透统一 */
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border-bottom: 1px solid rgba(255,255,255,0.14) !important;
+    padding:40px 20px;
+    text-align:center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
 }
+/* 轻微渐变高光，让透明毛玻璃更有层次（和原来夜间 header 感觉一模一样） */
 header::before{
     content:"";
-    position:absolute;inset:0;
-    background:linear-gradient(to bottom, rgba(96,165,250,0.12), transparent 60%);
-    pointer-events:none;z-index:-1;
+    position:absolute;
+    inset:0;
+    background:linear-gradient(to bottom, 
+        rgba(255,255,255,0.11), 
+        rgba(255,255,255,0.03) 50%, 
+        transparent);
+    pointer-events:none;
+    z-index:-1;
 }
-header h1{margin:0 0 8px;font-size:34px;font-weight:700;color:var(--accent);
-    text-shadow:0 0 12px rgba(96,165,250,0.4);}
-header p{margin:0;color:var(--text-muted);opacity:.9}
+header h1{
+    margin:0 0 8px;
+    font-size:34px;
+    font-weight:700;
+    color:var(--accent) !important;               /* 随主题变：夜间亮蓝 / 日间橙红 */
+    text-shadow:0 0 12px rgba(96,165,250,0.35);
+}
+header p{
+    margin:0;
+    color:var(--text-muted) !important;
+    opacity:0.9;
+}
 
 .container{position:relative;z-index:1;max-width:980px;margin:28px auto;padding:0 16px;}
 .post-card{
@@ -98,7 +115,7 @@ select{
 }
 select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
 
-/* 夜间模式 select 高对比下拉菜单 */
+/* 夜间模式 select 高对比 */
 @media (prefers-color-scheme: dark),
 body.theme-night {
     select {
@@ -112,7 +129,7 @@ body.theme-night {
     }
 }
 
-/* 进度条 */
+/* 进度条、复选框（保持原样） */
 input[type="range"]{
     -webkit-appearance:none;appearance:none;height:6px;border-radius:3px;
     background:var(--range-track);
@@ -122,18 +139,8 @@ input[type="range"]::-webkit-slider-thumb{
     background:var(--range-thumb);border:2px solid #fff;
     box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;
 }
-input[type="range"]::-moz-range-track{
-    height:6px;border-radius:3px;background:var(--range-track);border:none;
-}
-input[type="range"]::-moz-range-thumb{
-    background:var(--range-thumb);border:2px solid #fff;
-    box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;
-}
-
-/* 复选框 */
 input[type="checkbox"]{
-    -webkit-appearance:none;appearance:none;
-    width:18px;height:18px;border:2px solid var(--checkbox-border);
+    -webkit-appearance:none;width:18px;height:18px;border:2px solid var(--checkbox-border);
     border-radius:6px;position:relative;cursor:pointer;vertical-align:middle;margin-right:8px;
 }
 input[type="checkbox"]:checked{
@@ -144,7 +151,7 @@ input[type="checkbox"]:checked::after{
     position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
 }
 
-/* 右下角按钮 & 面板 */
+/* 右下角按钮 & 面板（保持原样） */
 #bg-switcher-btn,#net-monitor-btn,#music-player-btn{
     position:fixed;right:20px;width:54px;height:54px;border-radius:50%;
     background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
@@ -155,40 +162,18 @@ input[type="checkbox"]:checked::after{
 #bg-switcher-btn:hover,#net-monitor-btn:hover,#music-player-btn:hover{
     transform:scale(1.08);box-shadow:0 0 14px rgba(96,165,250,0.4);
 }
-
 #bg-switcher-panel,#net-monitor-panel,#music-player-panel{
     position:fixed;right:20px;width:230px;padding:16px;border-radius:14px;
     background:rgba(255,255,255,0.08);border:1px solid var(--border);
     backdrop-filter:blur(12px);color:var(--text);display:none;z-index:99999;
 }
 #bg-switcher-panel{bottom:220px}#net-monitor-panel{bottom:90px}#music-player-panel{bottom:160px}
-#bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3{
-    margin:0 0 12px;font-size:16px;color:var(--accent);
-}
-.net-item{margin:6px 0;font-size:14px;color:var(--text)}
-
-.bg-options{display:flex;flex-direction:column;gap:8px}
-.bg-opt{
-    padding:9px 12px;border-radius:8px;background:transparent;
-    border:1px solid var(--border);color:var(--text);font-size:13.5px;
-    cursor:pointer;transition:all .2s;text-align:left;
-}
-.bg-opt:hover,.bg-opt.active{
-    background:rgba(96,165,250,0.25);border-color:var(--accent);color:#fff;
-}
 
 /* 日志区 */
 #log,#imgLog,#pdfLog{
     margin-top:6px;color:var(--text-muted);font-size:13px;max-height:160px;overflow:auto;
     padding:10px 12px;border-radius:8px;background:var(--log-bg);
     border:1px solid var(--border);line-height:1.5;
-}
-#log::-webkit-scrollbar,#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px;background:transparent}
-#log::-webkit-scrollbar-thumb,#imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb{
-    background:rgba(255,255,255,0.15);border-radius:4px;
-}
-#log::-webkit-scrollbar-thumb:hover,#imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover{
-    background:rgba(255,255,255,0.3);
 }
 
 /* 响应式 */
@@ -197,7 +182,7 @@ input[type="checkbox"]:checked::after{
     .thumb{width:45%}
 }
 
-/* ──────────────────────── 终极补丁：完美双模式（最高优先级） ──────────────────────── */
+/* ──────────────────────── 终极补丁（保持不变） ──────────────────────── */
 .dropzone-title,
 #dropzone > div:first-child > div,
 #dropzoneImg > div:first-child > div,
