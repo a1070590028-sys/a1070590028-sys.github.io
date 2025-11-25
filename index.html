@@ -158,29 +158,29 @@
 
 <div id="music-player-btn"><div class="music-icon">🎵</div></div>
 <div id="music-player-panel">
-    <h3 style="margin:0 0 10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;width:100%;">
-        <span>音乐播放器</span>
-        <span id="toggleList" style="font-size:18px;opacity:0.6;">♪</span>
+    <h3 class="panel-title">
+        音乐播放器
+        <span id="toggleList" style="position:absolute;right:0;top:0;cursor:pointer;font-size:18px;opacity:0.6;">♪</span>
     </h3>
     
     <div id="songTitle" class="net-item" style="font-weight:600;cursor:pointer;margin-bottom:12px;" title="点击展开歌单">加载中...</div>
     
     <div class="player-row">
-        <span id="currentTime">0:00</span>
+        <span id="currentTime" class="player-side-item">0:00</span>
         <input type="range" id="progress" value="0" max="100">
-        <span id="duration">--:--</span>
+        <span id="duration" class="player-side-item">--:--</span>
     </div>
 
-    <div class="player-row" style="margin-top:8px; margin-bottom:8px;">
+    <div class="controls-row">
         <button id="prevBtn" title="上一首">⏮</button>
         <button id="playBtn" title="播放/暂停">▶</button>
         <button id="nextBtn" title="下一首">⏭</button>
     </div>
 
     <div class="player-row">
-        <span style="font-size:16px;">🔈</span>
+        <span class="player-side-item icon">🔈</span>
         <input type="range" id="volume" min="0" max="100" value="70">
-        <span style="font-size:16px;">🔊</span>
+        <span class="player-side-item icon">🔊</span>
     </div>
 
     <div id="playlistContainer" style="display:none;max-height:180px;overflow-y:auto;margin-top:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;width:100%;">
