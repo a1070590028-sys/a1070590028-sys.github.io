@@ -31,7 +31,7 @@ header p{margin:0;color:var(--text-muted);opacity:.85}
     margin:0 0 10px;color:var(--accent);cursor:pointer;
     display:flex;align-items:center;justify-content:space-between;font-size:20px;
 }
-.toggle-icon{color:var(--accent);opacity:0.85;font-size:18px;transition:transform .3s;}
+.toggle-icon{color:var(--accent);opacity:0.85;transition:transform .3s;}
 .post-card:hover .toggle-icon{transform:rotate(180deg);}
 .post-card p{margin:0;color:var(--text-muted)}
 
@@ -64,10 +64,17 @@ footer span{color:var(--accent)}
 
 /* 表单元素 */
 label.small,.small{font-size:13px;color:var(--text-muted);display:block;margin-bottom:6px}
+
+/* ====== 优化点：统一 input 和 select 的背景色，避免过深 ====== */
 input[type="number"],select,input[type="range"]{
     width:100%;padding:6px;border-radius:8px;
-    border:1px solid var(--border);background:transparent;color:var(--text);
+    border:1px solid var(--border);
+    /* 使用卡片背景色，确保与周围环境一致 */
+    background: var(--card-bg); 
+    color:var(--text);
 }
+/* ========================================================== */
+
 .file-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .card-content{overflow:hidden;max-height:9999px;transition:max-height .35s ease,padding .35s ease;padding:12px 0 0 0}
 .card-content.collapsed{max-height:0;padding:0}
@@ -75,29 +82,14 @@ input[type="number"],select,input[type="range"]{
 /* 下拉框箭头 */
 select{
     padding:6px 30px 6px 8px;
-    background:var(--card-bg); /* Select box background */
+    /* 继承了上面统一的 background: var(--card-bg); */
     background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='var(--select-arrow)' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e");
     background-repeat:no-repeat;background-position:right 10px center;
     color:var(--text);border-radius:8px;cursor:pointer;appearance:none;
 }
 select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
 
-/* ==================== 优化点：Select 下拉菜单主题适配 (新方案) ==================== */
-/* 核心思想：使用 JS 动态设置的 CSS 变量，全局覆盖 select 框体和选项的背景/文字颜色，
-   以确保在深色模式下选项列表不是白底黑字。*/
-select {
-    /* 确保 select 框体本身使用 JS 主题设置的颜色 */
-    background: var(--select-bg) !important;
-    color: var(--select-color) !important;
-}
-
-select option {
-    /* 强制选项列表的背景和文字使用 JS 设置的变量 */
-    /* 警告：此样式在某些浏览器上可能仍会被原生 UI 覆盖，但它是最佳的 CSS 尝试 */
-    background: var(--select-bg) !important;
-    color: var(--select-color) !important;
-}
-/* ====================================================================== */
+/* 移除原 select option 的“终极补丁”，因为选择框本身颜色已优化 */
 
 /* 进度条 */
 input[type="range"]{
