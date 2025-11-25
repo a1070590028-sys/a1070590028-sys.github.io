@@ -104,20 +104,20 @@ body.theme-night {
     }
 }
 
-/* 进度条通用样式 */
+/* 进度条 */
 input[type="range"]{
     -webkit-appearance:none;appearance:none;height:6px;border-radius:3px;
     background:var(--range-track);
-    cursor:pointer;
-    vertical-align: middle;
+    cursor:pointer; /* ADDED */
+    vertical-align: middle; /* ADDED */
 }
 input[type="range"]::-webkit-slider-thumb{
     -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
     background:var(--range-thumb);border:2px solid #fff;
     box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;
-    margin-top: -5px; /* 对齐修正 */
+    margin-top: -5px; /* ADDED */
 }
-input[type="range"]::-webkit-slider-runnable-track {
+input[type="range"]::-webkit-slider-runnable-track { /* ADDED */
     height: 6px;
     border-radius: 3px;
     background: var(--range-track);
@@ -179,8 +179,15 @@ input[type="checkbox"]:checked::after{
     background:rgba(255,255,255,0.08);border:1px solid var(--border);
     backdrop-filter:blur(12px);color:var(--text);display:none;z-index:99999;
 }
-#bg-switcher-panel h3,#net-monitor-panel h3{
+/* 统一面板标题样式 (居中) */
+#bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3{
     margin:0 0 12px;font-size:16px;color:var(--accent);
+    text-align: center; /* 新增：强制标题居中 */
+}
+
+/* 新增：背景和网络面板内容居中 */
+#bg-switcher-panel, #net-monitor-panel {
+    text-align: center;
 }
 
 /* 背景面板 → 左上角按钮下方 */
@@ -193,19 +200,11 @@ input[type="checkbox"]:checked::after{
 #music-player-panel{
     bottom:92px;
     left:24px;
-    text-align: center; /* 面板内容全部居中 */
-    display: none; /* 默认隐藏 */
-    flex-direction: column;
-    align-items: center; /* Flex子项居中 */
-}
-/* 音乐面板标题特殊处理 */
-#music-player-panel .panel-title {
-    margin: 0 0 12px;
-    font-size: 16px;
-    color: var(--accent);
-    position: relative;
-    width: 100%;
-    text-align: center; /* 强制标题文字居中 */
+    /* 音乐面板保持 Flex 布局和自定义居中，确保歌单按钮位置正确 */
+    display: none; /* 覆盖了上方的 display: none; */
+    flex-direction: column; /* ADDED */
+    align-items: center; /* ADDED */
+    text-align: center; /* ADDED */
 }
 
 /* 网络面板 → 右下角按钮上方 */
@@ -214,12 +213,15 @@ input[type="checkbox"]:checked::after{
     right:24px;
 }
 
-.net-item{margin:6px 0;font-size:14px;color:var(--text)}
+/* 确保网络监控列表项文本依然左对齐，便于阅读 */
+.net-item{margin:6px 0;font-size:14px;color:var(--text); text-align: left;}
+
 .bg-options{display:flex;flex-direction:column;gap:8px}
 .bg-opt{
     padding:9px 12px;border-radius:8px;background:transparent;
     border:1px solid var(--border);color:var(--text);font-size:13.5px;
-    cursor:pointer;transition:all .2s;text-align:left;
+    cursor:pointer;transition:all .2s;
+    text-align:center; /* CHANGED: 按钮文本居中 */
 }
 .bg-opt:hover,.bg-opt.active{
     background:rgba(96,165,250,0.25);border-color:var(--accent);color:#fff;
@@ -247,48 +249,7 @@ input[type="checkbox"]:checked::after{
 
 /* ==================== 音乐播放器专用样式优化 (V3) ==================== */
 
-/* 1. 播放行容器：Flex布局，两端对齐 */
-.player-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    margin: 6px 0;
-    gap: 0; /* 间距由子元素边距控制 */
-}
-
-/* 2. 侧边元素 (时间/音量图标)：固定宽度，确保中间进度条长度绝对一致 */
-.player-side-item {
-    width: 40px; /* 固定占位宽度 */
-    text-align: center;
-    flex-shrink: 0; /* 禁止压缩 */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 12px;
-    color: var(--text-muted);
-}
-.player-side-item.icon {
-    font-size: 16px;
-    opacity: 0.8;
-}
-
-/* 3. 进度条和音量条：自动填充剩余空间 (Flex: 1) */
-#progress, #volume {
-    flex: 1; /* 自动撑满中间区域 */
-    width: auto !important; /* 覆盖旧的固定宽度 */
-    margin: 0 6px; /* 两侧留白 */
-    max-width: 100%;
-}
-
-/* 4. 圆形播放控制按钮 (居中显示) */
-.controls-row {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin: 8px 0;
-    width: 100%;
-}
+/* 1. 三个播放控制按钮（圆形） */
 #prevBtn, #playBtn, #nextBtn {
     width: 36px !important;
     height: 36px !important;
@@ -298,27 +259,78 @@ input[type="checkbox"]:checked::after{
     line-height: 36px !important;
     background: rgba(96,165,250,0.25) !important;
     border: 1px solid var(--accent) !important;
-    margin: 0 !important;
-    cursor: pointer;
-    color: var(--text);
-    transition: all 0.2s;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
+    margin: 0 6px !important;
+    cursor: pointer; /* ADDED */
+    color: var(--text); /* ADDED */
+    transition: all 0.2s; /* ADDED */
+    display: inline-flex; /* ADDED */
+    justify-content: center; /* ADDED */
+    align-items: center; /* ADDED */
 }
-#prevBtn:hover, #playBtn:hover, #nextBtn:hover {
+#prevBtn:hover, #playBtn:hover, #nextBtn:hover { /* ADDED */
     background: rgba(96,165,250,0.4) !important;
     transform: scale(1.1);
     color: #fff;
 }
+.controls-row { /* ADDED for centering the controls */
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 8px 0;
+    width: 100%;
+}
+#songTitle { /* ADDED for music panel */
+    font-weight:600;
+    cursor:pointer;
+    margin-bottom:12px;
+}
 
-/* 5. 歌单容器 */
-#playlistContainer {
+/* 2. 进度条和音量条等长且自适应 */
+/* 容器 */
+.player-row { /* ADDED for track alignment */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin: 6px 0;
+    gap: 0;
+}
+/* 侧边占位 (确保对齐) */
+.player-side-item { /* ADDED for track alignment */
+    width: 40px;
+    text-align: center;
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.player-side-item.icon { /* ADDED for volume icons */
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+/* 进度条 */
+#progress, #volume {
+    flex: 1; /* CHANGED: 从固定宽度改为自适应 */
+    width: auto !important;
+    margin: 0 6px;
+    max-width: 100%;
+}
+/* 歌单 */
+#playlistContainer { /* ADDED for music panel */
     width: 100%;
     text-align: left;
 }
+#music-player-panel .panel-title { /* ADDED to fix music player title positioning */
+    position: relative;
+    width: 100%;
+    text-align: center;
+}
 
-/* 终极补丁：完美双模式（最高优先级颜色覆盖） */
+
+/* 终极补丁：完美双模式（最高优先级） */
 .dropzone-title,
 #dropzone > div:first-child > div,
 #dropzoneImg > div:first-child > div,
