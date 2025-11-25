@@ -89,7 +89,7 @@ const modes = {
         r.style.setProperty('--text', '#2c1e1a');
         r.style.setProperty('--text-muted', '#73554a');
         r.style.setProperty('--border', 'rgba(0,0,0,0.11)');
-        r.style.setProperty('--card-bg', 'rgba(255,248,240,0.82)');
+        r.style.setProperty('--card-bg', 'rgba(255,248,240,0.30)');
         r.style.setProperty('--btn-bg', 'rgba(255,248,240,0.72)');
         r.style.setProperty('--accent', '#ff6b52');
         r.style.setProperty('--accent-light', '#ffb599');
@@ -148,6 +148,7 @@ document.querySelectorAll('.bg-opt').forEach(btn => {
 // ==================== 初始化 ====================
 const savedMode = localStorage.getItem('frey-bg-mode') || 'night';
 apply(savedMode);
+
 
 
 
