@@ -108,16 +108,16 @@ body.theme-night {
 input[type="range"]{
     -webkit-appearance:none;appearance:none;height:6px;border-radius:3px;
     background:var(--range-track);
-    cursor:pointer; /* ADDED */
-    vertical-align: middle; /* ADDED */
+    cursor:pointer; 
+    vertical-align: middle; 
 }
 input[type="range"]::-webkit-slider-thumb{
     -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
     background:var(--range-thumb);border:2px solid #fff;
     box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;
-    margin-top: -5px; /* ADDED */
+    margin-top: -5px; 
 }
-input[type="range"]::-webkit-slider-runnable-track { /* ADDED */
+input[type="range"]::-webkit-slider-runnable-track { 
     height: 6px;
     border-radius: 3px;
     background: var(--range-track);
@@ -182,7 +182,7 @@ input[type="checkbox"]:checked::after{
 /* 统一面板标题样式 (居中) */
 #bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3{
     margin:0 0 12px;font-size:16px;color:var(--accent);
-    text-align: center; /* 新增：强制标题居中 */
+    text-align: center; /* 强制标题居中 */
 }
 
 /* 新增：背景和网络面板内容居中 */
@@ -200,11 +200,10 @@ input[type="checkbox"]:checked::after{
 #music-player-panel{
     bottom:92px;
     left:24px;
-    /* 音乐面板保持 Flex 布局和自定义居中，确保歌单按钮位置正确 */
-    display: none; /* 覆盖了上方的 display: none; */
-    flex-direction: column; /* ADDED */
-    align-items: center; /* ADDED */
-    text-align: center; /* ADDED */
+    display: none; 
+    flex-direction: column; 
+    align-items: center; 
+    text-align: center; 
 }
 
 /* 网络面板 → 右下角按钮上方 */
@@ -213,15 +212,15 @@ input[type="checkbox"]:checked::after{
     right:24px;
 }
 
-/* 确保网络监控列表项文本依然左对齐，便于阅读 */
-.net-item{margin:6px 0;font-size:14px;color:var(--text); text-align: left;}
+/* 确保网络监控列表项文本居中 */
+.net-item{margin:6px 0;font-size:14px;color:var(--text); text-align: center;} /* CHANGED: 从 left 改为 center */
 
 .bg-options{display:flex;flex-direction:column;gap:8px}
 .bg-opt{
     padding:9px 12px;border-radius:8px;background:transparent;
     border:1px solid var(--border);color:var(--text);font-size:13.5px;
     cursor:pointer;transition:all .2s;
-    text-align:center; /* CHANGED: 按钮文本居中 */
+    text-align:center; /* 按钮文本居中 */
 }
 .bg-opt:hover,.bg-opt.active{
     background:rgba(96,165,250,0.25);border-color:var(--accent);color:#fff;
@@ -260,26 +259,26 @@ input[type="checkbox"]:checked::after{
     background: rgba(96,165,250,0.25) !important;
     border: 1px solid var(--accent) !important;
     margin: 0 6px !important;
-    cursor: pointer; /* ADDED */
-    color: var(--text); /* ADDED */
-    transition: all 0.2s; /* ADDED */
-    display: inline-flex; /* ADDED */
-    justify-content: center; /* ADDED */
-    align-items: center; /* ADDED */
+    cursor: pointer; 
+    color: var(--text); 
+    transition: all 0.2s; 
+    display: inline-flex; 
+    justify-content: center; 
+    align-items: center; 
 }
-#prevBtn:hover, #playBtn:hover, #nextBtn:hover { /* ADDED */
+#prevBtn:hover, #playBtn:hover, #nextBtn:hover { 
     background: rgba(96,165,250,0.4) !important;
     transform: scale(1.1);
     color: #fff;
 }
-.controls-row { /* ADDED for centering the controls */
+.controls-row { 
     display: flex;
     justify-content: center;
     gap: 16px;
     margin: 8px 0;
     width: 100%;
 }
-#songTitle { /* ADDED for music panel */
+#songTitle { 
     font-weight:600;
     cursor:pointer;
     margin-bottom:12px;
@@ -287,7 +286,7 @@ input[type="checkbox"]:checked::after{
 
 /* 2. 进度条和音量条等长且自适应 */
 /* 容器 */
-.player-row { /* ADDED for track alignment */
+.player-row { 
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -296,7 +295,7 @@ input[type="checkbox"]:checked::after{
     gap: 0;
 }
 /* 侧边占位 (确保对齐) */
-.player-side-item { /* ADDED for track alignment */
+.player-side-item { 
     width: 40px;
     text-align: center;
     flex-shrink: 0;
@@ -306,24 +305,24 @@ input[type="checkbox"]:checked::after{
     font-size: 12px;
     color: var(--text-muted);
 }
-.player-side-item.icon { /* ADDED for volume icons */
+.player-side-item.icon { 
     font-size: 16px;
     opacity: 0.8;
 }
 
 /* 进度条 */
 #progress, #volume {
-    flex: 1; /* CHANGED: 从固定宽度改为自适应 */
+    flex: 1; 
     width: auto !important;
     margin: 0 6px;
     max-width: 100%;
 }
 /* 歌单 */
-#playlistContainer { /* ADDED for music panel */
+#playlistContainer { 
     width: 100%;
     text-align: left;
 }
-#music-player-panel .panel-title { /* ADDED to fix music player title positioning */
+#music-player-panel .panel-title { 
     position: relative;
     width: 100%;
     text-align: center;
