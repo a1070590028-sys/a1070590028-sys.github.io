@@ -180,14 +180,12 @@ input[type="checkbox"]:checked::after{
     text-align: center; 
 }
 
-/* 新增：时间面板自适应宽度，并定位在时间按钮下方 */
+/* 新增：时间面板固定宽度，并定位在时间按钮下方 */
 #time-panel {
     top: 92px; /* 按钮高度+间距 */
     right: 24px;
-    width: fit-content;
-    min-width: 200px; 
-    text-align: center; /* <<< 修正：确保内容居中 */
-    /* 覆盖 width: 280px; */
+    width: 280px; /* <<< 修正：固定宽度以匹配其他面板 */
+    text-align: center; /* 确保内容居中 */
 }
 .time-detail-item {
     margin: 6px 0;
