@@ -104,7 +104,7 @@ body.theme-night {
     }
 }
 
-/* 进度条 */
+/* 进度条通用样式 */
 input[type="range"]{
     -webkit-appearance:none;appearance:none;height:6px;border-radius:3px;
     background:var(--range-track);
@@ -179,7 +179,7 @@ input[type="checkbox"]:checked::after{
     background:rgba(255,255,255,0.08);border:1px solid var(--border);
     backdrop-filter:blur(12px);color:var(--text);display:none;z-index:99999;
 }
-#bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3{
+#bg-switcher-panel h3,#net-monitor-panel h3{
     margin:0 0 12px;font-size:16px;color:var(--accent);
 }
 
@@ -197,6 +197,15 @@ input[type="checkbox"]:checked::after{
     display: none; /* 默认隐藏 */
     flex-direction: column;
     align-items: center; /* Flex子项居中 */
+}
+/* 音乐面板标题特殊处理 */
+#music-player-panel .panel-title {
+    margin: 0 0 12px;
+    font-size: 16px;
+    color: var(--accent);
+    position: relative;
+    width: 100%;
+    text-align: center; /* 强制标题文字居中 */
 }
 
 /* 网络面板 → 右下角按钮上方 */
@@ -236,19 +245,50 @@ input[type="checkbox"]:checked::after{
     .thumb{width:45%}
 }
 
-/* ==================== 音乐播放器专用样式优化 ==================== */
+/* ==================== 音乐播放器专用样式优化 (V3) ==================== */
 
-/* 1. 播放行容器：Flex布局，垂直水平居中 */
+/* 1. 播放行容器：Flex布局，两端对齐 */
 .player-row {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     width: 100%;
     margin: 6px 0;
-    gap: 10px;
+    gap: 0; /* 间距由子元素边距控制 */
 }
 
-/* 2. 圆形播放控制按钮（上一首、播放/暂停、下一首） */
+/* 2. 侧边元素 (时间/音量图标)：固定宽度，确保中间进度条长度绝对一致 */
+.player-side-item {
+    width: 40px; /* 固定占位宽度 */
+    text-align: center;
+    flex-shrink: 0; /* 禁止压缩 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    color: var(--text-muted);
+}
+.player-side-item.icon {
+    font-size: 16px;
+    opacity: 0.8;
+}
+
+/* 3. 进度条和音量条：自动填充剩余空间 (Flex: 1) */
+#progress, #volume {
+    flex: 1; /* 自动撑满中间区域 */
+    width: auto !important; /* 覆盖旧的固定宽度 */
+    margin: 0 6px; /* 两侧留白 */
+    max-width: 100%;
+}
+
+/* 4. 圆形播放控制按钮 (居中显示) */
+.controls-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin: 8px 0;
+    width: 100%;
+}
 #prevBtn, #playBtn, #nextBtn {
     width: 36px !important;
     height: 36px !important;
@@ -258,7 +298,7 @@ input[type="checkbox"]:checked::after{
     line-height: 36px !important;
     background: rgba(96,165,250,0.25) !important;
     border: 1px solid var(--accent) !important;
-    margin: 0 8px !important;
+    margin: 0 !important;
     cursor: pointer;
     color: var(--text);
     transition: all 0.2s;
@@ -272,24 +312,10 @@ input[type="checkbox"]:checked::after{
     color: #fff;
 }
 
-/* 3. 进度条和音量条统一长度 (双规长度) */
-#progress, #volume {
-    width: 200px !important; /* 统一宽度 */
-    max-width: 100%;
-    margin: 0 4px;
-}
-
-/* 4. 时间文字样式 */
-#currentTime, #duration {
-    font-size: 12px;
-    color: var(--text-muted);
-    min-width: 35px; /* 防止时间跳动导致布局抖动 */
-}
-
 /* 5. 歌单容器 */
 #playlistContainer {
     width: 100%;
-    text-align: left; /* 歌单内部文字保持左对齐比较易读，但容器居中 */
+    text-align: left;
 }
 
 /* 终极补丁：完美双模式（最高优先级颜色覆盖） */
