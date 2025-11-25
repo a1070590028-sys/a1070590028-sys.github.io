@@ -81,27 +81,24 @@ select{
 }
 select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
 
-/* >>> 修正开始：确保选项卡使用主题颜色 */
-select option {
-    /* 使用主题变量强制设置背景和文字颜色 */
-    background: var(--card-bg); 
-    color: var(--text);       
-}
-/* <<< 修正结束 */
-
-/* 夜间模式 select 高对比下拉菜单 (原有的，用于进一步强制深色) */
+/* ==================== 优化点：夜间模式 select 高对比下拉菜单 ==================== */
 @media (prefers-color-scheme: dark),
 body.theme-night {
     select {
+        /* select 框体本身使用深色背景和浅色文字 */
         background: rgba(15, 23, 42, 0.95) !important;
         color: #e2e8f0 !important;
         border-color: rgba(96, 165, 250, 0.4) !important;
     }
     select option {
+        /* 尝试设置下拉选项的背景和文字颜色 */
+        /* 注意：此样式可能被操作系统原生 UI 覆盖 */
         background: #1e293b !important;
         color: #cbd5e1 !important;
     }
 }
+/* ====================================================================== */
+
 
 /* 进度条 */
 input[type="range"]{
@@ -188,18 +185,18 @@ input[type="checkbox"]:checked::after{
     text-align: center; 
 }
 
-/* 新增：时间面板固定宽度，并定位在时间按钮下方 */
+/* 时间面板修正宽度和居中 */
 #time-panel {
-    top: 92px; /* 按钮高度+间距 */
+    top: 92px; 
     right: 24px;
-    width: 280px; /* 修正：固定宽度以匹配其他面板 */
-    text-align: center; /* 确保内容居中 */
+    width: 280px; 
+    text-align: center; 
 }
 .time-detail-item {
     margin: 6px 0;
     font-size: 14px;
     color: var(--text);
-    white-space: nowrap; /* 确保内容不折行 */
+    white-space: nowrap; 
 }
 
 
