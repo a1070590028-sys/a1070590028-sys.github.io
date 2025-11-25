@@ -9,7 +9,6 @@
 </head>
 <body>
 
-<!-- Vanta 背景全屏层 -->
 <div id="vanta-bg"></div>
 
 <div id="time-card"><div class="date">0000-00-00</div><div class="time">--:--:--</div></div>
@@ -17,7 +16,6 @@
 <header><h1>Frey 的个人网站</h1><p>记录 · 思考 · 成长 · 前进</p></header>
 
 <div class="container">
-    <!-- 图片压缩&格式转换 -->
     <div class="post-card">
         <h2 class="card-title">图片压缩&格式转换 <span class="toggle-icon">▾</span></h2>
         <div class="card-content">
@@ -70,7 +68,6 @@
         </div>
     </div>
 
-    <!-- 图片 ↔ PDF 互转 -->
     <div class="post-card">
         <h2 class="card-title">图片 ↔ PDF 互转 <span class="toggle-icon">▾</span></h2>
         <div class="card-content">
@@ -133,7 +130,6 @@
         </div>
     </div>
 
-    <!-- 未来内容 -->
     <div class="post-card">
         <h2 class="card-title">未来内容 <span class="toggle-icon">▾</span></h2>
         <div class="card-content"><p>敬请期待！</p></div>
@@ -142,18 +138,15 @@
 
 <footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
 
-<!-- 背景切换按钮 -->
 <div id="bg-switcher-btn"><span id="bg-icon"></span></div>
 <div id="bg-switcher-panel">
     <h3>动态背景模式</h3>
     <div class="bg-options">
         <button data-mode="night" class="bg-opt active">夜间 · NET网格</button>
         <button data-mode="day"   class="bg-opt">日间 · BIRDS飞鸟</button>
-        <!-- 已彻底删除自动模式 -->
-    </div>
+        </div>
 </div>
 
-<!-- 网络监控 -->
 <div id="net-monitor-btn"><div class="net-icon">🌐</div></div>
 <div id="net-monitor-panel">
     <h3>网络状态监控</h3>
@@ -163,24 +156,34 @@
     <div class="net-item">网络延迟：<span id="nm-latency">--</span></div>
 </div>
 
-<!-- 音乐播放器 -->
 <div id="music-player-btn"><div class="music-icon">🎵</div></div>
 <div id="music-player-panel">
-    <h3 style="margin:0 0 10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+    <h3 style="margin:0 0 10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;width:100%;">
         <span>音乐播放器</span>
         <span id="toggleList" style="font-size:18px;opacity:0.6;">♪</span>
     </h3>
-    <div id="songTitle" class="net-item" style="font-weight:600;cursor:pointer;" title="点击展开歌单">加载中...</div>
-    <div class="net-item">进度：<input type="range" id="progress" value="0" max="100" style="width:160px;vertical-align:middle;"></div>
-    <div class="net-item" style="justify-content:space-between;">
+    
+    <div id="songTitle" class="net-item" style="font-weight:600;cursor:pointer;margin-bottom:12px;" title="点击展开歌单">加载中...</div>
+    
+    <div class="player-row">
         <span id="currentTime">0:00</span>
-        <button id="prevBtn" class="mini-btn">⏮</button>
-        <button id="playBtn" class="mini-btn">▶</button>
-        <button id="nextBtn" class="mini-btn">⏭</button>
+        <input type="range" id="progress" value="0" max="100">
         <span id="duration">--:--</span>
     </div>
-    <div class="net-item">音量：<input type="range" id="volume" min="0" max="100" value="70" style="width:140px;vertical-align:middle;"></div>
-    <div id="playlistContainer" style="display:none;max-height:180px;overflow-y:auto;margin-top:8px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;">
+
+    <div class="player-row" style="margin-top:8px; margin-bottom:8px;">
+        <button id="prevBtn" title="上一首">⏮</button>
+        <button id="playBtn" title="播放/暂停">▶</button>
+        <button id="nextBtn" title="下一首">⏭</button>
+    </div>
+
+    <div class="player-row">
+        <span style="font-size:16px;">🔈</span>
+        <input type="range" id="volume" min="0" max="100" value="70">
+        <span style="font-size:16px;">🔊</span>
+    </div>
+
+    <div id="playlistContainer" style="display:none;max-height:180px;overflow-y:auto;margin-top:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;width:100%;">
         <div style="text-align:center;color:#60a5fa;font-size:12px;padding:4px 0;margin-bottom:8px;border-bottom:1px solid rgba(96,165,250,0.3);font-weight:600;">
             以下所有音乐均由 Frey 使用 AI 生成
         </div>
@@ -189,7 +192,6 @@
     </div>
 </div>
 
-<!-- 第三方库（全部本地） -->
 <script src="js/lib/three.min.js"></script>
 <script src="js/lib/vanta.net.min.js"></script>
 <script src="js/lib/vanta.birds.min.js"></script>
@@ -199,16 +201,13 @@
 <script src="js/lib/jspdf.umd.min.js"></script>
 <script src="js/lib/pdf.min.js"></script>
 
-<!-- 修复 type="module" 能访问 Vanta 全局对象 -->
 <script>
     window.VANTA = window.VANTA || {};
     Object.assign(window.VANTA, window.VANTA || {});
 </script>
 
-<!-- 自己的模块入口 -->
 <script type="module" src="js/main.js"></script>
 
-<!-- 内联脚本（PDF Tab + 日志样式） -->
 <script>
 // Tab 切换
 document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
