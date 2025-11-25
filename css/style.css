@@ -81,7 +81,15 @@ select{
 }
 select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
 
-/* 夜间模式 select 高对比下拉菜单 */
+/* >>> 修正开始：确保选项卡使用主题颜色 */
+select option {
+    /* 使用主题变量强制设置背景和文字颜色 */
+    background: var(--card-bg); 
+    color: var(--text);       
+}
+/* <<< 修正结束 */
+
+/* 夜间模式 select 高对比下拉菜单 (原有的，用于进一步强制深色) */
 @media (prefers-color-scheme: dark),
 body.theme-night {
     select {
@@ -184,7 +192,7 @@ input[type="checkbox"]:checked::after{
 #time-panel {
     top: 92px; /* 按钮高度+间距 */
     right: 24px;
-    width: 280px; /* <<< 修正：固定宽度以匹配其他面板 */
+    width: 280px; /* 修正：固定宽度以匹配其他面板 */
     text-align: center; /* 确保内容居中 */
 }
 .time-detail-item {
