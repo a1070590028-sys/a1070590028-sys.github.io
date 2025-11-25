@@ -16,7 +16,8 @@ export function initMusicPlayer() {
 
     // 面板开关
     btn.onclick = () => {
-        panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+        // 使用 flex 布局显示
+        panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
     };
     panel.addEventListener('click', e => e.stopPropagation());
 
@@ -54,7 +55,7 @@ export function initMusicPlayer() {
         playlist.forEach((song, i) => {
             const div = document.createElement('div');
             div.textContent = song.name;
-            div.style.cssText = 'padding:6px 4px;cursor:pointer;border-radius:4px;margin:2px 0;transition:0.2s;';
+            div.style.cssText = 'padding:6px 4px;cursor:pointer;border-radius:4px;margin:2px 0;transition:0.2s;text-align:left;';
             if (i === currentIndex) {
                 div.style.background = 'rgba(96,165,250,0.3)';
                 div.style.fontWeight = '600';
