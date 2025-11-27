@@ -22,30 +22,6 @@ header h1{margin:0 0 8px;font-size:34px;font-weight:700;color:var(--accent);
     text-shadow:0 0 8px rgba(96,165,250,0.35);}
 header p{margin:0;color:var(--text-muted);opacity:.85}
 
-/* ✅ 新增：Header 内按钮的样式 */
-.header-btn{
-    /* 继承基础按钮样式 */
-    display: inline-block;
-    padding: 8px 18px; /* 稍微大一点 */
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--btn-bg);
-    color: var(--text);
-    cursor: pointer;
-    user-select: none;
-    transition: all .2s;
-    margin-top: 15px; /* 与上方的 <p> 隔开 */
-    font-size: 15px;
-    font-weight: 500;
-}
-.header-btn:hover{
-    /* 继承 .btn:hover 效果 */
-    transform:translateY(-2px);
-    box-shadow:0 8px 18px rgba(0,0,0,0.35);
-    border-color:var(--accent);
-    color:var(--accent);
-}
-
 .container{position:relative;z-index:1;max-width:980px;margin:28px auto;padding:0 16px;}
 .post-card{
     background:var(--card-bg);border:1px solid var(--border);
@@ -55,7 +31,7 @@ header p{margin:0;color:var(--text-muted);opacity:.85}
     margin:0 0 10px;color:var(--accent);cursor:pointer;
     display:flex;align-items:center;justify-content:space-between;font-size:20px;
 }
-.toggle-icon{color:var(--accent);opacity:0.85;font-size:18px;transition:transform .3s;}
+.toggle-icon{color:var(--accent);opacity:0.85;transition:transform .3s;}
 .post-card:hover .toggle-icon{transform:rotate(180deg);}
 .post-card p{margin:0;color:var(--text-muted)}
 
@@ -89,22 +65,13 @@ footer span{color:var(--accent)}
 /* 表单元素 */
 label.small,.small{font-size:13px;color:var(--text-muted);display:block;margin-bottom:6px}
 /* --- 修改点 1: 统一输入框背景色为略微不透明的浅色 --- */
-input[type="number"],select,input[type="range"],
-/* ✅ 新增：留言板输入框和文本域 */
-#message-board-panel input[type="text"],
-#message-board-panel textarea {
-    width:100%;padding:8px;border-radius:8px; /* 统一 padding */
+input[type="number"],select,input[type="range"]{
+    width:100%;padding:6px;border-radius:8px;
     border:1px solid var(--border);
     /* ✅ 修改为略浅的背景色 */
     background: rgba(255, 255, 255, 0.05);
     color:var(--text);
 }
-/* ✅ 新增：文本域样式 */
-#message-board-panel textarea {
-    resize: vertical; /* 允许垂直调整大小 */
-    margin-bottom: 10px;
-}
-
 .file-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .card-content{overflow:hidden;max-height:9999px;transition:max-height .35s ease,padding .35s ease;padding:12px 0 0 0}
 .card-content.collapsed{max-height:0;padding:0}
@@ -210,10 +177,8 @@ input[type="checkbox"]:checked::after{
     right:24px;
 }
 
-/* ==================== 面板通用样式和定位 ==================== */
-#bg-switcher-panel,#net-monitor-panel,#music-player-panel,#time-panel,
-/* ✅ 新增：留言板面板 */
-#message-board-panel { 
+/* 面板通用样式 */
+#bg-switcher-panel,#net-monitor-panel,#music-player-panel,#time-panel{ 
     position:fixed;
     width:280px; /* 大部分面板的固定宽度 */
     padding:16px;border-radius:14px;
@@ -221,9 +186,7 @@ input[type="checkbox"]:checked::after{
     backdrop-filter:blur(12px);color:var(--text);display:none;z-index:99999;
 }
 /* 统一面板标题样式 (居中) */
-#bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3,#time-panel h3,
-/* ✅ 新增：留言板面板标题 */
-#message-board-panel h3 { 
+#bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3,#time-panel h3{ 
     margin:0 0 12px;font-size:16px;color:var(--accent);
     text-align: center; 
 }
@@ -270,40 +233,6 @@ input[type="checkbox"]:checked::after{
     right:24px;
 }
 
-/* ✅ 新增：留言板面板的定位和特殊样式 */
-#message-board-panel {
-    position: fixed;
-    top: 50%; /* 垂直居中 */
-    left: 50%; /* 水平居中 */
-    transform: translate(-50%, -50%); /* 抵消位移 */
-    width: 320px; /* 稍宽一些，更适合表单 */
-    max-height: 80vh; /* 最大高度 */
-    padding: 20px; /* 稍大一些的内边距 */
-    overflow-y: auto; 
-    /* 默认 display: none 在通用面板样式中已设置 */
-}
-#message-board-panel h3 {
-    font-size: 18px;
-    margin-bottom: 15px;
-}
-/* ✅ 新增：留言列表项样式 */
-.message-item {
-    padding: 8px 0;
-    border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
-    font-size: 14px;
-    text-align: left;
-}
-.message-item:last-child {
-    border-bottom: none;
-}
-.message-meta {
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 4px;
-    display: flex;
-    justify-content: space-between;
-}
-
 /* 确保网络监控列表项文本居中 */
 .net-item{margin:6px 0;font-size:14px;color:var(--text); text-align: center;} 
 
@@ -336,11 +265,6 @@ input[type="checkbox"]:checked::after{
 @media(max-width:860px){
     .compress-grid{grid-template-columns:1fr}
     .thumb{width:45%}
-    
-    /* 响应式：留言板在小屏幕上宽度调整 */
-    #message-board-panel {
-        width: 90%; 
-    }
 }
 
 /* ==================== 音乐播放器专用样式优化 (V3) ==================== */
@@ -445,7 +369,43 @@ header h1,
 #time-btn,
 .btn:hover,
 .bg-opt:hover,
-.bg-opt.active,
-.header-btn:hover { /* ✅ 新增：留言板按钮悬停颜色 */
+.bg-opt.active {
+    color: var(--accent) !important;
+}
+
+/* ==================== 头部留言板按钮样式 (新增) ==================== */
+
+.header-btn {
+    /* 继承并覆盖 .btn 的核心样式 */
+    display: inline-block;
+    padding: 8px 16px; /* 稍微大一点，作为主按钮 */
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--btn-bg);
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+    transition: all .2s;
+    text-decoration: none; /* 移除 a 标签的下划线 */
+    margin-top: 18px; /* 距离 <p> 标签的距离 */
+    font-weight: 600; /* 加粗 */
+    font-size: 16px;
+    
+    /* 保持颜色主题一致 */
+    background: rgba(96,165,250,0.15) !important; 
+    border-color: var(--accent) !important;
+    color: var(--accent) !important;
+}
+.header-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.35);
+    border-color: var(--accent);
+    color: #fff !important; /* 悬停时文字变白 */
+    background: var(--accent) !important; /* 悬停时背景变强调色 */
+}
+
+/* 终极补丁：确保颜色高亮 */
+header .header-btn {
+    /* 确保按钮在 header 中也能正确显示颜色 */
     color: var(--accent) !important;
 }
