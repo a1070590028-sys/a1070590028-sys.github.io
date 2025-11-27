@@ -12,6 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const contentInput = document.getElementById('panel-guestbook-content');
     const messagesList = document.getElementById('panel-messages-list');
     const messageLog = document.getElementById('panel-message-log');
+    
+    // ⭐ 新增：用于存储定时器ID
+    let fetchIntervalId = null; 
+    const REFRESH_INTERVAL_MS = 60000; // 1 分钟
 
     // 2. 面板切换逻辑
     if(guestbookBtn && guestbookPanel) {
@@ -26,10 +30,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (guestbookPanel.style.display === 'block') {
                 guestbookPanel.style.display = 'none';
+                // ⭐ 新增：关闭面板时清除定时器
+                if (fetchIntervalId) {
+                    clearInterval(fetchIntervalId);
+                    fetchIntervalId = null;
+                }
             } else {
                 guestbookPanel.style.display = 'block';
                 // 每次打开面板时刷新留言
                 fetchMessages();
+                // ⭐ 新增：打开面板时启动定时器，每 1 分钟刷新一次
+                if (!fetchIntervalId) {
+                    fetchIntervalId = setInterval(fetchMessages, REFRESH_INTERVAL_MS);
+                }
             }
         });
     }
@@ -69,6 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const fetchMessages = async () => {
+        // 如果面板未显示，则不执行 fetch（避免在后台运行）
+        if (guestbookPanel.style.display !== 'block') {
+            return;
+        }
+
         messagesList.innerHTML = '<p class="small" style="text-align:center;">正在加载留言...</p>';
         
         try {
