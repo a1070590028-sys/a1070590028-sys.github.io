@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const messagesList = document.getElementById('panel-messages-list');
     const messageLog = document.getElementById('panel-message-log');
     
-    // ⭐ 新增：用于存储定时器ID
+    // 用于存储定时器ID
     let fetchIntervalId = null; 
     const REFRESH_INTERVAL_MS = 60000; // 1 分钟
 
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (guestbookPanel.style.display === 'block') {
                 guestbookPanel.style.display = 'none';
-                // ⭐ 新增：关闭面板时清除定时器
+                // 关闭面板时清除定时器
                 if (fetchIntervalId) {
                     clearInterval(fetchIntervalId);
                     fetchIntervalId = null;
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 guestbookPanel.style.display = 'block';
                 // 每次打开面板时刷新留言
                 fetchMessages();
-                // ⭐ 新增：打开面板时启动定时器，每 1 分钟刷新一次
+                // 打开面板时启动定时器，每 1 分钟刷新一次
                 if (!fetchIntervalId) {
                     fetchIntervalId = setInterval(fetchMessages, REFRESH_INTERVAL_MS);
                 }
@@ -87,21 +87,21 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // 每次 fetch 尝试时都显示加载提示
         messagesList.innerHTML = '<p class="small" style="text-align:center;">正在加载留言...</p>';
         
         try {
-            // ⭐ 必须使用完整的服务器地址和端口 ⭐
             const response = await fetch(`${BASE_URL}/api/messages`);
             const data = await response.json();
             
             if (response.ok && data.success) {
                 renderMessages(data.data);
-            } else {
-                 messagesList.innerHTML = '<p class="small" style="color:red; text-align:center;">无法连接后端服务或获取数据失败。</p>';
-            }
+            } 
+            // ❗ 关键改动：如果失败（非200状态码），我们不做任何操作，让加载提示保留。
+            
         } catch (error) {
             console.error('Error fetching messages:', error);
-            messagesList.innerHTML = '<p class="small" style="color:red; text-align:center;">网络或服务器错误，请检查后端服务是否运行。</p>';
+            // ❗ 关键改动：网络错误时，我们不做任何操作，让加载提示保留。
         }
     };
 
@@ -136,11 +136,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     // 重新加载留言列表以显示新内容
                     await fetchMessages(); 
                 } else {
+                    // 提交失败时，仍然显示错误提示（提交失败是用户操作，需要明确反馈）
                     messageLog.style.color = 'red';
                     messageLog.textContent = `留言失败：${result.error || '未知错误'}`;
                 }
             } catch (error) {
                 console.error('Error submitting message:', error);
+                // 提交失败时，仍然显示错误提示
                 messageLog.style.color = 'red';
                 messageLog.textContent = '网络或服务器错误，提交失败。';
             } finally {
