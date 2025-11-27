@@ -31,7 +31,7 @@ header p{margin:0;color:var(--text-muted);opacity:.85}
     margin:0 0 10px;color:var(--accent);cursor:pointer;
     display:flex;align-items:center;justify-content:space-between;font-size:20px;
 }
-.toggle-icon{color:var(--accent);opacity:0.85;transition:transform .3s;}
+.toggle-icon{color:var(--accent);opacity:0.85;font-size:18px;transition:transform .3s;}
 .post-card:hover .toggle-icon{transform:rotate(180deg);}
 .post-card p{margin:0;color:var(--text-muted)}
 
@@ -64,7 +64,7 @@ footer span{color:var(--accent)}
 
 /* 表单元素 */
 label.small,.small{font-size:13px;color:var(--text-muted);display:block;margin-bottom:6px}
-/* --- 修改点 1: 统一输入框背景色为略微不透明的浅色 --- */
+/* --- 统一输入框背景色为略微不透明的浅色 --- */
 input[type="number"],select,input[type="range"]{
     width:100%;padding:6px;border-radius:8px;
     border:1px solid var(--border);
@@ -88,8 +88,6 @@ select{
 select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
 
 /* ==================== 优化点：Select 下拉菜单主题适配 (新方案) ==================== */
-/* 核心思想：使用 JS 动态设置的 CSS 变量，全局覆盖 select 框体和选项的背景/文字颜色，
-   以确保在深色模式下选项列表不是白底黑字。*/
 select {
     /* 确保 select 框体本身使用 JS 主题设置的颜色 */
     /* ✅ 强制使用略浅的背景色 (原为 var(--select-bg) !important) */
@@ -99,8 +97,6 @@ select {
 
 select option {
     /* 强制选项列表的背景和文字使用 JS 设置的变量 */
-    /* 警告：此样式在某些浏览器上可能仍会被原生 UI 覆盖，但它是最佳的 CSS 尝试 */
-    /* ⚠️ 保持选项背景为纯深色以确保可读性，否则选项列表会变得混乱 */
     background: var(--select-bg) !important; 
     color: var(--select-color) !important;
 }
@@ -373,39 +369,35 @@ header h1,
     color: var(--accent) !important;
 }
 
-/* ==================== 头部留言板按钮样式 (新增) ==================== */
-
-.header-btn {
-    /* 继承并覆盖 .btn 的核心样式 */
-    display: inline-block;
-    padding: 8px 16px; /* 稍微大一点，作为主按钮 */
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--btn-bg);
-    color: var(--text);
-    cursor: pointer;
-    user-select: none;
-    transition: all .2s;
-    text-decoration: none; /* 移除 a 标签的下划线 */
-    margin-top: 18px; /* 距离 <p> 标签的距离 */
-    font-weight: 600; /* 加粗 */
-    font-size: 16px;
+/* ==================== 头部留言板按钮样式 (参照固定按钮) ==================== */
+.guestbook-header-btn {
+    display: inline-flex; /* 使用 flex 实现居中 */
+    align-items: center;
+    justify-content: center;
     
-    /* 保持颜色主题一致 */
-    background: rgba(96,165,250,0.15) !important; 
-    border-color: var(--accent) !important;
-    color: var(--accent) !important;
+    /* 参照固定按钮的透明、模糊、边框样式 */
+    padding: 10px 24px; 
+    margin-top: 20px; /* 距离 <p> 标签的距离 */
+    border-radius: 12px; /* 略微圆角 */
+    
+    background: rgba(255, 255, 255, 0.08); /* 参照固定按钮 */
+    border: 1px solid rgba(255, 255, 255, 0.15); /* 参照固定按钮 */
+    backdrop-filter: blur(10px); /* 参照固定按钮 */
+    
+    color: var(--accent); /* 强调色文本 */
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .25s;
+    user-select: none;
 }
-.header-btn:hover {
+
+.guestbook-header-btn:hover {
+    /* 参照固定按钮的 Hover 效果 */
     transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(0,0,0,0.35);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
     border-color: var(--accent);
     color: #fff !important; /* 悬停时文字变白 */
     background: var(--accent) !important; /* 悬停时背景变强调色 */
-}
-
-/* 终极补丁：确保颜色高亮 */
-header .header-btn {
-    /* 确保按钮在 header 中也能正确显示颜色 */
-    color: var(--accent) !important;
 }
