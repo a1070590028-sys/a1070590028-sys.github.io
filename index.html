@@ -18,7 +18,44 @@
     <div class="time-detail-item">时刻：<span id="tp-time">--</span></div>
 </div>
 
-<header><h1>Frey 的个人网站</h1><p>记录 · 思考 · 成长 · 前进</p></header>
+<header>
+    <h1>Frey 的个人网站</h1>
+    <p>记录 · 思考 · 成长 · 前进</p>
+    <button id="message-board-btn" class="header-btn">留言板</button>
+</header>
+
+<div id="message-board-panel">
+    <h3>📝 给我留言</h3>
+    <div id="message-form">
+        <label class="small">您的昵称 (可选)</label>
+        <input type="text" id="nickname" placeholder="匿名用户">
+
+        <label class="small" style="margin-top:10px">留言内容 (*必填)</label>
+        <textarea id="message-content" placeholder="请写下您的意见或想说的话..." rows="4"></textarea>
+
+        <button class="btn" id="submit-message-btn" style="margin-top:12px">提交留言</button>
+    </div>
+    <div id="message-list-container" style="margin-top:15px;padding-top:15px;border-top:1px solid var(--border);">
+        <h4 style="margin:0 0 10px;font-size:15px;color:var(--text)">最新留言 (待集成后端)</h4>
+        <div id="message-list" style="max-height: 200px;overflow-y: auto;">
+            <div class="message-item">
+                “界面设计非常棒，图片工具很实用！”
+                <div class="message-meta">
+                    <span>—— 匿名用户</span>
+                    <span>2025-11-27</span>
+                </div>
+            </div>
+            <div class="message-item">
+                “期待未来内容的更新，加油！”
+                <div class="message-meta">
+                    <span>—— Tester</span>
+                    <span>2025-11-26</span>
+                </div>
+            </div>
+            <div class="small" style="text-align:center;padding:10px 0;">...</div>
+        </div>
+    </div>
+</div>
 
 <div class="container">
     <div class="post-card">
@@ -230,6 +267,54 @@ document.getElementById('pageSize').onchange = e => {
 const style = document.createElement('style');
 style.textContent = `#imgLog,#pdfLog{margin-top:6px;color:var(--text-muted);font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;
 `;
+
+// ==================== ✅ 新增：留言板面板逻辑 ====================
+document.addEventListener('DOMContentLoaded', () => {
+    const messageBtn = document.getElementById('message-board-btn');
+    const messagePanel = document.getElementById('message-board-panel');
+
+    // 默认隐藏面板
+    messagePanel.style.display = 'none';
+
+    // 点击按钮切换留言板面板的显示状态
+    messageBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // 阻止事件冒泡，防止立即触发 document 上的点击关闭
+        const isHidden = messagePanel.style.display === 'none';
+        
+        // 确保其他面板关闭
+        document.querySelectorAll('#bg-switcher-panel, #net-monitor-panel, #music-player-panel, #time-panel').forEach(p => {
+             if (p.id !== 'message-board-panel') {
+                p.style.display = 'none';
+             }
+        });
+        
+        messagePanel.style.display = isHidden ? 'block' : 'none';
+    });
+    
+    // 点击面板外部区域关闭面板的逻辑
+    document.addEventListener('click', (event) => {
+        // 仅在面板可见时执行关闭逻辑
+        if (messagePanel.style.display === 'block') {
+             // 检查点击目标是否在面板内部或按钮本身
+            if (!messagePanel.contains(event.target) && !messageBtn.contains(event.target)) {
+                messagePanel.style.display = 'none';
+            }
+        }
+    });
+
+    // 留言提交按钮的占位逻辑（实际后端逻辑待集成）
+    document.getElementById('submit-message-btn').addEventListener('click', () => {
+        const content = document.getElementById('message-content').value.trim();
+        if (content === '') {
+            alert('留言内容不能为空！');
+            return;
+        }
+        alert('留言已准备好提交！\n此功能需要后端支持，请等待微型云服务器集成。');
+        // 实际的 fetch API 调用将在这里
+    });
+
+});
+// =============================================================
 </script>
 </body>
 </html>
