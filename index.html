@@ -1,411 +1,241 @@
-html,body{width:100%;height:100%;margin:0;padding:0;overflow-x:hidden;}
-#vanta-bg{position:fixed !important;inset:0;width:100%;height:100%;z-index:-1;}
-*{box-sizing:border-box}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Frey 的个人网站</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
 
-html{height:100%;margin:0;padding:0;}
-body{
-    min-height:100vh;height:auto;margin:0;padding:0;
-    font-family:"Segoe UI",Helvetica,Arial,sans-serif;
-    background:transparent;color:var(--text);
-    overflow-x:hidden;position:relative;
-}
-#vanta-bg{position:fixed !important;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none;}
+<div id="vanta-bg"></div>
 
-/* 页眉 */
-header{
-    position:relative;z-index:1;backdrop-filter:blur(5px);
-    background:var(--card-bg) !important;
-    border-bottom:1px solid var(--border);
-    padding:40px 20px;text-align:center;
-}
-header h1{margin:0 0 8px;font-size:34px;font-weight:700;color:var(--accent);
-    text-shadow:0 0 8px rgba(96,165,250,0.35);}
-header p{margin:0;color:var(--text-muted);opacity:.85}
+<div id="time-btn">🕓</div> <div id="time-panel">
+    <h3>北京时间</h3>
+    <div class="time-detail-item">日期：<span id="tp-date">--</span></div>
+    <div class="time-detail-item">星期：<span id="tp-week">--</span></div>
+    <div class="time-detail-item">时刻：<span id="tp-time">--</span></div>
+</div>
 
-.container{position:relative;z-index:1;max-width:980px;margin:28px auto;padding:0 16px;}
-.post-card{
-    background:var(--card-bg);border:1px solid var(--border);
-    backdrop-filter:blur(6px);border-radius:14px;padding:20px;margin:18px 0;
-}
-.post-card h2.card-title{
-    margin:0 0 10px;color:var(--accent);cursor:pointer;
-    display:flex;align-items:center;justify-content:space-between;font-size:20px;
-}
-.toggle-icon{color:var(--accent);opacity:0.85;transition:transform .3s;}
-.post-card:hover .toggle-icon{transform:rotate(180deg);}
-.post-card p{margin:0;color:var(--text-muted)}
+<header>
+    <h1>Frey 的个人网站</h1>
+    <p>记录 · 思考 · 成长 · 前进</p>
+    <a href="http://111.228.57.159:3000" target="_blank" class="guestbook-header-btn" title="在新页面打开留言板">
+        访客留言板
+    </a>
+</header>
 
-footer{position:relative;z-index:1;text-align:center;padding:22px;font-size:14px;color:var(--text-muted);}
-footer span{color:var(--accent)}
+<div class="container">
+    <div class="post-card">
+        <h2 class="card-title">图片压缩&格式转换 <span class="toggle-icon">▾</span></h2>
+        <div class="card-content">
+            <p style="margin-top:8px">在浏览器内压缩图片并转换格式：上传 → 设置参数 → 压缩 → 单张或打包下载。</p>
+            <div style="margin-top:12px" class="compress-grid">
+                <div style="padding:12px">
+                    <div id="dropzone" class="dropzone">
+                        <div class="dropzone-title">拖拽图片到这里，或点击选择文件（支持多选）</div>
+                        <div class="small" style="margin-top:6px">支持 JPEG / PNG / WebP / AVIF / GIF（静帧）以及几乎所有浏览器可打开的图片格式</div>
+                        <input id="fileInput" type="file" accept="image/*" multiple style="display:none">
+                    </div>
+                    <div class="thumbs" id="thumbs"></div>
+                    <div style="margin-top:12px" class="file-row">
+                        <div class="small">已选：<span id="count">0</span> 张</div>
+                        <div>
+                            <button class="btn" id="clearBtn">清空页面</button>
+                            <button class="btn" id="compressBtn">开始处理</button>
+                            <button class="btn" id="downloadAllBtn">打包下载</button>
+                        </div>
+                    </div>
+                    <div style="margin-top:8px" class="small">
+                        处理日志：<div id="log"></div>
+                    </div>
+                </div>
+                <div class="controls post-card" style="padding:14px">
+                    <h3 class="params-title">参数设置</h3>
+                    <div class="compress-param"><label class="small">最大宽度或高度（像素）</label><input id="maxSide" type="number" value="1024" min="64" step="1"></div>
+                    <div class="compress-param"><label class="small">目标文件大小（最大，MB）</label><input id="maxSizeMB" type="number" value="1" min="0.05" step="0.05"></div>
+                    <div>
+                        <label class="small">输出格式</label>
+                        <select id="outFormat">
+                            <option value="original">保持原格式</option>
+                            <option value="jpeg">JPEG (.jpg)</option>
+                            <option value="png">PNG (.png)</option>
+                            <option value="webp" selected>WebP (.webp)</option>
+                            <option value="avif">AVIF (.avif)</option>
+                        </select>
+                    </div>
+                    <div class="compress-param">
+                        <label class="small">质量 (0.1 - 1.0) <span id="qualityVal" class="small" style="float:right">0.80</span></label>
+                        <input id="quality" type="range" min="0.1" max="1" step="0.05" value="0.80">
+                    </div>
+                    <div class="compress-param"><label class="small"><input id="useWorker" type="checkbox" checked> 使用 Web Worker（更快，推荐）</label></div>
+                    <div><label class="small"><input type="checkbox" id="onlyConvert"> 仅修改图片格式（不压缩）</label></div>
+                    <div style="margin-top:8px" class="small">
+                        提示：勾选「仅修改图片格式」后将无损转换格式，压缩相关参数会变灰。<br>AVIF 压缩率最高，WebP 兼容性最佳。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-/* 布局 */
-.compress-grid{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
-.controls{padding:12px;display:flex;flex-direction:column;gap:10px;}
+    <div class="post-card">
+        <h2 class="card-title">图片 ↔ PDF 互转 <span class="toggle-icon">▾</span></h2>
+        <div class="card-content">
+            <p style="margin-top:8px">纯前端实现：多图转 PDF、PDF 转图片，全部离线处理，支持拖拽与批量下载。</p>
+            <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+                <button class="btn active" data-tab="img2pdf">图片 → PDF</button>
+                <button class="btn" data-tab="pdf2img">PDF → 图片</button>
+            </div>
+            <div id="img2pdf" class="compress-grid" style="margin-top:12px;gap:18px">
+                <div style="padding:12px">
+                    <div id="dropzoneImg" class="dropzone">
+                        <div class="dropzone-title">拖拽图片到这里，或点击选择（支持多选）</div>
+                        <div class="small" style="margin-top:6px">支持 JPG / PNG / WebP / GIF（静帧）</div>
+                        <input type="file" id="imgInput" accept="image/*" multiple style="display:none">
+                    </div>
+                    <div class="thumbs" id="imgThumbs"></div>
+                    <div class="file-row" style="margin-top:12px">
+                        <div class="small">已选：<span id="imgCount">0</span> 张</div>
+                        <div>
+                            <button class="btn" id="clearImgList">清空列表</button>
+                            <button class="btn" id="generatePdf">生成 PDF</button>
+                        </div>
+                    </div>
+                    <div class="small" style="margin-top:8px">处理日志：<div id="imgLog"></div></div>
+                </div>
+                <div class="controls post-card" style="padding:14px;height:fit-content">
+                    <h3 class="params-title">参数设置</h3>
+                    <div class="compress-param"><label class="small">页面尺寸</label>
+                        <select id="pageSize">
+                            <option value="a4">A4（竖版）</option>
+                            <option value="a4l">A4（横版）</option>
+                            <option value="letter">Letter</option>
+                            <option value="custom">自定义尺寸</option>
+                        </select>
+                    </div>
+                    <div class="compress-param" id="customSizeRow" style="display:none">
+                        <input type="number" id="customW" placeholder="宽 px" value="1920" style="width:48%">
+                        <input type="number" id="customH" placeholder="高 px" value="1080" style="width:48%;margin-left:4%">
+                    </div>
+                    <div class="compress-param"><label class="small">边距（px）</label><input id="margin" type="number" value="20" min="0"></div>
+                </div>
+            </div>
+            <div id="pdf2img" style="display:none;padding:12px">
+                <div id="dropzonePdf" class="dropzone">
+                    <div style="font-weight:600;color:#cfe8ff">拖拽 PDF 文件到这里，或点击选择</div>
+                    <div class="small" style="margin-top:6px">一次只支持单个 PDF</div>
+                    <input type="file" id="pdfInput" accept=".pdf" style="display:none">
+                </div>
+                <div class="thumbs" id="pdfThumbs"></div>
+                <div class="file-row" style="margin-top:12px">
+                    <div class="small">共 <span id="pdfPageCount">0</span> 页</div>
+                    <div>
+                        <button class="btn" id="clearPdfList">清空页面</button>
+                        <button class="btn" id="extractImages">提取图片</button>
+                        <button class="btn" id="downloadAllImages">打包下载</button>
+                    </div>
+                </div>
+                <div class="small" style="margin-top:8px">处理日志：<div id="pdfLog"></div></div>
+            </div>
+        </div>
+    </div>
 
-/* 拖拽区 */
-.dropzone{
-    border:2px dashed var(--border);border-radius:10px;padding:16px;
-    text-align:center;cursor:pointer;
-    background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));
-}
+    <div class="post-card">
+        <h2 class="card-title">未来内容 <span class="toggle-icon">▾</span></h2>
+        <div class="card-content"><p>敬请期待！</p></div>
+    </div>
+</div>
 
-/* 缩略图 & 按钮 */
-.thumbs{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
-.thumb{width:120px;background:var(--card-bg);border-radius:8px;padding:8px;text-align:center;font-size:12px;color:var(--text-muted);}
-.thumb img{max-width:100%;max-height:80px;border-radius:6px;display:block;margin:0 auto 6px;}
+<footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
 
-.btn{
-    display:inline-block;padding:8px 12px;border-radius:8px;
-    border:1px solid var(--border);background:var(--btn-bg);
-    color:var(--text);cursor:pointer;margin:6px 6px 0 0;user-select:none;transition:all .2s;
-}
-.btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,0.35);border-color:var(--accent);color:var(--accent);}
-.btn.active{background:rgba(96,165,250,0.25);border-color:var(--accent);color:var(--accent);}
+<div id="bg-switcher-btn"><span id="bg-icon"></span></div>
+<div id="bg-switcher-panel">
+    <h3>动态背景模式</h3>
+    <div class="bg-options">
+        <button data-mode="night" class="bg-opt active">夜间 · NET网格</button>
+        <button data-mode="day"   class="bg-opt">日间 · BIRDS飞鸟</button>
+        </div>
+</div>
 
-/* 表单元素 */
-label.small,.small{font-size:13px;color:var(--text-muted);display:block;margin-bottom:6px}
-/* --- 修改点 1: 统一输入框背景色为略微不透明的浅色 --- */
-input[type="number"],select,input[type="range"]{
-    width:100%;padding:6px;border-radius:8px;
-    border:1px solid var(--border);
-    /* ✅ 修改为略浅的背景色 */
-    background: rgba(255, 255, 255, 0.05);
-    color:var(--text);
-}
-.file-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
-.card-content{overflow:hidden;max-height:9999px;transition:max-height .35s ease,padding .35s ease;padding:12px 0 0 0}
-.card-content.collapsed{max-height:0;padding:0}
+<div id="net-monitor-btn"><div class="net-icon">🌐</div></div>
+<div id="net-monitor-panel">
+    <h3>网络状态监控</h3>
+    <div class="net-item">网络状态：<span id="nm-status">--</span></div>
+    <div class="net-item">请求耗时：<span id="nm-request">--</span></div>
+    <div class="net-item">下载速度：<span id="nm-speed">--</span></div>
+    <div class="net-item">网络延迟：<span id="nm-latency">--</span></div>
+</div>
 
-/* 下拉框箭头 */
-select{
-    padding:6px 30px 6px 8px;
-    /* ✅ 修改为略浅的背景色 (原为 var(--card-bg)) */
-    background: rgba(255, 255, 255, 0.05); /* Select box background */
-    background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='var(--select-arrow)' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e");
-    background-repeat:no-repeat;background-position:right 10px center;
-    color:var(--text);border-radius:8px;cursor:pointer;appearance:none;
-}
-select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);outline:none;}
-
-/* ==================== 优化点：Select 下拉菜单主题适配 (新方案) ==================== */
-/* 核心思想：使用 JS 动态设置的 CSS 变量，全局覆盖 select 框体和选项的背景/文字颜色，
-   以确保在深色模式下选项列表不是白底黑字。*/
-select {
-    /* 确保 select 框体本身使用 JS 主题设置的颜色 */
-    /* ✅ 强制使用略浅的背景色 (原为 var(--select-bg) !important) */
-    background: rgba(255, 255, 255, 0.05) !important; 
-    color: var(--select-color) !important;
-}
-
-select option {
-    /* 强制选项列表的背景和文字使用 JS 设置的变量 */
-    /* 警告：此样式在某些浏览器上可能仍会被原生 UI 覆盖，但它是最佳的 CSS 尝试 */
-    /* ⚠️ 保持选项背景为纯深色以确保可读性，否则选项列表会变得混乱 */
-    background: var(--select-bg) !important; 
-    color: var(--select-color) !important;
-}
-/* ====================================================================== */
-
-/* 进度条 */
-input[type="range"]{
-    -webkit-appearance:none;appearance:none;height:6px;border-radius:3px;
-    background:var(--range-track);
-    cursor:pointer; 
-    vertical-align: middle; 
-}
-input[type="range"]::-webkit-slider-thumb{
-    -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
-    background:var(--range-thumb);border:2px solid #fff;
-    box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;
-    margin-top: -5px; 
-}
-input[type="range"]::-webkit-slider-runnable-track { 
-    height: 6px;
-    border-radius: 3px;
-    background: var(--range-track);
-}
-input[type="range"]::-moz-range-track{
-    height:6px;border-radius:3px;background:var(--range-track);border:none;
-}
-input[type="range"]::-moz-range-thumb{
-    background:var(--range-thumb);border:2px solid #fff;
-    box-shadow:0 2px 6px rgba(0,0,0,0.3);cursor:pointer;
-}
-
-/* 复选框 */
-input[type="checkbox"]{
-    -webkit-appearance:none;appearance:none;
-    width:18px;height:18px;border:2px solid var(--checkbox-border);
-    border-radius:6px;position:relative;cursor:pointer;vertical-align:middle;margin-right:8px;
-}
-input[type="checkbox"]:checked{
-    background:var(--checkbox-border);
-}
-input[type="checkbox"]:checked::after{
-    content:"✓";color:#fff;font-weight:bold;
-    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-}
-
-/* ==================== 固定按钮样式 (统一) ==================== */
-#bg-switcher-btn, #net-monitor-btn, #music-player-btn, #time-btn {
-    position:fixed;width:54px;height:54px;border-radius:50%;
-    background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
-    backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;
-    cursor:pointer;z-index:99999;transition:all .25s;font-size:22px;
-    color: var(--accent);
-}
-#bg-switcher-btn:hover, #net-monitor-btn:hover, #music-player-btn:hover, #time-btn:hover {
-    transform:scale(1.08);box-shadow:0 0 14px rgba(96,165,250,0.4);
-    color: #fff;
-}
-
-/* 各个按钮的具体定位 */
-#bg-switcher-btn{
-    top:28px;
-    left:24px;
-}
-#music-player-btn{
-    bottom:28px;
-    left:24px;
-}
-#net-monitor-btn{
-    bottom:28px;
-    right:24px;
-}
-#time-btn{ /* 时间按钮的定位 */
-    top:28px;
-    right:24px;
-}
-
-/* 面板通用样式 */
-#bg-switcher-panel,#net-monitor-panel,#music-player-panel,#time-panel{ 
-    position:fixed;
-    width:280px; /* 大部分面板的固定宽度 */
-    padding:16px;border-radius:14px;
-    background:rgba(255,255,255,0.08);border:1px solid var(--border);
-    backdrop-filter:blur(12px);color:var(--text);display:none;z-index:99999;
-}
-/* 统一面板标题样式 (居中) */
-#bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3,#time-panel h3{ 
-    margin:0 0 12px;font-size:16px;color:var(--accent);
-    text-align: center; 
-}
-
-/* 时间面板修正宽度和居中 */
-#time-panel {
-    top: 92px; 
-    right: 24px;
-    width: 280px; 
-    text-align: center; 
-}
-.time-detail-item {
-    margin: 6px 0;
-    font-size: 14px;
-    color: var(--text);
-    white-space: nowrap; 
-}
-
-
-/* 背景和网络面板内容居中设置 */
-#bg-switcher-panel, #net-monitor-panel {
-    text-align: center;
-}
-
-/* 背景面板 → 左上角按钮下方 */
-#bg-switcher-panel{
-    top:92px;
-    left:24px;
-}
-
-/* 音乐面板 → 左下角按钮上方 */
-#music-player-panel{
-    bottom:92px;
-    left:24px;
-    display: none; 
-    flex-direction: column; 
-    align-items: center; 
-    text-align: center; 
-}
-
-/* 网络面板 → 右下角按钮上方 */
-#net-monitor-panel{
-    bottom:92px;
-    right:24px;
-}
-
-/* 确保网络监控列表项文本居中 */
-.net-item{margin:6px 0;font-size:14px;color:var(--text); text-align: center;} 
-
-.bg-options{display:flex;flex-direction:column;gap:8px}
-.bg-opt{
-    padding:9px 12px;border-radius:8px;background:transparent;
-    border:1px solid var(--border);color:var(--text);font-size:13.5px;
-    cursor:pointer;transition:all .2s;
-    text-align:center; /* 按钮文本居中 */
-}
-.bg-opt:hover,.bg-opt.active{
-    background:rgba(96,165,250,0.25);border-color:var(--accent);color:#fff;
-}
-
-/* 日志区 */
-#log,#imgLog,#pdfLog{
-    margin-top:6px;color:var(--text-muted);font-size:13px;max-height:160px;overflow:auto;
-    padding:10px 12px;border-radius:8px;background:var(--log-bg);
-    border:1px solid var(--border);line-height:1.5;
-}
-#log::-webkit-scrollbar,#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar{width:8px;background:transparent}
-#log::-webkit-scrollbar-thumb,#imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb{
-    background:rgba(255,255,255,0.15);border-radius:4px;
-}
-#log::-webkit-scrollbar-thumb:hover,#imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover{
-    background:rgba(255,255,255,0.3);
-}
-
-/* 响应式 */
-@media(max-width:860px){
-    .compress-grid{grid-template-columns:1fr}
-    .thumb{width:45%}
-}
-
-/* ==================== 音乐播放器专用样式优化 (V3) ==================== */
-
-/* 1. 三个播放控制按钮（圆形） */
-#prevBtn, #playBtn, #nextBtn {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 50% !important;
-    padding: 0 !important;
-    font-size: 18px !important;
-    line-height: 36px !important;
-    background: rgba(96,165,250,0.25) !important;
-    border: 1px solid var(--accent) !important;
-    margin: 0 6px !important;
-    cursor: pointer; 
-    color: var(--text); 
-    transition: all 0.2s; 
-    display: inline-flex; 
-    justify-content: center; 
-    align-items: center; 
-}
-#prevBtn:hover, #playBtn:hover, #nextBtn:hover { 
-    background: rgba(96,165,250,0.4) !important;
-    transform: scale(1.1);
-    color: #fff;
-}
-.controls-row { 
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin: 8px 0;
-    width: 100%;
-}
-#songTitle { 
-    font-weight:600;
-    cursor:pointer;
-    margin-bottom:12px;
-}
-
-/* 2. 进度条和音量条等长且自适应 */
-/* 容器 */
-.player-row { 
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    margin: 6px 0;
-    gap: 0;
-}
-/* 侧边占位 (确保对齐) */
-.player-side-item { 
-    width: 40px;
-    text-align: center;
-    flex-shrink: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 12px;
-    color: var(--text-muted);
-}
-.player-side-item.icon { 
-    font-size: 16px;
-    opacity: 0.8;
-}
-
-/* 进度条 */
-#progress, #volume {
-    flex: 1; 
-    width: auto !important;
-    margin: 0 6px;
-    max-width: 100%;
-}
-/* 歌单 */
-#playlistContainer { 
-    width: 100%;
-    text-align: left;
-}
-#music-player-panel .panel-title { 
-    position: relative;
-    width: 100%;
-    text-align: center;
-}
-
-
-/* 终极补丁：完美双模式（最高优先级） */
-.dropzone-title,
-#dropzone > div:first-child > div,
-#dropzoneImg > div:first-child > div,
-#dropzonePdf > div:first-child > div,
-.params-title,
-.controls h3 {
-    font-weight: 600 !important;
-    color: var(--accent-light) !important;
-    margin: 0 0 8px 0 !important;
-    font-size: 15px !important;
-}
-
-header h1,
-.post-card h2.card-title,
-.toggle-icon,
-#time-btn,
-.btn:hover,
-.bg-opt:hover,
-.bg-opt.active {
-    color: var(--accent) !important;
-}
-
-/* ==================== 头部留言板按钮样式 (新增) ==================== */
-
-.header-btn {
-    /* 继承并覆盖 .btn 的核心样式 */
-    display: inline-block;
-    padding: 8px 16px; /* 稍微大一点，作为主按钮 */
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: var(--btn-bg);
-    color: var(--text);
-    cursor: pointer;
-    user-select: none;
-    transition: all .2s;
-    text-decoration: none; /* 移除 a 标签的下划线 */
-    margin-top: 18px; /* 距离 <p> 标签的距离 */
-    font-weight: 600; /* 加粗 */
-    font-size: 16px;
+<div id="music-player-btn"><div class="music-icon">🎵</div></div>
+<div id="music-player-panel">
+    <h3 class="panel-title">
+        音乐播放器
+        <span id="toggleList" style="position:absolute;right:0;top:0;cursor:pointer;font-size:18px;opacity:0.6;">♪</span>
+    </h3>
     
-    /* 保持颜色主题一致 */
-    background: rgba(96,165,250,0.15) !important; 
-    border-color: var(--accent) !important;
-    color: var(--accent) !important;
-}
-.header-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(0,0,0,0.35);
-    border-color: var(--accent);
-    color: #fff !important; /* 悬停时文字变白 */
-    background: var(--accent) !important; /* 悬停时背景变强调色 */
-}
+    <div id="songTitle" class="net-item" style="font-weight:600;cursor:pointer;margin-bottom:12px;" title="点击展开歌单">加载中...</div>
+    
+    <div class="player-row">
+        <span id="currentTime" class="player-side-item">0:00</span>
+        <input type="range" id="progress" value="0" max="100">
+        <span id="duration" class="player-side-item">--:--</span>
+    </div>
 
-/* 终极补丁：确保颜色高亮 */
-header .header-btn {
-    /* 确保按钮在 header 中也能正确显示颜色 */
-    color: var(--accent) !important;
-}
+    <div class="controls-row">
+        <button id="prevBtn" title="上一首">⏮</button>
+        <button id="playBtn" title="播放/暂停">▶</button>
+        <button id="nextBtn" title="下一首">⏭</button>
+    </div>
+
+    <div class="player-row">
+        <span class="player-side-item icon">🔈</span>
+        <input type="range" id="volume" min="0" max="100" value="70">
+        <span class="player-side-item icon">🔊</span>
+    </div>
+
+    <div id="playlistContainer" style="display:none;max-height:180px;overflow-y:auto;margin-top:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;width:100%;">
+        <div style="text-align:center;color:#60a5fa;font-size:12px;padding:4px 0;margin-bottom:8px;border-bottom:1px solid rgba(96,165,250,0.3);font-weight:600;">
+            以下所有音乐均由 Frey 使用 AI 生成
+        </div>
+        <div id="playlistItems" style="font-size:13px;"></div>
+        <div style="padding:8px 0;color:#64748b;font-size:12px;text-align:center;">可拖拽本地 mp3 到此处添加</div>
+    </div>
+</div>
+
+<script src="js/lib/three.min.js"></script>
+<script src="js/lib/vanta.net.min.js"></script>
+<script src="js/lib/vanta.birds.min.js"></script>
+<script src="js/lib/vanta.clouds.min.js"></script>
+<script src="js/lib/browser-image-compression.min.js"></script>
+<script src="js/lib/jszip.min.js"></script>
+<script src="js/lib/jspdf.umd.min.js"></script>
+<script src="js/lib/pdf.min.js"></script>
+
+<script>
+    window.VANTA = window.VANTA || {};
+    Object.assign(window.VANTA, window.VANTA || {});
+</script>
+
+<script src="js/modules/time.js"></script> 
+<script type="module" src="js/main.js"></script>
+
+<script>
+// Tab 切换
+document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
+    document.querySelectorAll('[data-tab]').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('#img2pdf, #pdf2img').forEach(x => x.style.display = 'none');
+    b.classList.add('active');
+    document.getElementById(b.dataset.tab).style.display = b.dataset.tab === 'img2pdf' ? 'grid' : 'block';
+});
+// 自定义尺寸显隐
+document.getElementById('pageSize').onchange = e => {
+    document.getElementById('customSizeRow').style.display = e.target.value === 'custom' ? 'block' : 'none';
+};
+// 日志样式统一
+const style = document.createElement('style');
+style.textContent = `#imgLog,#pdfLog{margin-top:6px;color:var(--text-muted);font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;
+`;
+</script>
+</body>
+</html>
