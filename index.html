@@ -18,12 +18,33 @@
     <div class="time-detail-item">时刻：<span id="tp-time">--</span></div>
 </div>
 
+<div id="guestbook-btn"><div class="guestbook-icon">💬</div></div>
+
+<div id="guestbook-panel">
+    <h3 class="panel-title">访客留言板</h3>
+    
+    <div id="guestbook-form">
+        <label for="panel-guestbook-name" class="small">您的昵称 (可选)</label>
+        <input type="text" id="panel-guestbook-name" placeholder="Frey 的热心网友" maxlength="30">
+        
+        <label for="panel-guestbook-content" class="small">留言内容 (必填)</label>
+        <textarea id="panel-guestbook-content" placeholder="在这里留下您宝贵的建议或友好的问候..." maxlength="500" rows="5"></textarea>
+        
+        <button id="panel-submit-message" class="btn" style="width:100%;">提交留言</button>
+        <div id="panel-message-log" class="small" style="text-align:center;margin-top:10px;"></div>
+    </div>
+    
+    <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+        <h4 style="color: var(--accent); font-size: 15px; margin: 0 0 10px 0;">近期留言</h4>
+        <div id="panel-messages-list" style="max-height: 250px; overflow-y: auto;">
+            <p class="small" style="text-align:center;">正在加载留言...</p>
+        </div>
+    </div>
+</div>
+
 <header>
     <h1>Frey 的个人网站</h1>
     <p>记录 · 思考 · 成长 · 前进</p>
-    <a href="http://111.228.57.159:3000" target="_blank" class="guestbook-header-btn" title="在新页面打开留言板">
-        访客留言板
-    </a>
 </header>
 
 <div class="container">
@@ -219,6 +240,7 @@
 
 <script src="js/modules/time.js"></script> 
 <script type="module" src="js/main.js"></script>
+<script src="js/modules/guestbook-panel.js"></script> 
 
 <script>
 // Tab 切换
