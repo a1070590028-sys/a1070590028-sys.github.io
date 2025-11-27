@@ -132,6 +132,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-
-// 注意：第一次加载页面时不会自动显示面板和加载留言，
-// 必须点击按钮 (guestbookBtn) 才会触发 fetchMessages。
