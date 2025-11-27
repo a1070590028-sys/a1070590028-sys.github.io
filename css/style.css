@@ -31,7 +31,7 @@ header p{margin:0;color:var(--text-muted);opacity:.85}
     margin:0 0 10px;color:var(--accent);cursor:pointer;
     display:flex;align-items:center;justify-content:space-between;font-size:20px;
 }
-.toggle-icon{color:var(--accent);opacity:0.85;font-size:18px;transition:transform .3s;}
+.toggle-icon{color:var(--accent);opacity:0.85;transition:transform .3s;}
 .post-card:hover .toggle-icon{transform:rotate(180deg);}
 .post-card p{margin:0;color:var(--text-muted)}
 
@@ -65,13 +65,18 @@ footer span{color:var(--accent)}
 /* 表单元素 */
 label.small,.small{font-size:13px;color:var(--text-muted);display:block;margin-bottom:6px}
 /* --- 统一输入框背景色为略微不透明的浅色 --- */
-input[type="number"],select,input[type="range"]{
+input[type="number"],select,input[type="range"],#guestbook-panel input,#guestbook-panel textarea{
     width:100%;padding:6px;border-radius:8px;
     border:1px solid var(--border);
     /* ✅ 修改为略浅的背景色 */
     background: rgba(255, 255, 255, 0.05);
     color:var(--text);
 }
+#guestbook-panel textarea {
+    resize: vertical;
+    font-size: 14px;
+}
+
 .file-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .card-content{overflow:hidden;max-height:9999px;transition:max-height .35s ease,padding .35s ease;padding:12px 0 0 0}
 .card-content.collapsed{max-height:0;padding:0}
@@ -89,14 +94,11 @@ select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);
 
 /* ==================== 优化点：Select 下拉菜单主题适配 (新方案) ==================== */
 select {
-    /* 确保 select 框体本身使用 JS 主题设置的颜色 */
-    /* ✅ 强制使用略浅的背景色 (原为 var(--select-bg) !important) */
     background: rgba(255, 255, 255, 0.05) !important; 
     color: var(--select-color) !important;
 }
 
 select option {
-    /* 强制选项列表的背景和文字使用 JS 设置的变量 */
     background: var(--select-bg) !important; 
     color: var(--select-color) !important;
 }
@@ -383,23 +385,9 @@ header h1,
 }
 
 /* ==================== 留言板面板内样式 (用于 #guestbook-panel) ==================== */
-#guestbook-panel input, 
-#guestbook-panel textarea {
-    width: 100%;
-    padding: 8px;
-    margin-top: 5px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    border: 1px solid var(--border);
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text);
-    resize: vertical;
-    font-size: 14px;
-}
 #panel-messages-list {
     max-height: 250px;
     overflow-y: auto;
-    /* 自定义滚动条样式，使其与日志区统一 */
 }
 #panel-messages-list::-webkit-scrollbar {width:8px;background:transparent}
 #panel-messages-list::-webkit-scrollbar-thumb {background:rgba(255,255,255,0.15);border-radius:4px;}
