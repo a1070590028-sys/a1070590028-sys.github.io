@@ -143,14 +143,14 @@ input[type="checkbox"]:checked::after{
 }
 
 /* ==================== 固定按钮样式 (统一) ==================== */
-#bg-switcher-btn, #net-monitor-btn, #music-player-btn, #time-btn {
+#bg-switcher-btn, #net-monitor-btn, #music-player-btn, #time-btn, #guestbook-btn { /* 添加 #guestbook-btn */
     position:fixed;width:54px;height:54px;border-radius:50%;
     background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);
     backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;
     cursor:pointer;z-index:99999;transition:all .25s;font-size:22px;
     color: var(--accent);
 }
-#bg-switcher-btn:hover, #net-monitor-btn:hover, #music-player-btn:hover, #time-btn:hover {
+#bg-switcher-btn:hover, #net-monitor-btn:hover, #music-player-btn:hover, #time-btn:hover, #guestbook-btn:hover { /* 添加 #guestbook-btn:hover */
     transform:scale(1.08);box-shadow:0 0 14px rgba(96,165,250,0.4);
     color: #fff;
 }
@@ -172,9 +172,14 @@ input[type="checkbox"]:checked::after{
     top:28px;
     right:24px;
 }
+/* ⭐ NEW: 留言板按钮定位 ⭐ */
+#guestbook-btn { 
+    top: 28px;
+    right: 90px; /* 54px (按钮宽度) + 24px (右边距) + 12px (间距) */
+}
 
 /* 面板通用样式 */
-#bg-switcher-panel,#net-monitor-panel,#music-player-panel,#time-panel{ 
+#bg-switcher-panel,#net-monitor-panel,#music-player-panel,#time-panel, #guestbook-panel { /* 添加 #guestbook-panel */
     position:fixed;
     width:280px; /* 大部分面板的固定宽度 */
     padding:16px;border-radius:14px;
@@ -182,7 +187,7 @@ input[type="checkbox"]:checked::after{
     backdrop-filter:blur(12px);color:var(--text);display:none;z-index:99999;
 }
 /* 统一面板标题样式 (居中) */
-#bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3,#time-panel h3{ 
+#bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3,#time-panel h3, #guestbook-panel h3{ /* 添加 #guestbook-panel h3 */
     margin:0 0 12px;font-size:16px;color:var(--accent);
     text-align: center; 
 }
@@ -227,6 +232,13 @@ input[type="checkbox"]:checked::after{
 #net-monitor-panel{
     bottom:92px;
     right:24px;
+}
+
+/* ⭐ NEW: 留言板面板定位和宽度 ⭐ */
+#guestbook-panel {
+    top: 92px; 
+    right: 24px;
+    width: 320px; /* 略宽一些，以容纳内容 */
 }
 
 /* 确保网络监控列表项文本居中 */
@@ -363,41 +375,41 @@ header h1,
 .post-card h2.card-title,
 .toggle-icon,
 #time-btn,
+#guestbook-btn, /* 确保按钮颜色正确 */
 .btn:hover,
 .bg-opt:hover,
 .bg-opt.active {
     color: var(--accent) !important;
 }
 
-/* ==================== 头部留言板按钮样式 (参照固定按钮) ==================== */
-.guestbook-header-btn {
-    display: inline-flex; /* 使用 flex 实现居中 */
-    align-items: center;
-    justify-content: center;
-    
-    /* 参照固定按钮的透明、模糊、边框样式 */
-    padding: 10px 24px; 
-    margin-top: 20px; /* 距离 <p> 标签的距离 */
-    border-radius: 12px; /* 略微圆角 */
-    
-    background: rgba(255, 255, 255, 0.08); /* 参照固定按钮 */
-    border: 1px solid rgba(255, 255, 255, 0.15); /* 参照固定按钮 */
-    backdrop-filter: blur(10px); /* 参照固定按钮 */
-    
-    color: var(--accent); /* 强调色文本 */
-    text-decoration: none;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all .25s;
-    user-select: none;
+/* ==================== 留言板面板内样式 (用于 #guestbook-panel) ==================== */
+#guestbook-panel input, 
+#guestbook-panel textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text);
+    resize: vertical;
+    font-size: 14px;
 }
+#panel-messages-list {
+    max-height: 250px;
+    overflow-y: auto;
+    /* 自定义滚动条样式，使其与日志区统一 */
+}
+#panel-messages-list::-webkit-scrollbar {width:8px;background:transparent}
+#panel-messages-list::-webkit-scrollbar-thumb {background:rgba(255,255,255,0.15);border-radius:4px;}
+#panel-messages-list::-webkit-scrollbar-thumb:hover {background:rgba(255,255,255,0.3);}
 
-.guestbook-header-btn:hover {
-    /* 参照固定按钮的 Hover 效果 */
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.35);
-    border-color: var(--accent);
-    color: #fff !important; /* 悬停时文字变白 */
-    background: var(--accent) !important; /* 悬停时背景变强调色 */
+/* 留言列表项样式 */
+.guestbook-item {
+    border-bottom: 1px dotted rgba(255, 255, 255, 0.1);
+    padding: 8px 0;
+}
+.guestbook-item:last-child {
+    border-bottom: none;
 }
