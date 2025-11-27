@@ -1,7 +1,7 @@
 // guestbook-panel.js (用于在主页内以浮动面板形式显示留言板)
 
 // 假设 API 路径是完整的服务器地址，用于跨域访问。
-const BASE_URL = 'http://111.228.57.159:3000'; 
+const BASE_URL = 'https://api.frey.asia';
 
 document.addEventListener('DOMContentLoaded', () => {
     // 1. DOM 元素
