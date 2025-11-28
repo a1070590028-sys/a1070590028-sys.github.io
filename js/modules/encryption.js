@@ -1,14 +1,18 @@
 // js/modules/encryption.js
 
-// ====== 1. 常量与辅助函数 ======
+// ====== 1. 常量与配置 ======
+
 const MAGIC_MARKER = 'FSDATA::'; 
-const MAX_METADATA_SEARCH_SIZE = 50 * 1024; // 50KB
+const MAX_METADATA_SEARCH_SIZE = 50 * 1024; 
 const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB 分块
 
+// 状态变量
 let fileToEncrypt = null;
 let fileToDecrypt = null;
 let localCarrierFile = null; 
 const LOCAL_CARRIER_PREFIX = 'LOCAL::'; 
+
+// ====== 2. 辅助工具函数 ======
 
 function log(elementId, message, isError = false) {
     const logElement = document.getElementById(elementId);
@@ -20,6 +24,7 @@ function log(elementId, message, isError = false) {
 }
 
 function downloadFile(blob, filename) {
+    // 处理大文件下载建议使用这种方式防止内存峰值
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -29,228 +34,397 @@ function downloadFile(blob, filename) {
     setTimeout(() => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-    }, 100);
+    }, 1000); // 稍微延时释放
 }
 
-/**
- * 将 CryptoJS WordArray 转换为 Uint8Array
- */
-function wordArrayToUint8Array(wordArray) {
-    const len = wordArray.sigBytes;
-    const words = wordArray.words;
-    const u8 = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-        u8[i] = (words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-    }
-    return u8;
-}
-
-/**
- * 整数转 4字节 Uint8Array (大端序)
- */
+// 整数 <-> 4字节 Uint8Array (大端序)
 function intToBytes(num) {
     const arr = new Uint8Array(4);
-    arr[0] = (num >>> 24) & 0xff;
-    arr[1] = (num >>> 16) & 0xff;
-    arr[2] = (num >>> 8) & 0xff;
-    arr[3] = num & 0xff;
+    new DataView(arr.buffer).setUint32(0, num, false); // big-endian
     return arr;
 }
-
-/**
- * 4字节 Uint8Array 转整数 (大端序)
- */
 function bytesToInt(arr) {
-    let num = 0;
-    num = (arr[0] << 24) | (arr[1] << 16) | (arr[2] << 8) | arr[3];
-    return num >>> 0; 
+    return new DataView(arr.buffer).getUint32(0, false);
 }
 
-// ====== 2. 初始化逻辑 (UI 相关) ======
-async function initCarrierImageSelector() { /* 原始代码保持不变 */ }
-function initLocalCarrierImageSupport() { /* 原始代码保持不变 */ }
-function updateCarrierImageSelection(val) { /* 原始代码保持不变 */ }
-function initFileSelection(inputId, dropzoneId, logId, isDecrypt = false) { /* 原始代码保持不变 */ }
+// ====== 3. Web Crypto API 核心 ======
 
-// ====== 3. 核心加密逻辑 ======
+/**
+ * 从密码生成 AES-GCM 密钥
+ * 使用 PBKDF2 算法，迭代 100,000 次，安全性极高
+ */
+async function deriveKey(password, salt) {
+    const enc = new TextEncoder();
+    const keyMaterial = await window.crypto.subtle.importKey(
+        "raw", 
+        enc.encode(password), 
+        { name: "PBKDF2" }, 
+        false, 
+        ["deriveKey"]
+    );
+    
+    return window.crypto.subtle.deriveKey(
+        {
+            name: "PBKDF2",
+            salt: salt,
+            iterations: 100000,
+            hash: "SHA-256"
+        },
+        keyMaterial,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt", "decrypt"]
+    );
+}
+
+// ====== 4. 初始化与 UI 逻辑 (保持不变) ======
+
+async function initCarrierImageSelector() {
+    const selector = document.getElementById('carrierImage');
+    if (!selector) return;
+    selector.innerHTML = '<option value="" disabled selected>正在加载列表...</option>';
+    
+    try {
+        const response = await fetch('picture/picture-list.json');
+        if (!response.ok) throw new Error("无法加载图片列表");
+        const list = await response.json();
+        
+        selector.innerHTML = '<option value="" disabled selected>请选择载体...</option>';
+        list.forEach(f => {
+            const opt = document.createElement('option');
+            opt.value = f;
+            opt.textContent = f;
+            selector.appendChild(opt);
+        });
+        selector.onchange = (e) => updateCarrierImageSelection(e.target.value);
+    } catch (e) {
+        selector.innerHTML = '<option disabled>加载失败</option>';
+        log('encLog', `列表加载错误: ${e.message}`, true);
+    }
+}
+
+function initLocalCarrierImageSupport() {
+    const dropzone = document.getElementById('localCarrierDropzone');
+    const selector = document.getElementById('carrierImage');
+    if (!dropzone || !selector) return;
+
+    ['dragover', 'dragleave'].forEach(evt => dropzone.addEventListener(evt, e => {
+        e.preventDefault(); e.stopPropagation();
+        dropzone.style.borderColor = evt === 'dragover' ? 'var(--accent)' : 'rgba(96,165,250,0.5)';
+    }));
+
+    dropzone.addEventListener('drop', e => {
+        e.preventDefault(); e.stopPropagation();
+        dropzone.style.borderColor = 'rgba(96,165,250,0.5)';
+        if (!e.dataTransfer.files.length) return;
+        
+        const file = e.dataTransfer.files[0];
+        if (!file.type.startsWith('image/')) return log('encLog', '请拖入图片', true);
+
+        localCarrierFile = file;
+        const old = selector.querySelector(`option[value^="${LOCAL_CARRIER_PREFIX}"]`);
+        if (old) old.remove();
+
+        const opt = document.createElement('option');
+        opt.value = LOCAL_CARRIER_PREFIX + file.name;
+        opt.textContent = `(本地) ${file.name}`;
+        selector.appendChild(opt);
+        selector.value = opt.value;
+        updateCarrierImageSelection(opt.value);
+        log('encLog', `已加载载体: ${file.name}`);
+    });
+}
+
+function updateCarrierImageSelection(val) {
+    const preview = document.getElementById('carrierPreview');
+    const name = document.getElementById('carrierName');
+    const img = document.getElementById('carrierImagePreview');
+    
+    if (!val) { preview.style.display = 'none'; return; }
+    
+    if (val.startsWith(LOCAL_CARRIER_PREFIX) && localCarrierFile) {
+        name.textContent = val.replace(LOCAL_CARRIER_PREFIX, '');
+        img.src = URL.createObjectURL(localCarrierFile);
+        preview.style.display = 'block';
+    } else {
+        name.textContent = val;
+        img.src = `picture/${val}`;
+        preview.style.display = 'block';
+        localCarrierFile = null;
+    }
+}
+
+function initFileSelection(inputId, dropzoneId, logId, isDecrypt) {
+    const input = document.getElementById(inputId);
+    const dropzone = document.getElementById(dropzoneId);
+    if(!input) return;
+
+    const handler = (files) => {
+        const file = files[0];
+        if (!file) return;
+        
+        const sizeGB = (file.size / 1e9).toFixed(2);
+        if (isDecrypt) {
+            fileToDecrypt = file;
+            document.getElementById('decFileDetail').style.display = 'block';
+            document.getElementById('decFileName').textContent = file.name;
+            document.getElementById('decFileSize').textContent = `${sizeGB} GB`;
+            document.getElementById('decLevelDisplay').textContent = '待解析...';
+        } else {
+            fileToEncrypt = file;
+        }
+        dropzone.querySelector('.dropzone-title').textContent = `已选: ${file.name}`;
+        log(logId, `已加载: ${file.name} (${sizeGB} GB)`);
+    };
+
+    dropzone.onclick = () => input.click();
+    input.onchange = () => handler(input.files);
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.style.borderColor = 'var(--accent)'; });
+    dropzone.addEventListener('dragleave', e => { e.preventDefault(); dropzone.style.borderColor = 'var(--border)'; });
+    dropzone.addEventListener('drop', e => {
+        e.preventDefault(); dropzone.style.borderColor = 'var(--border)';
+        handler(e.dataTransfer.files);
+    });
+}
+
+// ====== 5. 核心业务逻辑 (Web Crypto) ======
+
 async function startEncryption() {
     const logId = 'encLog';
     const carrierVal = document.getElementById('carrierImage').value;
-    const encLevel = document.getElementById('encLevel').value;
-    
-    if (!fileToEncrypt) return log(logId, '请先选择待加密文件', true);
-    if (!carrierVal) return log(logId, '请选择载体图片', true);
+    const level = document.getElementById('encLevel').value;
+
+    if (!fileToEncrypt) return log(logId, '请先选择文件', true);
+    if (!carrierVal) return log(logId, '请选择载体', true);
 
     try {
-        log(logId, '正在准备加密...');
+        log(logId, '正在初始化加密环境...');
 
-        let carrierBuf;
+        // 1. 准备载体
+        let carrierBlob;
         if (carrierVal.startsWith(LOCAL_CARRIER_PREFIX)) {
-            carrierBuf = await localCarrierFile.arrayBuffer();
+            carrierBlob = localCarrierFile;
         } else {
-            const resp = await fetch(`picture/${carrierVal}`);
-            if (!resp.ok) throw new Error('无法加载远程图片');
-            carrierBuf = await resp.arrayBuffer();
+            const res = await fetch(`picture/${carrierVal}`);
+            if (!res.ok) throw new Error('无法下载载体图');
+            carrierBlob = await res.blob();
         }
 
-        let resultSegments = [new Uint8Array(carrierBuf)];
-        let hiddenSize = 0;
+        const segments = [carrierBlob]; // 最终文件的组成部分
+        let hiddenTotalSize = 0;
+        let saltBase64 = null;
 
-        if (encLevel === 'level2') {
-            const pwd = prompt("设置加密密码:");
+        if (level === 'level2') {
+            const pwd = prompt("设置密码 (用于 AES-GCM 加密):");
             if (!pwd) return log(logId, '操作取消', true);
-            if (typeof CryptoJS === 'undefined') return log(logId, 'CryptoJS 未加载', true);
-            
-            log(logId, '正在进行 AES-256 数据包加密...');
 
-            const key = CryptoJS.enc.Utf8.parse(pwd);
-            let offset = 0;
+            // 生成随机盐 (16 bytes)
+            const salt = window.crypto.getRandomValues(new Uint8Array(16));
+            // 导出盐用于元数据存储
+            saltBase64 = btoa(String.fromCharCode(...salt));
+            
+            // 派生密钥
+            const key = await deriveKey(pwd, salt);
+            
+            // 存储盐 (作为加密数据的头部)
+            segments.push(salt); 
+            hiddenTotalSize += 16;
+
             const totalSize = fileToEncrypt.size;
+            let offset = 0;
+
+            log(logId, '开始高速加密 (Web Crypto API)...');
 
             while (offset < totalSize) {
                 const chunkBlob = fileToEncrypt.slice(offset, offset + CHUNK_SIZE);
-                const chunkBuf = await chunkBlob.arrayBuffer();
-                const chunkWord = CryptoJS.lib.WordArray.create(chunkBuf);
+                const chunkBuffer = await chunkBlob.arrayBuffer();
 
-                const iv = CryptoJS.lib.WordArray.random(16);
-                const encrypted = CryptoJS.AES.encrypt(chunkWord, key, {
-                    iv: iv,
-                    mode: CryptoJS.mode.CBC,
-                    padding: CryptoJS.pad.Pkcs7
-                });
+                // 生成唯一 IV (12 bytes for GCM)
+                const iv = window.crypto.getRandomValues(new Uint8Array(12));
 
-                const cipherU8 = wordArrayToUint8Array(encrypted.ciphertext);
-                const ivU8 = wordArrayToUint8Array(iv);
-                const lenU8 = intToBytes(cipherU8.byteLength);
+                // 加密 (得到密文 + AuthTag)
+                const encryptedBuffer = await window.crypto.subtle.encrypt(
+                    { name: "AES-GCM", iv: iv },
+                    key,
+                    chunkBuffer
+                );
 
-                // 修复：用 Uint8Array 拼接每个块，保证无损
-                const block = new Uint8Array(4 + 16 + cipherU8.byteLength);
-                block.set(lenU8, 0);
-                block.set(ivU8, 4);
-                block.set(cipherU8, 20);
-                resultSegments.push(block);
+                // 包结构: [Len 4B] + [IV 12B] + [Ciphertext N]
+                const lenBytes = intToBytes(encryptedBuffer.byteLength);
+                
+                segments.push(lenBytes);        // 4B
+                segments.push(iv);              // 12B
+                segments.push(encryptedBuffer); // Data
 
-                hiddenSize += block.byteLength;
+                const packetSize = 4 + 12 + encryptedBuffer.byteLength;
+                hiddenTotalSize += packetSize;
+
                 offset += CHUNK_SIZE;
-
-                const progress = Math.min(100, (offset / totalSize) * 100).toFixed(0);
-                if (offset % (CHUNK_SIZE*5) === 0 || offset >= totalSize) {
-                    log(logId, `加密进度: ${progress}% ...`);
+                
+                // 进度日志
+                if (offset % (CHUNK_SIZE * 5) === 0 || offset >= totalSize) {
+                    const percent = Math.min(100, (offset/totalSize)*100).toFixed(0);
+                    log(logId, `加密中: ${percent}% ...`);
                 }
             }
         } else {
-            resultSegments.push(await fileToEncrypt.arrayBuffer());
-            hiddenSize = fileToEncrypt.size;
+            // Level 1: 直接拼接
+            log(logId, '正在打包文件 (Level 1)...');
+            segments.push(fileToEncrypt);
+            hiddenTotalSize = fileToEncrypt.size;
         }
 
-        const metadata = {
+        // 元数据
+        const meta = {
             magic: MAGIC_MARKER.slice(0, -2),
-            level: encLevel === 'level2' ? 2 : 1,
+            level: level === 'level2' ? 2 : 1,
             name: fileToEncrypt.name,
-            hiddenSize: hiddenSize
+            hiddenSize: hiddenTotalSize,
+            salt: saltBase64 // 如果是Level 2，需要盐来恢复密钥
         };
-        const metaStr = JSON.stringify(metadata) + MAGIC_MARKER;
-        resultSegments.push(new TextEncoder().encode(metaStr));
+        
+        const metaStr = JSON.stringify(meta) + MAGIC_MARKER;
+        segments.push(new TextEncoder().encode(metaStr));
 
-        const finalBlob = new Blob(resultSegments, { type: 'image/png' });
-        const saveName = carrierVal.replace(LOCAL_CARRIER_PREFIX, '').split('.')[0] + '_hidden.png';
+        // 生成
+        log(logId, '正在生成最终文件...');
+        const finalBlob = new Blob(segments, { type: 'image/png' });
+        const saveName = (carrierVal.replace(LOCAL_CARRIER_PREFIX,'').split('.')[0]) + '_secure.png';
         
         downloadFile(finalBlob, saveName);
-        log(logId, `✅ 加密完成！文件已下载: ${saveName}`);
+        log(logId, `✅ 成功！文件已生成: ${saveName}`);
 
     } catch (e) {
-        log(logId, `出错: ${e.message}`, true);
         console.error(e);
+        log(logId, `失败: ${e.message}`, true);
     }
 }
 
-// ====== 4. 核心解密逻辑 ======
 async function startDecryption() {
     const logId = 'decLog';
-    const detailDisplay = document.getElementById('decLevelDisplay');
-
+    const detail = document.getElementById('decLevelDisplay');
+    
     if (!fileToDecrypt) return log(logId, '请先选择文件', true);
 
-    log(logId, '正在分析文件结构...');
+    log(logId, '分析文件结构...');
     try {
-        const fileSize = fileToDecrypt.size;
-        const tailSize = Math.min(fileSize, MAX_METADATA_SEARCH_SIZE);
-        const tailBuf = await fileToDecrypt.slice(fileSize - tailSize, fileSize).arrayBuffer();
-        const tailU8 = new Uint8Array(tailBuf);
+        const size = fileToDecrypt.size;
+        // 1. 找标记
+        const tailSize = Math.min(size, MAX_METADATA_SEARCH_SIZE);
+        const tailBlob = fileToDecrypt.slice(size - tailSize, size);
+        const tailBuf = await tailBlob.arrayBuffer();
+        const tailBytes = new Uint8Array(tailBuf);
         const markerBytes = new TextEncoder().encode(MAGIC_MARKER);
 
         let markerPos = -1;
-        for (let i = tailU8.length - markerBytes.length; i >= 0; i--) {
+        // 从后往前找
+        for(let i = tailBytes.length - markerBytes.length; i >= 0; i--) {
             let match = true;
-            for (let j = 0; j < markerBytes.length; j++) {
-                if (tailU8[i+j] !== markerBytes[j]) { match = false; break; }
+            for(let j=0; j<markerBytes.length; j++) {
+                if(tailBytes[i+j] !== markerBytes[j]) { match = false; break; }
             }
-            if (match) { markerPos = i; break; }
+            if(match) { markerPos = i; break; }
         }
 
-        if (markerPos === -1) throw new Error("未找到加密标记，文件可能未加密或已损坏");
+        if(markerPos === -1) throw new Error("这不是本站加密的文件 (未找到标记)");
 
+        // 2. 读元数据
         const decoder = new TextDecoder();
-        const metaRegionStr = decoder.decode(tailU8.subarray(0, markerPos));
-        const jsonStart = metaRegionStr.lastIndexOf('{');
-        if (jsonStart === -1) throw new Error("无法定位元数据头");
-        const jsonStr = metaRegionStr.substring(jsonStart);
-        let meta = JSON.parse(jsonStr);
+        // 尝试从标记位置往前找 '{'
+        // 为防万一，把标记前的所有数据转字符串找最后一个 '{'
+        const metaAreaStr = decoder.decode(tailBytes.subarray(0, markerPos));
+        const jsonStart = metaAreaStr.lastIndexOf('{');
+        if (jsonStart === -1) throw new Error("元数据头丢失");
+        
+        const jsonStr = metaAreaStr.substring(jsonStart);
+        let meta;
+        try { meta = JSON.parse(jsonStr); } catch(e) { throw new Error("元数据已损坏"); }
 
-        const metaBytesLen = new TextEncoder().encode(jsonStr).byteLength;
-        const absMarkerPos = (fileSize - tailSize) + markerPos;
-        const absJsonStart = absMarkerPos - metaBytesLen;
+        // 3. 定位隐藏区
+        const metaLen = new TextEncoder().encode(jsonStr).byteLength;
+        // 绝对标记位置 = (size - tailSize) + markerPos
+        const absMarker = size - tailSize + markerPos;
+        const absMetaStart = absMarker - metaLen;
+        const absHiddenEnd = absMetaStart;
+        const absHiddenStart = absHiddenEnd - meta.hiddenSize;
 
-        const hiddenEnd = absJsonStart;
-        const hiddenStart = hiddenEnd - meta.hiddenSize;
-        if (hiddenStart < 0) throw new Error("文件完整性校验失败");
+        if (absHiddenStart < 0) throw new Error("文件完整性校验失败");
 
-        detailDisplay.textContent = `级别: ${meta.level}`;
-        log(logId, `发现隐藏数据: ${(meta.hiddenSize/1024/1024).toFixed(2)} MB`);
+        detail.textContent = `Level ${meta.level} (${meta.name})`;
+        log(logId, `检测到加密数据: ${(meta.hiddenSize/1024/1024).toFixed(2)} MB`);
 
-        let finalBlob;
+        let resultSegments = [];
 
         if (meta.level === 2) {
-            const pwd = prompt("输入解密密码:");
+            const pwd = prompt(`文件已加密 (AES-GCM).\n请输入密码:`);
             if (!pwd) return log(logId, '已取消', true);
 
-            const key = CryptoJS.enc.Utf8.parse(pwd);
-            const hiddenBuf = await fileToDecrypt.slice(hiddenStart, hiddenEnd).arrayBuffer();
-            const u8 = new Uint8Array(hiddenBuf);
-            let offset = 0;
-            const decSegments = [];
+            // 读取盐 (隐藏区的前16字节)
+            const saltBlob = fileToDecrypt.slice(absHiddenStart, absHiddenStart + 16);
+            const salt = new Uint8Array(await saltBlob.arrayBuffer());
+            
+            // 派生密钥
+            const key = await deriveKey(pwd, salt);
 
+            // 开始分块解密
+            // 数据区开始位置 = 隐藏区开始 + 16字节盐
+            let offset = absHiddenStart + 16;
+            const dataEnd = absHiddenEnd;
+            
             log(logId, '开始解密...');
 
-            while (offset < u8.length) {
-                const cipherLen = bytesToInt(u8.slice(offset, offset+4));
+            while (offset < dataEnd) {
+                // 1. 读长度 (4B)
+                const lenBlob = fileToDecrypt.slice(offset, offset + 4);
+                const lenVal = bytesToInt(new Uint8Array(await lenBlob.arrayBuffer()));
                 offset += 4;
 
-                const iv = CryptoJS.lib.WordArray.create(u8.slice(offset, offset+16), 16);
-                offset += 16;
+                // 2. 读 IV (12B)
+                const ivBlob = fileToDecrypt.slice(offset, offset + 12);
+                const iv = new Uint8Array(await ivBlob.arrayBuffer());
+                offset += 12;
 
-                const cipherWord = CryptoJS.lib.WordArray.create(u8.slice(offset, offset+cipherLen), cipherLen);
-                offset += cipherLen;
+                // 3. 读密文
+                const cipherBlob = fileToDecrypt.slice(offset, offset + lenVal);
+                const cipherBuf = await cipherBlob.arrayBuffer();
+                offset += lenVal;
 
-                const decrypted = CryptoJS.AES.decrypt({ ciphertext: cipherWord }, key, { iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
-                decSegments.push(wordArrayToUint8Array(decrypted));
+                // 4. 解密
+                try {
+                    const decryptedBuf = await window.crypto.subtle.decrypt(
+                        { name: "AES-GCM", iv: iv },
+                        key,
+                        cipherBuf
+                    );
+                    resultSegments.push(decryptedBuf);
+                } catch (e) {
+                    // GCM 如果发现数据篡改或密码错误，会在这里直接抛错
+                    return log(logId, '密码错误或数据块损坏 (校验失败)', true);
+                }
+
+                if (resultSegments.length % 10 === 0) {
+                    const percent = Math.min(100, ((offset - absHiddenStart)/meta.hiddenSize)*100).toFixed(0);
+                    log(logId, `解密中: ${percent}%`);
+                }
             }
-
-            finalBlob = new Blob(decSegments);
         } else {
-            finalBlob = await fileToDecrypt.slice(hiddenStart, hiddenEnd);
+            // Level 1
+            resultSegments.push(fileToDecrypt.slice(absHiddenStart, absHiddenEnd));
         }
 
+        log(logId, '正在组装文件...');
+        const finalBlob = new Blob(resultSegments);
         downloadFile(finalBlob, meta.name);
-        log(logId, `✅ 解密成功: ${meta.name}`);
+        log(logId, `✅ 成功还原文件: ${meta.name}`);
 
     } catch (e) {
-        log(logId, `解密失败: ${e.message}`, true);
+        log(logId, `错误: ${e.message}`, true);
         console.error(e);
     }
 }
 
-// ====== 5. 绑定事件 ======
+// ====== 6. 启动 ======
+
 document.addEventListener('DOMContentLoaded', () => {
     initCarrierImageSelector();
     initLocalCarrierImageSupport();
