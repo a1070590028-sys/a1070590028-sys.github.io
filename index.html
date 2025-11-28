@@ -303,6 +303,7 @@
 <script src="js/lib/jszip.min.js"></script>
 <script src="js/lib/jspdf.umd.min.js"></script>
 <script src="js/lib/pdf.min.js"></script>
+
 <script>
     window.VANTA = window.VANTA || {};
     Object.assign(window.VANTA, window.VANTA || {});
@@ -366,6 +367,7 @@ document.getElementById('carrierImage').onchange = e => {
 
 // 日志样式统一
 const style = document.createElement('style');
+// 📢 修正：添加 #encLog 和 #decLog
 style.textContent = `#imgLog,#pdfLog,#encLog,#decLog{margin-top:6px;color:var(--text-muted);font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;
 `;
 </script>
