@@ -45,6 +45,15 @@
         #carrierPreview img { display:block; margin:6px auto; max-height:140px; width:auto; border-radius:6px; }
         /* 控制面板内一致的内边距 */
         #encrypt-panel .post-card, #decrypt-panel .post-card { padding:12px; box-sizing:border-box; }
+        /* 修复狗叫密语输出区域的换行和滚动条问题 */
+        #dogDecodeLog, #dogOutputLog {
+            /* 确保内容超出时出现垂直滚动条 */
+            overflow-y: auto !important; 
+            /* 强制在任何字符处打断长单词，确保不会横向溢出 */
+            word-break: break-all !important; 
+            /* 确保日志框有足够的最小高度 */
+            min-height: 100px !important;
+        }
     </style>
 </head>
 <body>
