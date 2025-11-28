@@ -390,8 +390,8 @@ header h1,
     overflow-y: auto;
 }
 #panel-messages-list::-webkit-scrollbar {width:8px;background:transparent}
-#panel-messages-list::-webkit-scrollbar-thumb {background:rgba(255, 255, 255, 0.15);border-radius:4px;}
-#panel-messages-list::-webkit-scrollbar-thumb:hover {background:rgba(255, 255, 255, 0.3);}
+#panel-messages-list::-webkit-scrollbar-thumb {background:rgba(255,255,255,0.15);border-radius:4px;}
+#panel-messages-list::-webkit-scrollbar-thumb:hover {background:rgba(255,255,255,0.3);}
 
 /* 留言列表项样式 */
 .guestbook-item {
@@ -401,10 +401,47 @@ header h1,
 .guestbook-item:last-child {
     border-bottom: none;
 }
+/* 额外的修正，确保最后的花括号关闭整个文件（如果它是被错误放在上一个规则内的） */
+}
 
-/* ⭐ NEW: 加密模块参数区特殊样式 (嵌套的 controls post-card) ⭐ */
-.encrypt-params {
-    padding: 14px;
-    border: 1px dashed var(--border); /* 使用虚线边框以区分 */
-    background: rgba(255, 255, 255, 0.03) !important; /* 更浅的背景，突出参数区域 */
+/* === 样式修复：统一输入框与选择框的样式 (针对卡片内容) === */
+
+/* 统一输入框、密码框和选择框的视觉样式 */
+.post-card input[type="text"], 
+.post-card input[type="number"], 
+.post-card input[type="password"], 
+.post-card select {
+    width: 100%;
+    padding: 10px 12px;
+    margin-top: 5px;
+    /* 统一边框和背景，确保与 select 元素视觉一致 */
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    /* 使用深色背景，确保风格统一 */
+    background-color: var(--input-bg, #1e293b); 
+    color: var(--text);
+    transition: border-color 0.2s;
+    /* 移除浏览器默认样式，让自定义样式生效 */
+    -webkit-appearance: none; 
+    -moz-appearance: none;
+    appearance: none;
+}
+
+/* 焦点状态保持一致 */
+.post-card input:focus, 
+.post-card select:focus {
+    border-color: var(--accent);
+    outline: none;
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* 针对select元素，手动添加一个向下的小箭头，以区分输入框 */
+.post-card select {
+    /* 覆盖掉在文件前面定义的select样式中的padding，使用新的padding */
+    padding-right: 30px !important; 
+    /* 覆盖掉在文件前面定义的select样式中的background-image */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z'/%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: right 10px center !important;
+    background-size: 1em !important;
 }
