@@ -5,6 +5,7 @@
 // 文件隐写数据的起始标记 (用于解密时定位隐藏数据)
 const MAGIC_MARKER = 'FSDATA::'; // 8 characters
 const MAX_METADATA_SEARCH_SIZE = 50 * 1024; // 搜索元数据的最大文件尾部大小 (50KB)
+const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB 分块大小，用于二级加密
 
 // 全局变量用于保存用户选择的待加密文件和解密文件 (File 对象，支持大文件)
 let fileToEncrypt = null;
@@ -40,11 +41,30 @@ function downloadFile(blob, filename) {
     URL.revokeObjectURL(url);
 }
 
+/**
+ * ⭐ 新增辅助函数: 将 CryptoJS WordArray (二进制数据) 转换为 Uint8Array
+ * 确保 WordArray 不会被错误地转换为 Base64 字符串，用于分块读写。
+ */
+function wordArrayToUint8Array(wordArray) {
+    const numBytes = wordArray.sigBytes; 
+    const numWords = wordArray.words.length;
+    const uint8Array = new Uint8Array(numBytes);
+
+    for (let i = 0; i < numBytes; i++) {
+        const wordIndex = i >>> 2;
+        if (wordIndex >= numWords) break; // 防止越界
+        
+        const word = wordArray.words[wordIndex];
+        const byteIndex = i % 4;
+        // 使用位运算提取字节 (大端序)
+        uint8Array[i] = (word >>> (24 - byteIndex * 8)) & 0xff;
+    }
+    return uint8Array;
+}
+
+
 // ====== 2. 初始化函数 (保持不变) ======
 
-/**
- * 初始化图片载体选择下拉菜单 (#carrierImage)
- */
 async function initCarrierImageSelector() {
     const selector = document.getElementById('carrierImage');
     if (!selector) return;
@@ -59,7 +79,6 @@ async function initCarrierImageSelector() {
         }
         
         const rawContent = await response.text();
-
         let imageList;
         try {
             imageList = JSON.parse(rawContent);
@@ -81,7 +100,6 @@ async function initCarrierImageSelector() {
             selector.appendChild(option);
         });
 
-        // 绑定事件处理器 (统一处理远程和本地文件预览)
         selector.onchange = (e) => updateCarrierImageSelection(e.target.value);
 
     } catch (error) {
@@ -90,9 +108,6 @@ async function initCarrierImageSelector() {
     }
 }
 
-/**
- * 处理本地载体图片的拖拽逻辑
- */
 function initLocalCarrierImageSupport() {
     const dropzone = document.getElementById('localCarrierDropzone');
     const selector = document.getElementById('carrierImage');
@@ -143,9 +158,6 @@ function initLocalCarrierImageSupport() {
     });
 }
 
-/**
- * 统一处理载体图片的选择和预览
- */
 function updateCarrierImageSelection(selectedValue) {
     const previewDiv = document.getElementById('carrierPreview');
     const nameSpan = document.getElementById('carrierName');
@@ -166,6 +178,7 @@ function updateCarrierImageSelection(selectedValue) {
     if (selectedValue.startsWith(LOCAL_CARRIER_PREFIX) && localCarrierFile) {
         const fileName = selectedValue.replace(LOCAL_CARRIER_PREFIX, '');
         nameSpan.textContent = `(本地) ${fileName}`;
+        // 使用 URL.createObjectURL 进行本地预览
         imgElement.src = URL.createObjectURL(localCarrierFile);
         previewDiv.style.display = 'block';
     } else if (!selectedValue.startsWith(LOCAL_CARRIER_PREFIX)) {
@@ -179,9 +192,6 @@ function updateCarrierImageSelection(selectedValue) {
 }
 
 
-/**
- * 初始化文件选择/拖拽逻辑 (待加密文件)
- */
 function initEncryptFileSelection() {
     const encInput = document.getElementById('encInput');
     const dropzoneEnc = document.getElementById('dropzoneEnc');
@@ -217,9 +227,6 @@ function initEncryptFileSelection() {
     });
 }
 
-/**
- * 初始化文件选择/拖拽逻辑 (待解密文件)
- */
 function initDecryptFileSelection() {
     const decInput = document.getElementById('decInput');
     const dropzoneDec = document.getElementById('dropzoneDec');
@@ -274,7 +281,7 @@ function initDecryptFileSelection() {
 // ====== 3. 加密/解密核心逻辑 (支持大文件) ======
 
 /**
- * 核心加密函数 (已增强大文件引用检查)
+ * 核心加密函数 (已修复二级加密 Invalid array length 错误)
  */
 async function startEncryption() {
     const logElementId = 'encLog';
@@ -287,13 +294,11 @@ async function startEncryption() {
     if (!fileToEncrypt) {
         return log(logElementId, '请先选择待加密文件！', true);
     }
-    // ⭐ 检查待加密文件引用是否仍然有效
-    if (!fileToEncrypt.arrayBuffer) {
-        return log(logElementId, '待加密文件引用已丢失，请重新选择文件。', true);
-    }
-
     if (!selectedValue) {
         return log(logElementId, '请选择一张图片作为载体！', true);
+    }
+    if (!fileToEncrypt.arrayBuffer) {
+        return log(logElementId, '待加密文件引用已丢失，请重新选择文件。', true);
     }
 
     log(logElementId, `开始加密文件到载体：${carrierImageName}...`);
@@ -301,9 +306,8 @@ async function startEncryption() {
     try {
         let carrierImageBuffer;
 
-        // 1. 获取载体图片数据 (ArrayBuffer) - 区分本地和远程文件
+        // 1. 获取载体图片数据 (ArrayBuffer)
         if (isLocalFile && localCarrierFile) {
-            // ⭐ 检查本地载体文件引用是否仍然有效
             if (!localCarrierFile.arrayBuffer) {
                 return log(logElementId, '本地载体文件引用已丢失，请重新拖入图片。', true);
             }
@@ -319,16 +323,13 @@ async function startEncryption() {
             throw new Error("无法获取载体图片数据。");
         }
 
-
-        // 2. 读取待加密文件数据 (ArrayBuffer)
-        log(logElementId, '正在读取待加密文件内容...');
-        const fileDataBuffer = await fileToEncrypt.arrayBuffer();
-        
-        let hiddenDataBuffer = fileDataBuffer;
+        let hiddenDataSegments = [];
+        let hiddenDataSize = 0;
         let originalFileName = fileToEncrypt.name;
         
-        // 3. 处理二级加密 (Level 2)
+        // 2. 处理待加密文件内容
         if (encLevel === 'level2') {
+            // ⭐ Level 2: 分块加密
             const password = prompt("请输入二级加密密码 (必须记住，解密时需要):");
             if (!password) {
                 return log(logElementId, '加密取消：未输入密码。', true);
@@ -336,35 +337,95 @@ async function startEncryption() {
             if (typeof CryptoJS === 'undefined' || !CryptoJS.AES) {
                 return log(logElementId, '未加载 Crypto-JS 库。', true);
             }
-            log(logElementId, '正在进行 AES-256 二级加密 (此过程可能较慢，请耐心等待)...');
+            log(logElementId, '正在进行 AES-256 二级加密 (分块模式，此过程可能较慢，请耐心等待)...');
 
-            const fileWordArray = CryptoJS.lib.WordArray.create(fileDataBuffer);
-            const encrypted = CryptoJS.AES.encrypt(fileWordArray, password);
-            const encryptedString = encrypted.toString();
-            hiddenDataBuffer = new TextEncoder().encode(encryptedString).buffer;
+            const key = CryptoJS.enc.Utf8.parse(password);
+            const iv = CryptoJS.lib.WordArray.random(16); // 16 bytes for IV (CBC)
+            const IV_BASE64 = CryptoJS.enc.Base64.stringify(iv); // 存储 IV
 
+            const totalSize = fileToEncrypt.size;
+
+            for (let offset = 0; offset < totalSize; offset += CHUNK_SIZE) {
+                const chunk = fileToEncrypt.slice(offset, offset + CHUNK_SIZE);
+                
+                // 异步读取文件块
+                const chunkBuffer = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = (e) => reject(new Error('Chunk read error: ' + e.target.error));
+                    reader.readAsArrayBuffer(chunk);
+                });
+
+                const chunkWordArray = CryptoJS.lib.WordArray.create(chunkBuffer);
+                
+                // Encrypt the chunk
+                const encryptedChunk = CryptoJS.AES.encrypt(chunkWordArray, key, {
+                    iv: iv,
+                    mode: CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7
+                });
+                
+                // 将密文 WordArray 转换为安全的 ArrayBuffer (10MB以内)
+                const ciphertextUint8Array = wordArrayToUint8Array(encryptedChunk.ciphertext);
+                
+                hiddenDataSegments.push(ciphertextUint8Array.buffer);
+                hiddenDataSize += ciphertextUint8Array.buffer.byteLength;
+                
+                const currentMB = (offset + chunk.size) / 1024 / 1024;
+                log(logElementId, `已加密 ${currentMB.toFixed(2)} MB / ${(totalSize / 1024 / 1024).toFixed(2)} MB...`);
+            }
+
+            // 3. 准备元数据 (Level 2)
+            const metadata = {
+                magic: MAGIC_MARKER.slice(0, -2), 
+                level: 2,
+                name: originalFileName,
+                hiddenSize: hiddenDataSize, 
+                iv: IV_BASE64, // 存储 IV
+            };
+            
             log(logElementId, '二级加密完成。');
+
+            // 4. 将元数据转换为 Buffer
+            const metadataString = JSON.stringify(metadata) + MAGIC_MARKER; 
+            const metadataBuffer = new TextEncoder().encode(metadataString).buffer;
+
+            // 5. 拼接数据
+            hiddenDataSegments = [
+                carrierImageBuffer,
+                ...hiddenDataSegments,   // 展开所有加密块
+                metadataBuffer      
+            ];
+            
+        } else {
+            // ⭐ Level 1: 直接拼接 (适用于大文件，因为不进行加密，不涉及 ArrayBuffer 限制)
+            log(logElementId, '正在读取待加密文件内容...');
+            const fileDataBuffer = await fileToEncrypt.arrayBuffer();
+            
+            hiddenDataSize = fileDataBuffer.byteLength;
+            
+            // 3. 准备元数据 (Level 1)
+            const metadata = {
+                magic: MAGIC_MARKER.slice(0, -2), 
+                level: 1,
+                name: originalFileName,
+                hiddenSize: hiddenDataSize, 
+            };
+            
+            // 4. 将元数据转换为 Buffer
+            const metadataString = JSON.stringify(metadata) + MAGIC_MARKER; 
+            const metadataBuffer = new TextEncoder().encode(metadataString).buffer;
+
+            // 5. 拼接数据
+            hiddenDataSegments = [
+                carrierImageBuffer,
+                fileDataBuffer,   
+                metadataBuffer      
+            ];
         }
 
-        // 4. 准备元数据 (Metadata)
-        const metadata = {
-            magic: MAGIC_MARKER.slice(0, -2), 
-            level: encLevel === 'level2' ? 2 : 1,
-            name: originalFileName,
-            hiddenSize: hiddenDataBuffer.byteLength 
-        };
-        const metadataString = JSON.stringify(metadata) + MAGIC_MARKER; 
-        const metadataBuffer = new TextEncoder().encode(metadataString).buffer;
-
-        // 5. 拼接数据 (使用 Blob 构造函数安全拼接大文件)
-        const segments = [
-            carrierImageBuffer,
-            hiddenDataBuffer,   // 隐藏数据
-            metadataBuffer      // 元数据和标记 (在文件末尾)
-        ];
-
         // 6. 下载结果
-        const resultBlob = new Blob(segments, { type: 'image/png' }); 
+        const resultBlob = new Blob(hiddenDataSegments, { type: 'image/png' }); 
         
         const baseName = carrierImageName.substring(0, carrierImageName.lastIndexOf('.'));
         const newFileName = `${baseName}_hidden.png`; 
@@ -374,7 +435,6 @@ async function startEncryption() {
         log(logElementId, `✅ 文件加密成功！已生成并下载 ${newFileName}。`);
 
     } catch (error) {
-        // 捕获权限错误并给出明确提示
         if (error.message.includes('file could not be read')) {
              log(logElementId, '加密失败：文件读取权限丢失。这通常发生在处理超大文件时。请尝试重启浏览器或选择较小文件。', true);
         } else {
@@ -384,7 +444,7 @@ async function startEncryption() {
 }
 
 /**
- * 核心解密函数 (已修复元数据解析错误)
+ * 核心解密函数 (已修复 Level 2 分块解密逻辑)
  */
 async function startDecryption() {
     const logElementId = 'decLog';
@@ -393,7 +453,6 @@ async function startDecryption() {
     if (!fileToDecrypt) {
         return log(logElementId, '请先选择待解密文件！', true);
     }
-    // ⭐ 检查待解密文件引用是否仍然有效
     if (!fileToDecrypt.slice) {
         return log(logElementId, '待解密文件引用已丢失，请重新选择文件。', true);
     }
@@ -417,7 +476,6 @@ async function startDecryption() {
         const markerBytes = new TextEncoder().encode(MAGIC_MARKER);
         let markerIndexInTail = -1;
 
-        // 从后往前搜索，确保找到最末尾的标记
         for (let i = tailUint8Array.length - markerBytes.length; i >= 0; i--) {
             let match = true;
             for (let j = 0; j < markerBytes.length; j++) {
@@ -437,11 +495,9 @@ async function startDecryption() {
         }
 
         // 2. 提取 JSON 字符串 (智能搜索)
-        // metadataPlusHiddenTail: 包含文件末尾的隐藏数据字节 + JSON 字符串
         const metadataPlusHiddenTail = tailUint8Array.subarray(0, markerIndexInTail);
         const potentialMetadataString = textDecoder.decode(metadataPlusHiddenTail);
 
-        // ⭐ 核心修复: 查找 JSON 起始的 '{' 字符，因为 JSON 之前是二进制数据。
         const jsonStartIndex = potentialMetadataString.lastIndexOf('{');
 
         if (jsonStartIndex === -1) {
@@ -474,7 +530,8 @@ async function startDecryption() {
         }
 
         // 5. 提取隐藏数据 (Blob.slice() 提取数据)
-        log(logElementId, `正在提取隐藏数据（大小：${(metadata.hiddenSize / 1024 / 1024).toFixed(2)} MB）...`);
+        log(logElementId, `正在提取隐藏数据（总大小：${(metadata.hiddenSize / 1024 / 1024).toFixed(2)} MB）...`);
+        // hiddenDataBlob 只是一个 Blob 引用，不会立刻占用大内存
         const hiddenDataBlob = fileToDecrypt.slice(hiddenDataStartByte, hiddenDataEndByte);
         
         let decryptedDataBlob;
@@ -489,26 +546,62 @@ async function startDecryption() {
             if (typeof CryptoJS === 'undefined' || !CryptoJS.AES) {
                 return log(logElementId, '未加载 Crypto-JS 库。', true);
             }
-            log(logElementId, '正在进行 AES-256 解密 (此过程可能较慢，请耐心等待)...');
+            if (!metadata.iv) {
+                return log(logElementId, '元数据中缺少 IV 向量，无法解密。', true);
+            }
+            
+            log(logElementId, '正在进行 AES-256 分块解密 (此过程可能较慢，请耐心等待)...');
 
-            const hiddenDataBuffer = await hiddenDataBlob.arrayBuffer();
-            const encryptedString = new TextDecoder().decode(hiddenDataBuffer);
+            const key = CryptoJS.enc.Utf8.parse(password);
+            const iv = CryptoJS.enc.Base64.parse(metadata.iv); // 还原 IV
             
-            const decrypted = CryptoJS.AES.decrypt(encryptedString, password);
+            let currentOffset = 0;
+            const totalEncryptedSize = metadata.hiddenSize;
+            let decryptedSegments = [];
             
-            if (decrypted.words.length === 0 && decrypted.sigBytes === 0) {
-                 return log(logElementId, '密码错误或解密失败，请检查密码。', true);
+            while (currentOffset < totalEncryptedSize) {
+                const chunkSize = Math.min(CHUNK_SIZE, totalEncryptedSize - currentOffset);
+                
+                // 1. Slice the ENCRYPTED data blob
+                const encryptedChunkBlob = hiddenDataBlob.slice(currentOffset, currentOffset + chunkSize);
+                
+                // 2. Read the encrypted chunk into ArrayBuffer
+                const encryptedChunkBuffer = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = (e) => reject(new Error('Chunk read error: ' + e.target.error));
+                    reader.readAsArrayBuffer(encryptedChunkBlob);
+                });
+
+                // 3. ArrayBuffer -> WordArray
+                const encryptedWordArray = CryptoJS.lib.WordArray.create(encryptedChunkBuffer);
+
+                // 4. Decrypt
+                const decrypted = CryptoJS.AES.decrypt({ ciphertext: encryptedWordArray }, key, {
+                    iv: iv,
+                    mode: CryptoJS.mode.CBC,
+                    padding: CryptoJS.pad.Pkcs7
+                });
+
+                // 5. 检查密码错误 (只需检查第一块，密码错误会导致第一块解密失败)
+                if (currentOffset === 0 && decrypted.words.length === 0 && decrypted.sigBytes === 0) {
+                     return log(logElementId, '密码错误或解密失败，请检查密码。', true);
+                }
+                
+                // 6. WordArray -> Uint8Array (Decrypted chunk)
+                const decryptedUint8Array = wordArrayToUint8Array(decrypted);
+                
+                decryptedSegments.push(decryptedUint8Array.buffer);
+                currentOffset += chunkSize;
+                
+                log(logElementId, `已解密 ${(currentOffset / 1024 / 1024).toFixed(2)} MB / ${(totalEncryptedSize / 1024 / 1024).toFixed(2)} MB...`);
             }
-            
-            const decryptedUint8Array = new Uint8Array(decrypted.sigBytes);
-            for (let i = 0; i < decrypted.sigBytes; i++) {
-                decryptedUint8Array[i] = (decrypted.words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
-            }
-            
-            decryptedDataBlob = new Blob([decryptedUint8Array]);
-            log(logElementId, '二级解密成功！');
+
+            decryptedDataBlob = new Blob(decryptedSegments);
+            log(logElementId, '二级分块解密成功！');
 
         } else {
+            // Level 1: 直接读取整个 Blob (一次性)
             decryptedDataBlob = hiddenDataBlob;
             log(logElementId, '一级伪装提取成功！');
         }
