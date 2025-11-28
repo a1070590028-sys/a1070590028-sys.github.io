@@ -390,8 +390,8 @@ header h1,
     overflow-y: auto;
 }
 #panel-messages-list::-webkit-scrollbar {width:8px;background:transparent}
-#panel-messages-list::-webkit-scrollbar-thumb {background:rgba(255,255,255,0.15);border-radius:4px;}
-#panel-messages-list::-webkit-scrollbar-thumb:hover {background:rgba(255,255,255,0.3);}
+#panel-messages-list::-webkit-scrollbar-thumb {background:rgba(255, 255, 255, 0.15);border-radius:4px;}
+#panel-messages-list::-webkit-scrollbar-thumb:hover {background:rgba(255, 255, 255, 0.3);}
 
 /* 留言列表项样式 */
 .guestbook-item {
@@ -400,4 +400,11 @@ header h1,
 }
 .guestbook-item:last-child {
     border-bottom: none;
+}
+
+/* ⭐ NEW: 加密模块参数区特殊样式 (嵌套的 controls post-card) ⭐ */
+.encrypt-params {
+    padding: 14px;
+    border: 1px dashed var(--border); /* 使用虚线边框以区分 */
+    background: rgba(255, 255, 255, 0.03) !important; /* 更浅的背景，突出参数区域 */
 }
