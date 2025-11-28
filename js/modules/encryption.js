@@ -33,9 +33,6 @@ function downloadFile(blob, filename) {
     }, 100);
 }
 
-/**
- * 将 CryptoJS WordArray 转换为 Uint8Array
- */
 function wordArrayToUint8Array(wordArray) {
     const len = wordArray.sigBytes;
     const words = wordArray.words;
@@ -46,9 +43,6 @@ function wordArrayToUint8Array(wordArray) {
     return u8;
 }
 
-/**
- * 整数转 4字节 Uint8Array (大端序) - 用于记录块长度
- */
 function intToBytes(num) {
     const arr = new Uint8Array(4);
     arr[0] = (num >>> 24) & 0xff;
@@ -58,9 +52,6 @@ function intToBytes(num) {
     return arr;
 }
 
-/**
- * 4字节 Uint8Array 转整数 (大端序)
- */
 function bytesToInt(arr) {
     let num = 0;
     num = (arr[0] << 24) | (arr[1] << 16) | (arr[2] << 8) | arr[3];
@@ -206,7 +197,6 @@ async function startEncryption() {
     try {
         log(logId, '正在准备加密...');
 
-        // 1. 获取载体数据
         let carrierBuf;
         if (carrierVal.startsWith(LOCAL_CARRIER_PREFIX)) {
             carrierBuf = await localCarrierFile.arrayBuffer();
@@ -230,7 +220,6 @@ async function startEncryption() {
             const totalSize = fileToEncrypt.size;
             let offset = 0;
 
-            // 循环处理每个块
             while (offset < totalSize) {
                 const chunkBlob = fileToEncrypt.slice(offset, offset + CHUNK_SIZE);
                 const chunkBuf = await chunkBlob.arrayBuffer();
@@ -323,17 +312,15 @@ async function startDecryption() {
 
         const jsonStr = metaRegionStr.substring(jsonStart);
         let meta;
-        try {
-            meta = JSON.parse(jsonStr);
-        } catch (e) {
-            throw new Error("元数据损坏");
-        }
+        try { meta = JSON.parse(jsonStr); } 
+        catch (e) { throw new Error("元数据损坏"); }
 
         const metaBytesLen = new TextEncoder().encode(jsonStr).byteLength;
         const absMarkerPos = (fileSize - tailSize) + markerPos;
         const absJsonStart = absMarkerPos - metaBytesLen;
         const hiddenEnd = absJsonStart;
         const hiddenStart = hiddenEnd - meta.hiddenSize;
+
         if (hiddenStart < 0) throw new Error("文件完整性校验失败");
 
         detailDisplay.textContent = `级别: ${meta.level}`;
@@ -353,33 +340,33 @@ async function startDecryption() {
             log(logId, '开始解密 (独立数据包模式)...');
 
             while (offset < meta.hiddenSize) {
-                if (offset + 4 > meta.hiddenSize) break;
+                if (offset + 4 > meta.hiddenSize) break; 
+                
                 const lenHeadBlob = hiddenBlob.slice(offset, offset + 4);
                 const lenHeadBuf = await lenHeadBlob.arrayBuffer();
                 const cipherLen = bytesToInt(new Uint8Array(lenHeadBuf));
+
                 offset += 4;
 
                 const ivBlob = hiddenBlob.slice(offset, offset + 16);
                 const ivBuf = await ivBlob.arrayBuffer();
                 const iv = CryptoJS.lib.WordArray.create(ivBuf);
+                
                 offset += 16;
 
                 const cipherBlob = hiddenBlob.slice(offset, offset + cipherLen);
                 const cipherBuf = await cipherBlob.arrayBuffer();
                 const cipherWord = CryptoJS.lib.WordArray.create(cipherBuf);
+
                 offset += cipherLen;
 
                 const decrypted = CryptoJS.AES.decrypt(
-                    { ciphertext: cipherWord }, // ← 修复: 必须对象包装
+                    { ciphertext: cipherWord },
                     key,
                     { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
                 );
 
                 decSegments.push(wordArrayToUint8Array(decrypted));
-
-                if (decSegments.length % 5 === 0) {
-                    log(logId, `解密进度: ${Math.min(100, (offset/meta.hiddenSize)*100).toFixed(0)}%`);
-                }
             }
             finalBlob = new Blob(decSegments);
         } else {
