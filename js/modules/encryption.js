@@ -64,7 +64,6 @@ function intToBytes(num) {
 function bytesToInt(arr) {
     let num = 0;
     num = (arr[0] << 24) | (arr[1] << 16) | (arr[2] << 8) | arr[3];
-    // 处理无符号整数转换
     return num >>> 0; 
 }
 
@@ -233,33 +232,26 @@ async function startEncryption() {
 
             // 循环处理每个块
             while (offset < totalSize) {
-                // 读取块
                 const chunkBlob = fileToEncrypt.slice(offset, offset + CHUNK_SIZE);
                 const chunkBuf = await chunkBlob.arrayBuffer();
                 const chunkWord = CryptoJS.lib.WordArray.create(chunkBuf);
 
-                // ⭐ 独立 IV：每个块都生成一个新的随机 IV
                 const iv = CryptoJS.lib.WordArray.random(16);
 
-                // 加密：使用标准的 PKCS7 填充，确保每个包都是完整的
                 const encrypted = CryptoJS.AES.encrypt(chunkWord, key, {
                     iv: iv,
                     mode: CryptoJS.mode.CBC,
                     padding: CryptoJS.pad.Pkcs7
                 });
 
-                // 转换二进制
                 const cipherU8 = wordArrayToUint8Array(encrypted.ciphertext);
                 const ivU8 = wordArrayToUint8Array(iv);
-
-                // ⭐ 构建数据包：[长度(4B)] + [IV(16B)] + [密文]
                 const lenU8 = intToBytes(cipherU8.byteLength);
 
-                resultSegments.push(lenU8.buffer);       // 4 bytes
-                resultSegments.push(ivU8.buffer);        // 16 bytes
-                resultSegments.push(cipherU8.buffer);    // N bytes
+                resultSegments.push(lenU8.buffer);
+                resultSegments.push(ivU8.buffer);
+                resultSegments.push(cipherU8.buffer);
 
-                // 计算总隐藏数据大小 (用于解密时知道读到哪里结束)
                 hiddenSize += (4 + 16 + cipherU8.byteLength);
 
                 offset += CHUNK_SIZE;
@@ -269,25 +261,21 @@ async function startEncryption() {
                 }
             }
         } else {
-            // Level 1: 直接拼接
             log(logId, '正在合并文件 (Level 1)...');
             resultSegments.push(fileToEncrypt); 
             hiddenSize = fileToEncrypt.size;
         }
 
-        // 构造元数据
         const metadata = {
             magic: MAGIC_MARKER.slice(0, -2),
             level: encLevel === 'level2' ? 2 : 1,
             name: fileToEncrypt.name,
             hiddenSize: hiddenSize
-            // Level 2 模式下不再需要全局 IV，IV 在每个包里
         };
         const metaStr = JSON.stringify(metadata) + MAGIC_MARKER;
         const metaBuf = new TextEncoder().encode(metaStr);
         resultSegments.push(metaBuf);
 
-        // 生成最终文件
         const finalBlob = new Blob(resultSegments, { type: 'image/png' });
         const saveName = carrierVal.replace(LOCAL_CARRIER_PREFIX, '').split('.')[0] + '_hidden.png';
         
@@ -311,14 +299,12 @@ async function startDecryption() {
     log(logId, '正在分析文件结构...');
     try {
         const fileSize = fileToDecrypt.size;
-        // 1. 读取尾部寻找标记
         const tailSize = Math.min(fileSize, MAX_METADATA_SEARCH_SIZE);
         const tailBlob = fileToDecrypt.slice(fileSize - tailSize, fileSize);
         const tailBuf = await tailBlob.arrayBuffer();
         const tailU8 = new Uint8Array(tailBuf);
         const markerBytes = new TextEncoder().encode(MAGIC_MARKER);
 
-        // 从后向前搜索标记
         let markerPos = -1;
         for (let i = tailU8.length - markerBytes.length; i >= 0; i--) {
             let match = true;
@@ -330,13 +316,11 @@ async function startDecryption() {
 
         if (markerPos === -1) throw new Error("未找到加密标记，文件可能未加密或已损坏");
 
-        // 2. 解析元数据
         const decoder = new TextDecoder();
         const metaRegionStr = decoder.decode(tailU8.subarray(0, markerPos));
         const jsonStart = metaRegionStr.lastIndexOf('{');
-        
         if (jsonStart === -1) throw new Error("无法定位元数据头");
-        
+
         const jsonStr = metaRegionStr.substring(jsonStart);
         let meta;
         try {
@@ -345,18 +329,11 @@ async function startDecryption() {
             throw new Error("元数据损坏");
         }
 
-        // 3. 计算隐藏数据区域
-        // 元数据块大小 = JSON字节数 + 标记长度
         const metaBytesLen = new TextEncoder().encode(jsonStr).byteLength;
-        // 计算绝对结束位置 (Metadata之前)
-        // markerPos 是相对于 tailBuf 的索引
-        // 绝对标记位置 = (fileSize - tailSize) + markerPos
         const absMarkerPos = (fileSize - tailSize) + markerPos;
         const absJsonStart = absMarkerPos - metaBytesLen;
-        
         const hiddenEnd = absJsonStart;
         const hiddenStart = hiddenEnd - meta.hiddenSize;
-
         if (hiddenStart < 0) throw new Error("文件完整性校验失败");
 
         detailDisplay.textContent = `级别: ${meta.level}`;
@@ -376,51 +353,36 @@ async function startDecryption() {
             log(logId, '开始解密 (独立数据包模式)...');
 
             while (offset < meta.hiddenSize) {
-                // 1. 读取 4 字节长度头
-                // 检查剩余字节是否足够读头部
-                if (offset + 4 > meta.hiddenSize) break; 
-                
+                if (offset + 4 > meta.hiddenSize) break;
                 const lenHeadBlob = hiddenBlob.slice(offset, offset + 4);
                 const lenHeadBuf = await lenHeadBlob.arrayBuffer();
-                const cipherLen = bytesToInt(new Uint8Array(lenHeadBuf)); // 获取当前块密文长度
-
+                const cipherLen = bytesToInt(new Uint8Array(lenHeadBuf));
                 offset += 4;
 
-                // 2. 读取 16 字节 IV
                 const ivBlob = hiddenBlob.slice(offset, offset + 16);
                 const ivBuf = await ivBlob.arrayBuffer();
                 const iv = CryptoJS.lib.WordArray.create(ivBuf);
-                
                 offset += 16;
 
-                // 3. 读取密文 (cipherLen)
                 const cipherBlob = hiddenBlob.slice(offset, offset + cipherLen);
                 const cipherBuf = await cipherBlob.arrayBuffer();
                 const cipherWord = CryptoJS.lib.WordArray.create(cipherBuf);
-
                 offset += cipherLen;
 
-                // 4. 解密当前块 (使用该块独有的 IV)
                 const decrypted = CryptoJS.AES.decrypt(
-                    { ciphertext: cipherWord }, 
-                    key, 
+                    { ciphertext: cipherWord }, // ← 修复: 必须对象包装
+                    key,
                     { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 }
                 );
-
-                // 验证第一个块是否解密成功
-                if (decSegments.length === 0 && decrypted.sigBytes < 0) {
-                     return log(logId, '密码错误', true);
-                }
 
                 decSegments.push(wordArrayToUint8Array(decrypted));
 
                 if (decSegments.length % 5 === 0) {
-                     log(logId, `解密进度: ${Math.min(100, (offset/meta.hiddenSize)*100).toFixed(0)}%`);
+                    log(logId, `解密进度: ${Math.min(100, (offset/meta.hiddenSize)*100).toFixed(0)}%`);
                 }
             }
             finalBlob = new Blob(decSegments);
         } else {
-            // Level 1
             finalBlob = fileToDecrypt.slice(hiddenStart, hiddenEnd);
         }
 
