@@ -335,7 +335,7 @@
 <script type="module" src="js/main.js"></script>
 
 <script>
-// Tab 切换 (图片/PDF 互转)
+// Tab 切换
 document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
     document.querySelectorAll('[data-tab]').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('#img2pdf, #pdf2img').forEach(x => x.style.display = 'none');
@@ -352,13 +352,24 @@ style.textContent = `#imgLog,#pdfLog{margin-top:6px;color:var(--text-muted);font
 `;
 document.head.appendChild(style);
 
-// ⭐ 隐写卡片 Tab 切换 (新)
-document.querySelectorAll('[data-steg-tab]').forEach(b => b.onclick = () => {
-    document.querySelectorAll('[data-steg-tab]').forEach(x => x.classList.remove('active'));
+
+// ⭐ 隐写卡片 Tab 切换 (修复内容消失 Bug)
+document.querySelectorAll('[data-steg-tab]').forEach(b => b.onclick = (e) => {
+    // 确保使用 target 的 dataset
+    const targetTabId = e.target.dataset.stegTab + 'Tab'; 
+
+    // 1. 隐藏所有 Tab 内容
     document.querySelectorAll('#encryptTab, #decryptTab').forEach(x => x.style.display = 'none');
-    b.classList.add('active');
-    // 使用 grid 确保两列布局正确
-    document.getElementById(b.dataset.steg-tab + 'Tab').style.display = 'grid'; 
+    
+    // 2. 更新按钮激活状态
+    document.querySelectorAll('[data-steg-tab]').forEach(x => x.classList.remove('active'));
+    e.target.classList.add('active');
+
+    // 3. 显示目标内容，并确保使用 grid 保持结构
+    const targetElement = document.getElementById(targetTabId);
+    if (targetElement) {
+        targetElement.style.display = 'grid';
+    }
 });
 </script>
 </body>
