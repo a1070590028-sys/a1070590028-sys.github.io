@@ -7,5 +7,7 @@ import './modules/image-compress.js';
 import './modules/net-monitor.js';
 import './modules/pdf-convert.js';
 import './modules/music-player.js';
+import './modules/dog-speak.js';
 import './modules/encryption.js';
+
 
