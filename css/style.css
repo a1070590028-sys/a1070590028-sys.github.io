@@ -257,55 +257,6 @@ input[type="checkbox"]:checked::after{
     background:rgba(96,165,250,0.25);border-color:var(--accent);color:#fff;
 }
 
-/* ==================== 全站统一日志格式（最终版） ==================== */
-.log-box,
-#log, #imgLog, #pdfLog, #encLog, #decLog {
-    margin-top: 8px;
-    padding: 10px 12px;
-    font-size: 13px;
-    line-height: 1.5;
-    border-radius: 8px;
-
-    /* 背景：统一为略透明的卡片风 */
-    background: rgba(255, 255, 255, 0.05);
-
-    /* 边框：统一为全站的 var(--border) */
-    border: 1px solid var(--border);
-
-    /* 文字颜色：统一 muted 色 */
-    color: var(--text-muted);
-
-    /* 高度限制 & 滚动条 */
-    max-height: 160px;
-    overflow-y: auto;
-}
-
-/* 滚动条统一 */
-#log::-webkit-scrollbar,
-#imgLog::-webkit-scrollbar,
-#pdfLog::-webkit-scrollbar,
-#encLog::-webkit-scrollbar,
-#decLog::-webkit-scrollbar {
-    width: 8px;
-    background: transparent;
-}
-
-#log::-webkit-scrollbar-thumb,
-#imgLog::-webkit-scrollbar-thumb,
-#pdfLog::-webkit-scrollbar-thumb,
-#encLog::-webkit-scrollbar-thumb,
-#decLog::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.15);
-    border-radius: 4px;
-}
-
-#log::-webkit-scrollbar-thumb:hover,
-#imgLog::-webkit-scrollbar-thumb:hover,
-#pdfLog::-webkit-scrollbar-thumb:hover,
-#encLog::-webkit-scrollbar-thumb:hover,
-#decLog::-webkit-scrollbar-thumb:hover {
-    background: rgba(255,255,255,0.3);
-}
 
 
 /* 响应式 */
@@ -478,5 +429,52 @@ header h1,
     background-repeat: no-repeat !important;
     background-position: right 10px center !important;
     background-size: 1em !important;
+}
+
+/* =========================================================
+      ⭐ 全站日志框统一样式（最终版，强制覆盖） ⭐
+   ========================================================= */
+#log, #imgLog, #pdfLog, #encLog, #decLog, .log-box {
+    margin-top: 8px !important;
+    padding: 10px 12px !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+
+    background: rgba(255,255,255,0.05) !important; /* 透明白 5% */
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
+
+    color: var(--text-muted) !important;
+
+    max-height: 160px !important;
+    overflow-y: auto !important;
+
+    box-sizing: border-box !important;
+}
+
+/* 滚动条统一 */
+#log::-webkit-scrollbar,
+#imgLog::-webkit-scrollbar,
+#pdfLog::-webkit-scrollbar,
+#encLog::-webkit-scrollbar,
+#decLog::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+#log::-webkit-scrollbar-thumb,
+#imgLog::-webkit-scrollbar-thumb,
+#pdfLog::-webkit-scrollbar-thumb,
+#encLog::-webkit-scrollbar-thumb,
+#decLog::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15) !important;
+    border-radius: 4px !important;
+}
+
+#log::-webkit-scrollbar-thumb:hover,
+#imgLog::-webkit-scrollbar-thumb:hover,
+#pdfLog::-webkit-scrollbar-thumb:hover,
+#encLog::-webkit-scrollbar-thumb:hover,
+#decLog::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.3) !important;
 }
 
