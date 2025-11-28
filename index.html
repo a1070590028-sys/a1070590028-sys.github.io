@@ -140,106 +140,122 @@
         </div>
     </div>
     
-    <div class="post-card">
-        <h2 class="card-title">文件加密与伪装 <span class="toggle-icon">▾</span></h2>
-        <div class="card-content">
-            <p style="margin-top:8px">将任意文件隐藏到图片中。支持两级别安全模式：一级可修改后恢复，二级需本站解密。</p>
-            
-            <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
-                <button class="btn active" data-enc-tab="encrypt">加密文件</button>
-                <button class="btn" data-enc-tab="decrypt">解密文件</button>
-            </div>
+<div class="post-card">
+    <h2 class="card-title">文件加密与伪装 <span class="toggle-icon">▾</span></h2>
+    <div class="card-content">
 
-            <!-- ====== 加密面板（已统一样式） ====== -->
-            <div id="encrypt-panel" style="margin-top:12px;padding:12px;display:block;">
-                
-                <div id="dropzoneEnc" class="dropzone" style="margin-bottom:15px;">
-                    <div class="dropzone-title">上传待隐藏文件(拖拽/点击)</div>
-                    <div class="small" style="margin-top:6px">支持任意文件类型 (单个文件)</div>
-                    <input type="file" id="encInput" style="display:none">
-                </div>
-
-                <h3 class="params-title">加密参数设置</h3>
-
-                <div class="compress-param">
-                    <label class="small">加密级别</label>
-                    <select id="encLevel">
-                        <option value="level1">Level 1: 文件伪装 (改后缀可恢复)</option>
-                        <option value="level2" selected>Level 2: AES-GCM-256 强加密</option>
-                    </select>
-                </div>
-
-                <!-- 输出文件名（统一样式） -->
-                <div class="compress-param">
-                    <label class="small">输出文件名（不含扩展名）</label>
-                    <input id="encOutputName" type="text" placeholder="例如：secret_file" maxlength="80">
-                </div>
-
-                <!-- 密码输入（Level2 必填） -->
-                <div class="compress-param" id="encPwdRow">
-                    <label class="small">加密密码 (Level 2 必填)</label>
-                    <input id="encPasswordInput" type="password" placeholder="请输入密码" maxlength="100">
-                </div>
-                
-                <div class="compress-param">
-                    <label class="small">选择图片载体</label>
-                    <div id="localCarrierDropzone" class="dropzone" style="margin-bottom:10px; padding:10px;">
-                        <div class="small" style="font-weight:600;color:var(--accent)">拖拽本地图片到这里，作为载体 (优先)</div>
-                    </div>
-                    <select id="carrierImage">
-                        <option value="" disabled selected>正在加载列表...</option>
-                    </select>
-                </div>
-
-                <div id="carrierPreview" style="margin-top:10px;text-align:center;display:none;">
-                    <p class="small">载体名称：<span id="carrierName">--</span></p>
-                    <img id="carrierImagePreview" style="max-width:100%;max-height:150px;border-radius:8px;border:1px solid var(--border);" alt="载体预览">
-                </div>
-
-                <button class="btn" id="startEncrypt" style="width:100%;margin-top:20px;">开始加密</button>
-                
-                <div style="margin-top:20px;">
-                    <h3 class="params-title">生成结果 (Level 2 必存)</h3>
-                    <div class="compress-param">
-                        <label class="small">密钥盐 (Salt Base64)</label>
-                        <input id="encSaltDisplay" type="text" readonly placeholder="加密完成后显示，请保存">
-                    </div>
-                    <div class="compress-param">
-                        <label class="small">加密后文件名</label>
-                        <input id="encFilenameDisplay" type="text" readonly placeholder="生成后显示">
-                    </div>
-                </div>
-
-                <div class="small" style="margin-top:8px">处理日志：<div id="encLog"></div></div>
-            </div>
-
-            <!-- ====== 解密面板（与加密面板平行） ====== -->
-            <div id="decrypt-panel" style="margin-top:12px;padding:12px;display:none;">
-                
-                <div id="dropzoneDec" class="dropzone" style="margin-bottom:15px;">
-                    <div class="dropzone-title">上传加密后图片(拖拽/点击)</div>
-                    <div class="small" style="margin-top:6px">拖入加密后的图片文件 (单个文件)</div>
-                    <input type="file" id="decInput" style="display:none">
-                </div>
-
-                <div id="decFileDetail" style="margin-bottom:15px;padding:10px 0;border-bottom:1px solid var(--border);display:none;">
-                    <div class="small">文件名：<span id="decFileName" style="color:var(--text)">--</span></div>
-                    <div class="small">大小：<span id="decFileSize" style="color:var(--text)">--</span></div>
-                    <div class="small">加密级别：<span id="decLevelDisplay" style="color:var(--accent)">待解析...</span></div>
-                </div>
-                
-                <div class="compress-param">
-                    <label class="small">解密密码 (Level 2 必填)</label>
-                    <input id="decPasswordInput" type="password" placeholder="请输入密码">
-                </div>
-
-                <button class="btn" id="startDecrypt" style="width:100%;margin-top:20px;">开始解密</button>
-                
-                <div class="small" style="margin-top:8px">处理日志：<div id="decLog"></div></div>
-            </div>
-            
+        <!-- 顶部切换按钮 -->
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn active" data-enc-tab="encrypt">加密文件</button>
+            <button class="btn" data-enc-tab="decrypt">解密文件</button>
         </div>
+
+        <!-- ===================== 加密面板（两列布局） ===================== -->
+        <div id="encrypt-panel" style="display:block;margin-top:16px;">
+            <div class="compress-grid">
+
+                <!-- 左侧：上传与日志 -->
+                <div style="padding:12px">
+                    <div id="dropzoneEnc" class="dropzone" style="margin-bottom:15px;">
+                        <div class="dropzone-title">上传文件（任意格式）</div>
+                        <div class="small" style="margin-top:6px">仅支持单个文件</div>
+                        <input type="file" id="encInput" style="display:none">
+                    </div>
+
+                    <div class="small">处理日志：</div>
+                    <div id="encLog"></div>
+                </div>
+
+                <!-- 右侧：参数卡片 -->
+                <div class="controls post-card" style="padding:14px">
+                    <h3 class="params-title">加密参数</h3>
+
+                    <!-- 输出文件名 -->
+                    <div class="compress-param">
+                        <label class="small">输出文件名（无需扩展名）</label>
+                        <input id="encFilename" type="text" placeholder="例如：secret_file">
+                    </div>
+
+                    <!-- 加密级别 -->
+                    <div class="compress-param">
+                        <label class="small">加密级别</label>
+                        <select id="encLevel">
+                            <option value="level1">Level 1：文件伪装（改后缀可恢复）</option>
+                            <option value="level2" selected>Level 2：AES-GCM-256 强加密</option>
+                        </select>
+                    </div>
+
+                    <!-- 密码 -->
+                    <div class="compress-param">
+                        <label class="small">加密密码（Level 2 必填）</label>
+                        <input id="encPasswordInput" type="password" placeholder="请输入密码">
+                    </div>
+
+                    <!-- 载体选择 -->
+                    <div class="compress-param">
+                        <label class="small">选择图片载体</label>
+
+                        <div id="localCarrierDropzone" class="dropzone" style="margin-bottom:10px;padding:10px;">
+                            <div class="small" style="font-weight:600;color:var(--accent)">拖入图片作为载体</div>
+                        </div>
+
+                        <select id="carrierImage">
+                            <option value="" disabled selected>载体列表加载中...</option>
+                        </select>
+                    </div>
+
+                    <!-- 加密结果 -->
+                    <h3 class="params-title" style="margin-top:12px">生成信息（Level 2 必保存）</h3>
+
+                    <div class="compress-param">
+                        <label class="small">Salt（Base64）</label>
+                        <input id="encSaltDisplay" type="text" readonly placeholder="加密后显示">
+                    </div>
+
+                    <div class="compress-param">
+                        <label class="small">最终文件名</label>
+                        <input id="encFilenameDisplay" type="text" readonly placeholder="加密后显示">
+                    </div>
+
+                    <button class="btn" id="startEncrypt" style="width:100%;margin-top:10px;">开始加密</button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ===================== 解密面板（单列布局） ===================== -->
+        <div id="decrypt-panel" style="display:none;margin-top:16px;">
+
+            <!-- 上传区 -->
+            <div id="dropzoneDec" class="dropzone" style="margin-bottom:15px;">
+                <div class="dropzone-title">上传加密后的文件</div>
+                <input type="file" id="decInput" style="display:none">
+            </div>
+
+            <!-- 文件信息 -->
+            <div id="decFileDetail" style="margin-bottom:15px;padding:10px 0;border-bottom:1px solid var(--border);display:none;">
+                <div class="small">文件名：<span id="decFileName">--</span></div>
+                <div class="small">大小：<span id="decFileSize">--</span></div>
+                <div class="small">加密级别：<span id="decLevelDisplay" style="color:var(--accent)">解析中...</span></div>
+            </div>
+
+            <!-- 解密密码 -->
+            <div class="compress-param">
+                <label class="small">解密密码（Level 2 必填）</label>
+                <input id="decPasswordInput" type="password" placeholder="请输入密码">
+            </div>
+
+            <!-- 按钮 -->
+            <button class="btn" id="startDecrypt" style="width:100%;margin-top:10px;">开始解密</button>
+
+            <!-- 日志 -->
+            <div class="small" style="margin-top:10px;">处理日志：</div>
+            <div id="decLog"></div>
+        </div>
+
     </div>
+</div>
+
 
     <div class="post-card">
         <h2 class="card-title">图片 ↔ PDF 互转 <span class="toggle-icon">▾</span></h2>
