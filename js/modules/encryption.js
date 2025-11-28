@@ -465,6 +465,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initFileSelection('encInput', 'dropzoneEnc', 'encLog', false);
     initFileSelection('decInput', 'dropzoneDec', 'decLog', true);
 
-    document.getElementById('startEncrypt').onclick = startEncryption;
+    document.getElementById('startEncryption').onclick = startEncryption;
     document.getElementById('startDecrypt').onclick = startDecryption;
 });
