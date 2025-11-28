@@ -54,6 +54,8 @@ const modes = {
         r.style.setProperty('--range-thumb', '#60a5fa');
         r.style.setProperty('--checkbox-border', '#60a5fa');
         r.style.setProperty('--date-deep', '#a5f3fc');
+        // ⭐ NEW: Input Background for Night Mode (黑框/深色) ⭐
+        r.style.setProperty('--input-bg', 'rgba(255, 255, 255, 0.05)');
 
         // 动态切换为月亮图标
         const icon = document.getElementById('bg-icon');
@@ -101,6 +103,9 @@ const modes = {
         r.style.setProperty('--range-thumb', '#ff6b52');
         r.style.setProperty('--checkbox-border', '#ff6b52');
         r.style.setProperty('--date-deep', '#b8473a');
+        // ⭐ NEW: Input Background for Day Mode (白框/浅色) ⭐
+        r.style.setProperty('--input-bg', 'rgba(255, 255, 255, 0.9)');
+
 
         // 动态切换为太阳图标
         const icon = document.getElementById('bg-icon');
@@ -148,8 +153,3 @@ document.querySelectorAll('.bg-opt').forEach(btn => {
 // ==================== 初始化 ====================
 const savedMode = localStorage.getItem('frey-bg-mode') || 'night';
 apply(savedMode);
-
-
-
-
-
