@@ -68,8 +68,8 @@ label.small,.small{font-size:13px;color:var(--text-muted);display:block;margin-b
 input[type="number"],select,input[type="range"],#guestbook-panel input,#guestbook-panel textarea{
     width:100%;padding:6px;border-radius:8px;
     border:1px solid var(--border);
-    /* ✅ 修改为略浅的背景色 */
-    background: rgba(255, 255, 255, 0.05);
+    /* ✅ 修复点：使用变量 */
+    background: var(--input-bg);
     color:var(--text);
 }
 #guestbook-panel textarea {
@@ -84,8 +84,8 @@ input[type="number"],select,input[type="range"],#guestbook-panel input,#guestboo
 /* 下拉框箭头 */
 select{
     padding:6px 30px 6px 8px;
-    /* ✅ 修改为略浅的背景色 (原为 var(--card-bg)) */
-    background: rgba(255, 255, 255, 0.05); /* Select box background */
+    /* ✅ 修复点：使用变量 */
+    background: var(--input-bg); /* Select box background */
     background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='var(--select-arrow)' d='M0 0l6 8 6-8z'/%3e%3c/svg%3e");
     background-repeat:no-repeat;background-position:right 10px center;
     color:var(--text);border-radius:8px;cursor:pointer;appearance:none;
@@ -94,7 +94,8 @@ select:focus{border-color:var(--accent);box-shadow:0 0 8px rgba(96,165,250,0.3);
 
 /* ==================== 优化点：Select 下拉菜单主题适配 (新方案) ==================== */
 select {
-    background: rgba(255, 255, 255, 0.05) !important; 
+    /* 确保使用变量，且!important确保覆盖前面的 select 块 */
+    background: var(--input-bg) !important; 
     color: var(--select-color) !important;
 }
 
@@ -405,7 +406,8 @@ header h1,
     margin-top: 5px;
     border: 1px solid var(--border);
     border-radius: 8px;
-    background-color: var(--input-bg, #1e293b) !important; /* 确保背景色统一 */
+    /* 核心修复：使用 --input-bg 变量，并给一个浅色回退值，确保日间模式为白框 */
+    background-color: var(--input-bg, rgba(255, 255, 255, 0.9)) !important; 
     color: var(--text);
     transition: border-color 0.2s;
     -webkit-appearance: none; 
@@ -478,3 +480,5 @@ header h1,
     background: rgba(255,255,255,0.3) !important;
 }
 
+
+}
