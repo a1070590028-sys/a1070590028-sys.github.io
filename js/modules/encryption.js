@@ -36,14 +36,12 @@ function downloadFile(blob, filename) {
     a.href = url;
     a.download = filename;
     document.body.appendChild(a);
-    a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
 
 /**
- * ⭐ 辅助函数: 将 CryptoJS WordArray (二进制数据) 转换为 Uint8Array
- * 确保 WordArray 不会被错误地转换为 Base64 字符串，用于分块读写。
+ * 辅助函数: 将 CryptoJS WordArray (二进制数据) 转换为 Uint8Array
  */
 function wordArrayToUint8Array(wordArray) {
     const numBytes = wordArray.sigBytes; 
@@ -178,7 +176,6 @@ function updateCarrierImageSelection(selectedValue) {
     if (selectedValue.startsWith(LOCAL_CARRIER_PREFIX) && localCarrierFile) {
         const fileName = selectedValue.replace(LOCAL_CARRIER_PREFIX, '');
         nameSpan.textContent = `(本地) ${fileName}`;
-        // 使用 URL.createObjectURL 进行本地预览
         imgElement.src = URL.createObjectURL(localCarrierFile);
         previewDiv.style.display = 'block';
     } else if (!selectedValue.startsWith(LOCAL_CARRIER_PREFIX)) {
@@ -281,7 +278,7 @@ function initDecryptFileSelection() {
 // ====== 3. 加密/解密核心逻辑 (支持大文件) ======
 
 /**
- * 核心加密函数 (已修复二级加密 IV 链式传递)
+ * 核心加密函数 
  */
 async function startEncryption() {
     const logElementId = 'encLog';
@@ -329,7 +326,7 @@ async function startEncryption() {
         
         // 2. 处理待加密文件内容
         if (encLevel === 'level2') {
-            // ⭐ Level 2: 分块加密 - 修复 IV 链式传递
+            // Level 2: 分块加密 - IV 链式传递
             const password = prompt("请输入二级加密密码 (必须记住，解密时需要):");
             if (!password) {
                 return log(logElementId, '加密取消：未输入密码。', true);
@@ -367,14 +364,13 @@ async function startEncryption() {
                     padding: CryptoJS.pad.Pkcs7
                 });
                 
-                // ⭐ IV 链式传递：获取密文的最后 16 字节作为下一块的 IV
-                const ciphertextWords = encryptedChunk.ciphertext.words;
-                const lastBlockWordsStart = ciphertextWords.length - 4; // 16 bytes = 4 words
-                
-                iv = CryptoJS.lib.WordArray.create(
-                    ciphertextWords.slice(lastBlockWordsStart, lastBlockWordsStart + 4),
-                    16 // 确保 IV 是 16 字节
-                );
+                // IV 链式传递：获取密文的最后 16 字节作为下一块的 IV 
+                const ciphertext = encryptedChunk.ciphertext;
+                const lastBlockWordsStart = ciphertext.words.length - 4; // 16 bytes = 4 words
+                const ivWords = ciphertext.words.slice(lastBlockWordsStart, lastBlockWordsStart + 4);
+
+                // 创建新的 WordArray IV，明确指定 sigBytes 为 16 字节
+                iv = CryptoJS.lib.WordArray.create(ivWords, 16); 
 
                 // 将密文 WordArray 转换为安全的 ArrayBuffer (10MB以内)
                 const ciphertextUint8Array = wordArrayToUint8Array(encryptedChunk.ciphertext);
@@ -409,7 +405,7 @@ async function startEncryption() {
             ];
             
         } else {
-            // ⭐ Level 1: 直接拼接
+            // Level 1: 直接拼接 
             log(logElementId, '正在读取待加密文件内容...');
             const fileDataBuffer = await fileToEncrypt.arrayBuffer();
             
@@ -455,7 +451,7 @@ async function startEncryption() {
 }
 
 /**
- * 核心解密函数 (已修复二级解密 IV 链式传递)
+ * 核心解密函数 (已修复二级解密 IV 边界问题)
  */
 async function startDecryption() {
     const logElementId = 'decLog';
@@ -571,7 +567,12 @@ async function startDecryption() {
             let decryptedSegments = [];
             
             while (currentOffset < totalEncryptedSize) {
-                const chunkSize = Math.min(CHUNK_SIZE, totalEncryptedSize - currentOffset);
+                // 计算当前块的大小 (必须是 16 字节的倍数)
+                let chunkSize = Math.min(CHUNK_SIZE, totalEncryptedSize - currentOffset);
+                // 密文长度必须是 16 字节的倍数，否则解密会出错
+                if (chunkSize % 16 !== 0) {
+                    chunkSize = Math.floor(chunkSize / 16) * 16;
+                }
                 
                 // 1. Slice the ENCRYPTED data blob
                 const encryptedChunkBlob = hiddenDataBlob.slice(currentOffset, currentOffset + chunkSize);
@@ -583,7 +584,7 @@ async function startDecryption() {
                     reader.onerror = (e) => reject(new Error('Chunk read error: ' + e.target.error));
                     reader.readAsArrayBuffer(encryptedChunkBlob);
                 });
-
+                
                 // 3. ArrayBuffer -> WordArray
                 const encryptedWordArray = CryptoJS.lib.WordArray.create(encryptedChunkBuffer);
 
@@ -599,15 +600,12 @@ async function startDecryption() {
                      return log(logElementId, '密码错误或解密失败，请检查密码。', true);
                 }
                 
-                // ⭐ IV 链式传递：更新下一块的 IV (下一块的 IV 是当前块的密文)
-                const ciphertextWords = encryptedWordArray.words;
-                const lastBlockWordsStart = ciphertextWords.length - 4; 
+                // ⭐ FIX: IV 链式传递：使用 ArrayBuffer 保证字节边界准确性
+                // 提取当前密文块的最后 16 字节 (16 字节 = 128 位) 作为下一块的 IV
+                // ArrayBuffer.slice(start, end)
+                const ivBuffer = encryptedChunkBuffer.slice(encryptedChunkBuffer.byteLength - 16);
+                iv = CryptoJS.lib.WordArray.create(new Uint8Array(ivBuffer)); // 将 16 字节的 Uint8Array 转换为 WordArray IV
                 
-                iv = CryptoJS.lib.WordArray.create(
-                    ciphertextWords.slice(lastBlockWordsStart, lastBlockWordsStart + 4),
-                    16
-                );
-
                 // 6. WordArray -> Uint8Array (Decrypted chunk)
                 const decryptedUint8Array = wordArrayToUint8Array(decrypted);
                 
