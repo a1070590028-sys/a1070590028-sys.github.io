@@ -401,27 +401,25 @@ header h1,
 .guestbook-item:last-child {
     border-bottom: none;
 }
-/* 额外的修正，确保最后的花括号关闭整个文件（如果它是被错误放在上一个规则内的） */
-}
+} /* 修正此处，确保关闭了可能的多余花括号 */
 
-/* === 样式修复：统一输入框与选择框的样式 (针对卡片内容) === */
 
-/* 统一输入框、密码框和选择框的视觉样式 */
+/* === ⭐ V3 样式修复：统一输入框与选择框的样式 (确保高度/内边距完全一致) ⭐ === */
+
+/* 统一输入框、密码框、数字输入框和选择框的视觉样式 */
 .post-card input[type="text"], 
 .post-card input[type="number"], 
 .post-card input[type="password"], 
 .post-card select {
-    width: 100%;
-    padding: 10px 12px;
+    width: 100% !important;
+    /* 核心修复：确保 padding 统一，覆盖掉所有其他冲突的样式 */
+    padding: 10px 12px !important; 
     margin-top: 5px;
-    /* 统一边框和背景，确保与 select 元素视觉一致 */
     border: 1px solid var(--border);
     border-radius: 8px;
-    /* 使用深色背景，确保风格统一 */
-    background-color: var(--input-bg, #1e293b); 
+    background-color: var(--input-bg, #1e293b) !important; /* 确保背景色统一 */
     color: var(--text);
     transition: border-color 0.2s;
-    /* 移除浏览器默认样式，让自定义样式生效 */
     -webkit-appearance: none; 
     -moz-appearance: none;
     appearance: none;
@@ -435,11 +433,10 @@ header h1,
     box-shadow: 0 0 0 1px var(--accent);
 }
 
-/* 针对select元素，手动添加一个向下的小箭头，以区分输入框 */
+/* 针对select元素，手动添加一个向下的小箭头 */
 .post-card select {
-    /* 覆盖掉在文件前面定义的select样式中的padding，使用新的padding */
+    /* 覆盖掉在文件前面定义的 select 样式中的 padding 和 background-image */
     padding-right: 30px !important; 
-    /* 覆盖掉在文件前面定义的select样式中的background-image */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z'/%3E%3C/svg%3E") !important;
     background-repeat: no-repeat !important;
     background-position: right 10px center !important;
