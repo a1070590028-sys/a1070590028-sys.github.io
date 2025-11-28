@@ -42,7 +42,7 @@ function downloadFile(blob, filename) {
 }
 
 /**
- * ⭐ 新增辅助函数: 将 CryptoJS WordArray (二进制数据) 转换为 Uint8Array
+ * ⭐ 辅助函数: 将 CryptoJS WordArray (二进制数据) 转换为 Uint8Array
  * 确保 WordArray 不会被错误地转换为 Base64 字符串，用于分块读写。
  */
 function wordArrayToUint8Array(wordArray) {
@@ -52,7 +52,7 @@ function wordArrayToUint8Array(wordArray) {
 
     for (let i = 0; i < numBytes; i++) {
         const wordIndex = i >>> 2;
-        if (wordIndex >= numWords) break; // 防止越界
+        if (wordIndex >= numWords) break; 
         
         const word = wordArray.words[wordIndex];
         const byteIndex = i % 4;
@@ -281,7 +281,7 @@ function initDecryptFileSelection() {
 // ====== 3. 加密/解密核心逻辑 (支持大文件) ======
 
 /**
- * 核心加密函数 (已修复二级加密 Invalid array length 错误)
+ * 核心加密函数 (已修复二级加密 IV 链式传递)
  */
 async function startEncryption() {
     const logElementId = 'encLog';
@@ -329,7 +329,7 @@ async function startEncryption() {
         
         // 2. 处理待加密文件内容
         if (encLevel === 'level2') {
-            // ⭐ Level 2: 分块加密
+            // ⭐ Level 2: 分块加密 - 修复 IV 链式传递
             const password = prompt("请输入二级加密密码 (必须记住，解密时需要):");
             if (!password) {
                 return log(logElementId, '加密取消：未输入密码。', true);
@@ -340,8 +340,10 @@ async function startEncryption() {
             log(logElementId, '正在进行 AES-256 二级加密 (分块模式，此过程可能较慢，请耐心等待)...');
 
             const key = CryptoJS.enc.Utf8.parse(password);
-            const iv = CryptoJS.lib.WordArray.random(16); // 16 bytes for IV (CBC)
-            const IV_BASE64 = CryptoJS.enc.Base64.stringify(iv); // 存储 IV
+            
+            // 初始 IV
+            let iv = CryptoJS.lib.WordArray.random(16); 
+            const INITIAL_IV_BASE64 = CryptoJS.enc.Base64.stringify(iv); // 存储初始 IV
 
             const totalSize = fileToEncrypt.size;
 
@@ -358,13 +360,22 @@ async function startEncryption() {
 
                 const chunkWordArray = CryptoJS.lib.WordArray.create(chunkBuffer);
                 
-                // Encrypt the chunk
+                // Encrypt the chunk using the current IV value
                 const encryptedChunk = CryptoJS.AES.encrypt(chunkWordArray, key, {
-                    iv: iv,
+                    iv: iv, 
                     mode: CryptoJS.mode.CBC,
                     padding: CryptoJS.pad.Pkcs7
                 });
                 
+                // ⭐ IV 链式传递：获取密文的最后 16 字节作为下一块的 IV
+                const ciphertextWords = encryptedChunk.ciphertext.words;
+                const lastBlockWordsStart = ciphertextWords.length - 4; // 16 bytes = 4 words
+                
+                iv = CryptoJS.lib.WordArray.create(
+                    ciphertextWords.slice(lastBlockWordsStart, lastBlockWordsStart + 4),
+                    16 // 确保 IV 是 16 字节
+                );
+
                 // 将密文 WordArray 转换为安全的 ArrayBuffer (10MB以内)
                 const ciphertextUint8Array = wordArrayToUint8Array(encryptedChunk.ciphertext);
                 
@@ -381,7 +392,7 @@ async function startEncryption() {
                 level: 2,
                 name: originalFileName,
                 hiddenSize: hiddenDataSize, 
-                iv: IV_BASE64, // 存储 IV
+                iv: INITIAL_IV_BASE64, // 存储初始 IV
             };
             
             log(logElementId, '二级加密完成。');
@@ -398,7 +409,7 @@ async function startEncryption() {
             ];
             
         } else {
-            // ⭐ Level 1: 直接拼接 (适用于大文件，因为不进行加密，不涉及 ArrayBuffer 限制)
+            // ⭐ Level 1: 直接拼接
             log(logElementId, '正在读取待加密文件内容...');
             const fileDataBuffer = await fileToEncrypt.arrayBuffer();
             
@@ -444,7 +455,7 @@ async function startEncryption() {
 }
 
 /**
- * 核心解密函数 (已修复 Level 2 分块解密逻辑)
+ * 核心解密函数 (已修复二级解密 IV 链式传递)
  */
 async function startDecryption() {
     const logElementId = 'decLog';
@@ -531,7 +542,6 @@ async function startDecryption() {
 
         // 5. 提取隐藏数据 (Blob.slice() 提取数据)
         log(logElementId, `正在提取隐藏数据（总大小：${(metadata.hiddenSize / 1024 / 1024).toFixed(2)} MB）...`);
-        // hiddenDataBlob 只是一个 Blob 引用，不会立刻占用大内存
         const hiddenDataBlob = fileToDecrypt.slice(hiddenDataStartByte, hiddenDataEndByte);
         
         let decryptedDataBlob;
@@ -553,7 +563,8 @@ async function startDecryption() {
             log(logElementId, '正在进行 AES-256 分块解密 (此过程可能较慢，请耐心等待)...');
 
             const key = CryptoJS.enc.Utf8.parse(password);
-            const iv = CryptoJS.enc.Base64.parse(metadata.iv); // 还原 IV
+            // 还原初始 IV
+            let iv = CryptoJS.enc.Base64.parse(metadata.iv); 
             
             let currentOffset = 0;
             const totalEncryptedSize = metadata.hiddenSize;
@@ -578,7 +589,7 @@ async function startDecryption() {
 
                 // 4. Decrypt
                 const decrypted = CryptoJS.AES.decrypt({ ciphertext: encryptedWordArray }, key, {
-                    iv: iv,
+                    iv: iv, // 使用上一块的密文作为当前块的 IV
                     mode: CryptoJS.mode.CBC,
                     padding: CryptoJS.pad.Pkcs7
                 });
@@ -588,6 +599,15 @@ async function startDecryption() {
                      return log(logElementId, '密码错误或解密失败，请检查密码。', true);
                 }
                 
+                // ⭐ IV 链式传递：更新下一块的 IV (下一块的 IV 是当前块的密文)
+                const ciphertextWords = encryptedWordArray.words;
+                const lastBlockWordsStart = ciphertextWords.length - 4; 
+                
+                iv = CryptoJS.lib.WordArray.create(
+                    ciphertextWords.slice(lastBlockWordsStart, lastBlockWordsStart + 4),
+                    16
+                );
+
                 // 6. WordArray -> Uint8Array (Decrypted chunk)
                 const decryptedUint8Array = wordArrayToUint8Array(decrypted);
                 
