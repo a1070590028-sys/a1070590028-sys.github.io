@@ -172,15 +172,20 @@
                 <button class="btn" data-enc-tab="decrypt">解密文件</button>
             </div>
 
-            <div id="encrypt-panel" style="margin-top:12px">
+            <div id="encrypt-panel" class="compress-grid" style="margin-top:12px;gap:18px">
                 
-                <div id="dropzoneEnc" class="dropzone" style="margin-bottom:12px;">
-                    <div class="dropzone-title">拖拽待加密文件到这里，或点击选择</div>
-                    <div class="small" style="margin-top:6px">支持任意文件类型 (单个文件)</div>
-                    <input type="file" id="encInput" style="display:none">
+                <div style="padding:12px">
+                    <div id="dropzoneEnc" class="dropzone">
+                        <div class="dropzone-title">拖拽待加密文件到这里，或点击选择</div>
+                        <div class="small" style="margin-top:6px">支持任意文件类型 (单个文件)</div>
+                        <input type="file" id="encInput" style="display:none">
+                    </div>
+                    
+                    <button class="btn" id="startEncrypt" style="width:100%;margin-top:15px;">开始加密</button>
+                    <div class="small" style="margin-top:8px">处理日志：<div id="encLog"></div></div>
                 </div>
 
-                <div class="controls post-card encrypt-params">
+                <div class="controls post-card encrypt-params" style="padding:14px;height:fit-content">
                     <h3 class="params-title">加密参数设置</h3>
                     
                     <div class="compress-param">
@@ -204,31 +209,30 @@
                             <img id="carrierImagePreview" src="" alt="载体图片预览" style="max-width:100%;max-height:150px;border-radius:6px;">
                         </div>
                     </div>
+
                     <div id="level2-warning" class="small" style="margin-top:8px;padding:8px;border:1px solid #f97316;border-radius:6px;background:rgba(249,115,22,0.1);display:none;">
                         **注意：** 二级加密使用 AES-256 标准，**必须**在本站解密，否则无法恢复。
                     </div>
-
-                    <button class="btn" id="startEncrypt" style="width:100%;margin-top:15px;">开始加密</button>
-                    <div class="small" style="margin-top:8px">处理日志：<div id="encLog"></div></div>
                 </div>
             </div>
 
             <div id="decrypt-panel" style="display:none;margin-top:12px">
-                
-                <div id="dropzoneDec" class="dropzone" style="margin-bottom:12px;">
-                    <div class="dropzone-title">拖拽待解密文件到这里，或点击选择</div>
-                    <div class="small" style="margin-top:6px">支持一级（伪装）或二级（加密）文件</div>
-                    <input type="file" id="decInput" style="display:none">
-                </div>
+                <div style="padding:12px">
+                    <div id="dropzoneDec" class="dropzone" style="margin-bottom:12px;">
+                        <div class="dropzone-title">拖拽待解密文件到这里，或点击选择</div>
+                        <div class="small" style="margin-top:6px">支持一级（伪装）或二级（加密）文件</div>
+                        <input type="file" id="decInput" style="display:none">
+                    </div>
 
-                <div id="decFileDetail" style="padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:12px;display:none;">
-                    <p class="small" style="margin:0;">文件名: <span id="decFileName">--</span></p>
-                    <p class="small" style="margin:4px 0 0 0;">文件大小: <span id="decFileSize">--</span></p>
-                    <p class="small" style="margin:4px 0 0 0;">**识别结果**: <span id="decLevelDisplay" style="color:var(--accent);font-weight:600;">--</span></p>
+                    <div id="decFileDetail" style="padding:10px;border:1px solid var(--border);border-radius:8px;margin-bottom:12px;display:none;">
+                        <p class="small" style="margin:0;">文件名: <span id="decFileName">--</span></p>
+                        <p class="small" style="margin:4px 0 0 0;">文件大小: <span id="decFileSize">--</span></p>
+                        <p class="small" style="margin:4px 0 0 0;">**识别结果**: <span id="decLevelDisplay" style="color:var(--accent);font-weight:600;">--</span></p>
+                    </div>
+                    
+                    <button class="btn" id="startDecrypt" style="width:100%;">开始解密与下载</button>
+                    <div class="small" style="margin-top:8px">处理日志：<div id="decLog"></div></div>
                 </div>
-                
-                <button class="btn" id="startDecrypt" style="width:100%;">开始解密与下载</button>
-                <div class="small" style="margin-top:8px">处理日志：<div id="decLog"></div></div>
             </div>
             
         </div>
@@ -303,7 +307,7 @@
 <script src="js/lib/jszip.min.js"></script>
 <script src="js/lib/jspdf.umd.min.js"></script>
 <script src="js/lib/pdf.min.js"></script>
-<script src="js/lib/crypto-js.min.js"></script>
+<script src="js/lib/crypto-js.min.js"></script> 
 
 <script>
     window.VANTA = window.VANTA || {};
@@ -313,7 +317,7 @@
 <script type="module" src="js/main.js"></script>
 
 <script>
-// Tab 切换
+// Tab 切换 (图片/PDF 互转)
 document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
     document.querySelectorAll('[data-tab]').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('#img2pdf, #pdf2img').forEach(x => x.style.display = 'none');
@@ -328,12 +332,24 @@ document.getElementById('pageSize').onchange = e => {
 // ⭐ NEW: 文件加密/解密 Tab 切换
 document.querySelectorAll('[data-enc-tab]').forEach(b => b.onclick = () => {
     document.querySelectorAll('[data-enc-tab]').forEach(x => x.classList.remove('active'));
-    document.getElementById('encrypt-panel').style.display = 'none';
-    document.getElementById('decrypt-panel').style.display = 'none';
+    
+    const encryptPanel = document.getElementById('encrypt-panel');
+    const decryptPanel = document.getElementById('decrypt-panel');
+
+    // 统一隐藏
+    encryptPanel.style.display = 'none';
+    decryptPanel.style.display = 'none';
     
     b.classList.add('active');
-    document.getElementById(b.dataset.encTab + '-panel').style.display = 'block';
+
+    // 根据选择显示正确的模式和布局
+    if (b.dataset.encTab === 'encrypt') {
+        encryptPanel.style.display = 'grid'; // 加密模式使用 grid 布局
+    } else {
+        decryptPanel.style.display = 'block'; // 解密模式使用 block 布局
+    }
 });
+
 // ⭐ NEW: 二级加密警告显示/隐藏
 document.getElementById('encLevel').onchange = e => {
     document.getElementById('level2-warning').style.display = e.target.value === 'level2' ? 'block' : 'none';
@@ -368,7 +384,7 @@ document.getElementById('carrierImage').onchange = e => {
 
 // 日志样式统一
 const style = document.createElement('style');
-// 📢 修正：添加 #encLog 和 #decLog
+// 📢 修正：加入 #encLog 和 #decLog 的样式
 style.textContent = `#imgLog,#pdfLog,#encLog,#decLog{margin-top:6px;color:var(--text-muted);font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;
 `;
 </script>
