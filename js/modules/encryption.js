@@ -26,8 +26,9 @@ function log(elementId, message, isError = false) {
 function downloadFile(blob, filename) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
+    const oldName = a.download; // 保留旧的命名规则
     a.href = url;
-    a.download = filename;
+    a.download = filename; // 使用新的命名规则
     document.body.appendChild(a);
     a.click();
     setTimeout(() => {
@@ -121,7 +122,6 @@ function initLocalCarrierImageSupport() {
         const file = e.dataTransfer.files[0];
         if (!file.type.startsWith('image/')) return log('encLog', '请拖入图片', true);
 
-        // ⭐ 修复/确认 Bug 3: localCarrierFile 赋值
         localCarrierFile = file; 
         
         const old = selector.querySelector(`option[value^="${LOCAL_CARRIER_PREFIX}"]`);
@@ -177,7 +177,12 @@ function initFileSelection(inputId, dropzoneId, logId, isDecrypt) {
             document.getElementById('decLevelDisplay').textContent = '待解析...';
         } else {
             fileToEncrypt = file;
+            // ⭐ NEW: 预填入建议的文件名
+            const originalFileName = file.name.split('.').slice(0, -1).join('_').replace(/[^a-zA-Z0-9_\-]/g, '');
+            const filenameInput = document.getElementById('encFilenameInput');
+            if (filenameInput) filenameInput.value = `${originalFileName}_encrypted.png`;
         }
+        // ⭐ 统一修改提示文本
         dropzone.querySelector('.dropzone-title').textContent = `已选: ${file.name}`;
         log(logId, `已加载: ${file.name} (${sizeGB} GB)`);
     };
@@ -198,10 +203,19 @@ async function startEncryption() {
     const logId = 'encLog';
     const carrierVal = document.getElementById('carrierImage').value;
     const level = document.getElementById('encLevel').value;
+    const filenameInput = document.getElementById('encFilenameInput');
     
     // 清空上次结果
     document.getElementById('encSaltDisplay').value = '';
-    document.getElementById('encFilenameDisplay').value = '';
+    
+    // ⭐ MODIFIED: 从用户输入框获取文件名
+    const saveName = filenameInput ? filenameInput.value.trim() : '';
+    if (!saveName) {
+        log(logId, '请输入加密后的文件名', true);
+        if (filenameInput) filenameInput.focus();
+        return;
+    }
+    const finalSaveName = saveName.endsWith('.png') ? saveName : `${saveName}.png`; // 强制确保有 .png 后缀
 
     if (!fileToEncrypt) return log(logId, '请先选择文件', true);
     if (!carrierVal) return log(logId, '请选择载体', true);
@@ -212,7 +226,6 @@ async function startEncryption() {
         // 1. 准备载体
         let carrierBlob;
         if (carrierVal.startsWith(LOCAL_CARRIER_PREFIX)) {
-            // ⭐ 使用本地文件对象
             carrierBlob = localCarrierFile; 
         } else {
             const res = await fetch(`picture/${carrierVal}`);
@@ -225,9 +238,15 @@ async function startEncryption() {
         let saltBase64 = null;
 
         if (level === 'level2') {
-            // 保持 prompt 弹窗获取密码，因为加密是用户单次操作，且 prompt 确保密码不留在 DOM 中
-            const pwd = prompt("设置密码 (用于 AES-GCM 加密):"); 
-            if (!pwd) return log(logId, '操作取消', true);
+            // 更改: 使用 UI 输入框获取密码，移除 prompt 弹窗
+            const pwdInput = document.getElementById('encPasswordInput');
+            const pwd = pwdInput ? pwdInput.value : '';
+            
+            if (!pwd) {
+                log(logId, '请输入加密密码', true);
+                if (pwdInput) pwdInput.focus();
+                return;
+            }
 
             // 生成随机盐 (16 bytes)
             const salt = window.crypto.getRandomValues(new Uint8Array(16));
@@ -295,18 +314,16 @@ async function startEncryption() {
         // 生成
         log(logId, '正在生成最终文件...');
         const finalBlob = new Blob(segments, { type: 'image/png' });
-        const saveName = (carrierVal.replace(LOCAL_CARRIER_PREFIX,'').split('.')[0]) + '_secure.png';
         
-        downloadFile(finalBlob, saveName);
-        log(logId, `✅ 成功！文件已生成: ${saveName}`);
+        downloadFile(finalBlob, finalSaveName);
+        log(logId, `✅ 成功！文件已生成: ${finalSaveName}`);
         
-        // ⭐ 填充参数设置字段
+        // 填充参数设置字段
         if (level === 'level2') {
             document.getElementById('encSaltDisplay').value = saltBase64;
         } else {
              document.getElementById('encSaltDisplay').value = '一级加密无密钥盐 (Salt)';
         }
-        document.getElementById('encFilenameDisplay').value = saveName;
 
     } catch (e) {
         console.error(e);
@@ -366,7 +383,7 @@ async function startDecryption() {
         let resultSegments = [];
 
         if (meta.level === 2) {
-            // ⭐ 从卡片内输入框获取密码
+            // 确保从解密卡片内的输入框获取密码
             const pwdInput = document.getElementById('decPasswordInput');
             const pwd = pwdInput ? pwdInput.value : '';
 
@@ -444,6 +461,7 @@ async function startDecryption() {
 document.addEventListener('DOMContentLoaded', () => {
     initCarrierImageSelector();
     initLocalCarrierImageSupport();
+    // 统一 Dropzone 标题
     initFileSelection('encInput', 'dropzoneEnc', 'encLog', false);
     initFileSelection('decInput', 'dropzoneDec', 'decLog', true);
 
