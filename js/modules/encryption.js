@@ -24,7 +24,6 @@ function log(elementId, message, isError = false) {
 }
 
 function downloadFile(blob, filename) {
-    // 处理大文件下载建议使用这种方式防止内存峰值
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -34,13 +33,14 @@ function downloadFile(blob, filename) {
     setTimeout(() => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-    }, 1000); // 稍微延时释放
+    }, 1000); 
 }
 
 // 整数 <-> 4字节 Uint8Array (大端序)
 function intToBytes(num) {
     const arr = new Uint8Array(4);
-    new DataView(arr.buffer).setUint32(0, num, false); // big-endian
+    // 使用 DataView 确保大端序 (false)
+    new DataView(arr.buffer).setUint32(0, num, false); 
     return arr;
 }
 function bytesToInt(arr) {
@@ -51,7 +51,7 @@ function bytesToInt(arr) {
 
 /**
  * 从密码生成 AES-GCM 密钥
- * 使用 PBKDF2 算法，迭代 100,000 次，安全性极高
+ * 使用 PBKDF2 算法，迭代 100,000 次
  */
 async function deriveKey(password, salt) {
     const enc = new TextEncoder();
@@ -77,7 +77,7 @@ async function deriveKey(password, salt) {
     );
 }
 
-// ====== 4. 初始化与 UI 逻辑 (保持不变) ======
+// ====== 4. 初始化与 UI 逻辑 ======
 
 async function initCarrierImageSelector() {
     const selector = document.getElementById('carrierImage');
@@ -140,10 +140,13 @@ function updateCarrierImageSelection(val) {
     const name = document.getElementById('carrierName');
     const img = document.getElementById('carrierImagePreview');
     
-    if (!val) { preview.style.display = 'none'; return; }
+    if (!val) { 
+        preview.style.display = 'none'; 
+        return; 
+    }
     
     if (val.startsWith(LOCAL_CARRIER_PREFIX) && localCarrierFile) {
-        name.textContent = val.replace(LOCAL_CARRIER_PREFIX, '');
+        name.textContent = localCarrierFile.name;
         img.src = URL.createObjectURL(localCarrierFile);
         preview.style.display = 'block';
     } else {
@@ -152,6 +155,11 @@ function updateCarrierImageSelection(val) {
         preview.style.display = 'block';
         localCarrierFile = null;
     }
+
+    // UI 优化 #1: 解决卡片展开不全的问题 (结构性修复指导)
+    // 这个问题通常是由于父容器 (卡片) 的高度在选择图片后没有自动更新。
+    // 如果您的卡片折叠由父元素的 CSS 属性 (如 max-height: 0) 控制，
+    // 您需要在 `card-toggle.js` 或卡片主处理逻辑中，确保父容器高度能容纳预览图。
 }
 
 function initFileSelection(inputId, dropzoneId, logId, isDecrypt) {
@@ -193,6 +201,10 @@ async function startEncryption() {
     const logId = 'encLog';
     const carrierVal = document.getElementById('carrierImage').value;
     const level = document.getElementById('encLevel').value;
+    
+    // 清空上次结果
+    document.getElementById('encSaltDisplay').value = '';
+    document.getElementById('encFilenameDisplay').value = '';
 
     if (!fileToEncrypt) return log(logId, '请先选择文件', true);
     if (!carrierVal) return log(logId, '请选择载体', true);
@@ -210,7 +222,7 @@ async function startEncryption() {
             carrierBlob = await res.blob();
         }
 
-        const segments = [carrierBlob]; // 最终文件的组成部分
+        const segments = [carrierBlob]; 
         let hiddenTotalSize = 0;
         let saltBase64 = null;
 
@@ -293,6 +305,14 @@ async function startEncryption() {
         
         downloadFile(finalBlob, saveName);
         log(logId, `✅ 成功！文件已生成: ${saveName}`);
+        
+        // ⭐ 填充参数设置字段
+        if (level === 'level2') {
+            document.getElementById('encSaltDisplay').value = saltBase64;
+        } else {
+             document.getElementById('encSaltDisplay').value = '一级加密无密钥盐 (Salt)';
+        }
+        document.getElementById('encFilenameDisplay').value = saveName;
 
     } catch (e) {
         console.error(e);
@@ -317,7 +337,6 @@ async function startDecryption() {
         const markerBytes = new TextEncoder().encode(MAGIC_MARKER);
 
         let markerPos = -1;
-        // 从后往前找
         for(let i = tailBytes.length - markerBytes.length; i >= 0; i--) {
             let match = true;
             for(let j=0; j<markerBytes.length; j++) {
@@ -330,8 +349,6 @@ async function startDecryption() {
 
         // 2. 读元数据
         const decoder = new TextDecoder();
-        // 尝试从标记位置往前找 '{'
-        // 为防万一，把标记前的所有数据转字符串找最后一个 '{'
         const metaAreaStr = decoder.decode(tailBytes.subarray(0, markerPos));
         const jsonStart = metaAreaStr.lastIndexOf('{');
         if (jsonStart === -1) throw new Error("元数据头丢失");
@@ -342,7 +359,6 @@ async function startDecryption() {
 
         // 3. 定位隐藏区
         const metaLen = new TextEncoder().encode(jsonStr).byteLength;
-        // 绝对标记位置 = (size - tailSize) + markerPos
         const absMarker = size - tailSize + markerPos;
         const absMetaStart = absMarker - metaLen;
         const absHiddenEnd = absMetaStart;
@@ -356,8 +372,16 @@ async function startDecryption() {
         let resultSegments = [];
 
         if (meta.level === 2) {
-            const pwd = prompt(`文件已加密 (AES-GCM).\n请输入密码:`);
-            if (!pwd) return log(logId, '已取消', true);
+            // ⭐ UI 优化: 从卡片内输入框获取密码
+            const pwdInput = document.getElementById('decPasswordInput');
+            const pwd = pwdInput ? pwdInput.value : null;
+
+            if (!pwd) {
+                log(logId, '请输入解密密码', true);
+                // 确保焦点回到输入框
+                if (pwdInput) pwdInput.focus(); 
+                return;
+            }
 
             // 读取盐 (隐藏区的前16字节)
             const saltBlob = fileToDecrypt.slice(absHiddenStart, absHiddenStart + 16);
