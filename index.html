@@ -201,6 +201,9 @@
                         <select id="carrierImage">
                             <option value="" disabled selected>请选择一张图片作为载体...</option>
                             </select>
+                        <div style="padding:4px 0;color:#60a5fa;font-size:12px;text-align:center;margin-top:8px;border:1px dashed rgba(96,165,250,0.5);border-radius:4px;" id="localCarrierDropzone">
+                            可拖拽本地图片到此处添加
+                        </div>
                     </div>
 
                     <div id="carrierPreview" style="margin-top:12px;display:none;padding:10px;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,0.02);">
@@ -355,34 +358,9 @@ document.getElementById('encLevel').onchange = e => {
     document.getElementById('level2-warning').style.display = e.target.value === 'level2' ? 'block' : 'none';
 };
 
-// 图片载体选择和预览逻辑 (前端测试用)
-document.getElementById('carrierImage').onchange = e => {
-    const selectedFileName = e.target.value;
-    const previewDiv = document.getElementById('carrierPreview');
-    const nameSpan = document.getElementById('carrierName');
-    const imgElement = document.getElementById('carrierImagePreview');
-    
-    if (selectedFileName) {
-        // 地址检查: 载体图片源于根目录新建文件夹 picture
-        const imagePath = `picture/${selectedFileName}`;
-        
-        // 更新名称显示
-        nameSpan.textContent = selectedFileName;
-        
-        // 更新预览图的 src，验证地址是否正确（即 picture/文件名）
-        imgElement.src = imagePath;
-        
-        // 显示预览区
-        previewDiv.style.display = 'block';
-    } else {
-        // 未选择时隐藏
-        previewDiv.style.display = 'none';
-        nameSpan.textContent = '--';
-        imgElement.src = '';
-    }
-};
+// ⭐ 移除 carrierImage.onchange 逻辑，统一在 js/modules/encryption.js 中处理远程和本地文件预览
 
-// ⭐ 修复后的日志样式统一代码块 ⭐
+// 日志样式统一
 const style = document.createElement('style');
 style.textContent = `#log, #imgLog, #pdfLog, #encLog, #decLog {
     margin-top:6px;
@@ -392,8 +370,8 @@ style.textContent = `#log, #imgLog, #pdfLog, #encLog, #decLog {
     overflow:auto;
     padding:10px 12px;
     border-radius:8px;
-    border: 1px solid var(--border); /* 补全边框 */
-    background: var(--bg-secondary); /* 补全背景 */
+    border: 1px solid var(--border);
+    background: var(--bg-secondary);
 }`;
 
 document.head.appendChild(style);
