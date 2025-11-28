@@ -89,7 +89,7 @@ async function initCarrierImageSelector() {
         if (!response.ok) throw new Error("无法加载图片列表");
         const list = await response.json();
         
-        selector.innerHTML = '<option value="" disabled selected>请选择载体...</option>';
+        selector.innerHTML = '<option value="" disabled selected>请选择一张图片作为载体...</option>';
         list.forEach(f => {
             const opt = document.createElement('option');
             opt.value = f;
@@ -121,7 +121,9 @@ function initLocalCarrierImageSupport() {
         const file = e.dataTransfer.files[0];
         if (!file.type.startsWith('image/')) return log('encLog', '请拖入图片', true);
 
-        localCarrierFile = file;
+        // ⭐ 修复/确认 Bug 3: localCarrierFile 赋值
+        localCarrierFile = file; 
+        
         const old = selector.querySelector(`option[value^="${LOCAL_CARRIER_PREFIX}"]`);
         if (old) old.remove();
 
@@ -155,11 +157,6 @@ function updateCarrierImageSelection(val) {
         preview.style.display = 'block';
         localCarrierFile = null;
     }
-
-    // UI 优化 #1: 解决卡片展开不全的问题 (结构性修复指导)
-    // 这个问题通常是由于父容器 (卡片) 的高度在选择图片后没有自动更新。
-    // 如果您的卡片折叠由父元素的 CSS 属性 (如 max-height: 0) 控制，
-    // 您需要在 `card-toggle.js` 或卡片主处理逻辑中，确保父容器高度能容纳预览图。
 }
 
 function initFileSelection(inputId, dropzoneId, logId, isDecrypt) {
@@ -215,7 +212,8 @@ async function startEncryption() {
         // 1. 准备载体
         let carrierBlob;
         if (carrierVal.startsWith(LOCAL_CARRIER_PREFIX)) {
-            carrierBlob = localCarrierFile;
+            // ⭐ 使用本地文件对象
+            carrierBlob = localCarrierFile; 
         } else {
             const res = await fetch(`picture/${carrierVal}`);
             if (!res.ok) throw new Error('无法下载载体图');
@@ -227,12 +225,12 @@ async function startEncryption() {
         let saltBase64 = null;
 
         if (level === 'level2') {
-            const pwd = prompt("设置密码 (用于 AES-GCM 加密):");
+            // 保持 prompt 弹窗获取密码，因为加密是用户单次操作，且 prompt 确保密码不留在 DOM 中
+            const pwd = prompt("设置密码 (用于 AES-GCM 加密):"); 
             if (!pwd) return log(logId, '操作取消', true);
 
             // 生成随机盐 (16 bytes)
             const salt = window.crypto.getRandomValues(new Uint8Array(16));
-            // 导出盐用于元数据存储
             saltBase64 = btoa(String.fromCharCode(...salt));
             
             // 派生密钥
@@ -251,29 +249,25 @@ async function startEncryption() {
                 const chunkBlob = fileToEncrypt.slice(offset, offset + CHUNK_SIZE);
                 const chunkBuffer = await chunkBlob.arrayBuffer();
 
-                // 生成唯一 IV (12 bytes for GCM)
                 const iv = window.crypto.getRandomValues(new Uint8Array(12));
 
-                // 加密 (得到密文 + AuthTag)
                 const encryptedBuffer = await window.crypto.subtle.encrypt(
                     { name: "AES-GCM", iv: iv },
                     key,
                     chunkBuffer
                 );
 
-                // 包结构: [Len 4B] + [IV 12B] + [Ciphertext N]
                 const lenBytes = intToBytes(encryptedBuffer.byteLength);
                 
-                segments.push(lenBytes);        // 4B
-                segments.push(iv);              // 12B
-                segments.push(encryptedBuffer); // Data
+                segments.push(lenBytes);        
+                segments.push(iv);              
+                segments.push(encryptedBuffer); 
 
                 const packetSize = 4 + 12 + encryptedBuffer.byteLength;
                 hiddenTotalSize += packetSize;
 
                 offset += CHUNK_SIZE;
                 
-                // 进度日志
                 if (offset % (CHUNK_SIZE * 5) === 0 || offset >= totalSize) {
                     const percent = Math.min(100, (offset/totalSize)*100).toFixed(0);
                     log(logId, `加密中: ${percent}% ...`);
@@ -292,7 +286,7 @@ async function startEncryption() {
             level: level === 'level2' ? 2 : 1,
             name: fileToEncrypt.name,
             hiddenSize: hiddenTotalSize,
-            salt: saltBase64 // 如果是Level 2，需要盐来恢复密钥
+            salt: saltBase64 
         };
         
         const metaStr = JSON.stringify(meta) + MAGIC_MARKER;
@@ -372,13 +366,12 @@ async function startDecryption() {
         let resultSegments = [];
 
         if (meta.level === 2) {
-            // ⭐ UI 优化: 从卡片内输入框获取密码
+            // ⭐ 从卡片内输入框获取密码
             const pwdInput = document.getElementById('decPasswordInput');
-            const pwd = pwdInput ? pwdInput.value : null;
+            const pwd = pwdInput ? pwdInput.value : '';
 
             if (!pwd) {
                 log(logId, '请输入解密密码', true);
-                // 确保焦点回到输入框
                 if (pwdInput) pwdInput.focus(); 
                 return;
             }
@@ -391,7 +384,6 @@ async function startDecryption() {
             const key = await deriveKey(pwd, salt);
 
             // 开始分块解密
-            // 数据区开始位置 = 隐藏区开始 + 16字节盐
             let offset = absHiddenStart + 16;
             const dataEnd = absHiddenEnd;
             
