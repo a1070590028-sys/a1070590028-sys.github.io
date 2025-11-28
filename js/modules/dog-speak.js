@@ -1,16 +1,19 @@
-// js/modules/dog-speak.js (最终稳定版 - 仅支持216个英数字和标点符号)
+// js/modules/dog-speak.js (最终稳定版 - 包含空格和换行符)
 
 // 密语参数
 const BASE = 6; // 6进制
 const MAX_VALUE = BASE * BASE * BASE; // 6 * 6 * 6 = 216
 const DOG_SPEAK_WORDS = ["汪", "汪汪", "呜", "嗷嗷", "吠", "嗷呜"]; // 6个词汇
 
-// 最终稳定版 CHAR_MAP (必须严格是216个字符: 英文、数字和符号)
+// 最终稳定版 CHAR_MAP (总计 216 个字符: 英文、数字、符号、空格和换行符)
+// 包含所有英文大小写、数字、常用符号，以及空格和换行符。
 const CHAR_MAP = 
     "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" + // 62个英数字
     "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~" + // 32个常用标点
-    "£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"; // 122个扩展ASCII/拉丁字符
-    // 总计: 216 个字符。
+    "£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜ" + // 120个扩展ASCII/拉丁字符
+    " " + // ⭐ 新增：空格 (Space)
+    "\n"; // ⭐ 新增：换行符 (Newline)
+    // 总计: 62 + 32 + 120 + 2 = 216 个字符。
 
 /**
  * 确定性扰动值生成器 (基于密钥)
@@ -22,8 +25,10 @@ function getPerturbValue(seedText) {
     
     let hash = 0;
     for (let i = 0; i < seedText.length; i++) {
+        // 使用简单的哈希算法
         hash = hash + seedText.charCodeAt(i) + (hash << 9);
     }
+    // 将哈希值映射到 0 到 MAX_VALUE - 1 之间
     return Math.abs(hash) % MAX_VALUE;
 }
 
@@ -82,21 +87,24 @@ function encodeToDogSpeak(text, key) {
     for (const char of Array.from(text)) {
         const index = CHAR_MAP.indexOf(char);
         
+        // 1. 处理不支持的字符
+        let charToEncode = char;
         if (index === -1) {
-            // 不支持的字符，保留原样，用空狗叫词表示，方便解码时跳过
-            encoded.push(char); 
-            continue;
+            // 如果字符不在 CHAR_MAP 中，用问号 (?) 代替，问号本身在 CHAR_MAP 中，会被编码
+            charToEncode = '?'; 
         }
+        
+        const finalIndex = CHAR_MAP.indexOf(charToEncode); // 找到最终要编码的索引
+        
+        // 2. 计算加密后的值: EncodedValue = (Index + PerturbValue) mod M
+        const encodedValue = (finalIndex + perturbValue) % MAX_VALUE;
 
-        // 1. 计算加密后的值: EncodedValue = (Index + PerturbValue) mod M
-        const encodedValue = (index + perturbValue) % MAX_VALUE;
-
-        // 2. 将值转换为狗叫词序列
+        // 3. 将值转换为狗叫词序列
         encoded.push(valueToDogSpeak(encodedValue));
     }
     
-    // 使用 ' | ' 分隔每个字符转换后的狗叫词序列，确保可读性和解码稳定性
-    return encoded.join(' | ').replace(/\s{2,}/g, ' ').trim();
+    // 使用 ' | ' 分隔每个字符转换后的狗叫词序列
+    return encoded.join(' | ').trim();
 }
 
 /**
@@ -116,12 +124,8 @@ function decodeFromDogSpeak(dogSpeak, key) {
         const speakParts = block.trim().split(/\s+/).filter(w => w.length > 0);
 
         if (speakParts.length !== 3) {
-            // 如果不是三个词，说明是未转换的原始字符或格式错误
-            if (speakParts.length === 1 && CHAR_MAP.includes(speakParts[0])) {
-                decoded.push(speakParts[0]); // 可能是未转换的单个字符
-            } else {
-                decoded.push('?'); // 格式错误，用问号代替
-            }
+            // 如果不是三个词，说明格式错误或输入了未转换的字符，则还原失败。
+            decoded.push('?'); // 格式错误，用问号代替
             continue;
         }
         
