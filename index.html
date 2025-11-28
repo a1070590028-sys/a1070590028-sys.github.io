@@ -252,9 +252,9 @@
 </div>
 
 <div class="post-card">
-    <h2 class="card-title">🐶 文字转狗叫密语 <span class="toggle-icon">▾</span></h2>
+    <h2 class="card-title">🐶 狗叫密语 <span class="toggle-icon">▾</span></h2>
     <div class="card-content">
-        <p style="margin-top:8px">将普通文字转换成“大狗叫”，并可使用密钥进行加密/解密。</p>
+        <p style="margin-top:8px">将普通文字转换成“大狗叫”，并可使用密钥进行加密/解密。目前仅支持英文以及常见字符</p>
         
         <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn active" data-dog-tab="encode">转换为狗叫</button>
@@ -323,7 +323,7 @@
 </div>    
 
     <div class="post-card">
-        <h2 class="card-title">🚡 图片 ↔ PDF 互转 <span class="toggle-icon">▾</span></h2>
+        <h2 class="card-title">🚡 图片PDF 互转 <span class="toggle-icon">▾</span></h2>
         <div class="card-content">
             <p style="margin-top:8px">纯前端实现：多图转 PDF、PDF 转图片，全部离线处理，支持拖拽与批量下载。</p>
             <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
@@ -482,7 +482,7 @@ document.querySelectorAll('[data-enc-tab]').forEach(b => b.onclick = () => {
     document.getElementById(b.dataset.encTab + '-panel').style.display = 'block';
 });
 
-// ⭐ 新增：狗叫密语 Tab 切换（使用 data-dog-tab）
+// 新增：狗叫密语 Tab 切换（使用 data-dog-tab）
 document.querySelectorAll('[data-dog-tab]').forEach(b => b.onclick = () => {
     document.querySelectorAll('[data-dog-tab]').forEach(x => x.classList.remove('active'));
     document.getElementById('dog-encode-panel').style.display = 'none';
