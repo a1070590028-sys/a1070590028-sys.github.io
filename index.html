@@ -350,27 +350,30 @@ document.getElementById('pageSize').onchange = e => {
 const style = document.createElement('style');
 style.textContent = `#imgLog,#pdfLog{margin-top:6px;color:var(--text-muted);font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;
 `;
-document.head.appendChild(style);
+document.head.appendChild(style); // <-- 修复：已添加
 
-
-// ⭐ 隐写卡片 Tab 切换 (修复内容消失 Bug)
+// 隐写卡片 Tab 切换 (修复内容消失 Bug)
 document.querySelectorAll('[data-steg-tab]').forEach(b => b.onclick = (e) => {
-    // 确保使用 target 的 dataset
     const targetTabId = e.target.dataset.stegTab + 'Tab'; 
 
-    // 1. 隐藏所有 Tab 内容
     document.querySelectorAll('#encryptTab, #decryptTab').forEach(x => x.style.display = 'none');
     
-    // 2. 更新按钮激活状态
     document.querySelectorAll('[data-steg-tab]').forEach(x => x.classList.remove('active'));
     e.target.classList.add('active');
 
-    // 3. 显示目标内容，并确保使用 grid 保持结构
     const targetElement = document.getElementById(targetTabId);
     if (targetElement) {
         targetElement.style.display = 'grid';
     }
 });
+
+// ⭐ 修复：隐写卡片 拖拽区点击触发文件选择 (Issue 1 Fix) ⭐
+document.getElementById('dropzoneEnc').onclick = () => {
+    document.getElementById('encInput').click();
+};
+document.getElementById('dropzoneDec').onclick = () => {
+    document.getElementById('decInput').click();
+};
 </script>
 </body>
 </html>
