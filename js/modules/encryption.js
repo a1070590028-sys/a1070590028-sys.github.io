@@ -249,7 +249,7 @@ async function startEncryption() {
     if (!carrierVal) return log(logId, '请选择载体', true);
 
     // ------------------ 新逻辑：读取 UI 输入框 ------------------
-    let outName = document.getElementById('encOutputName').value.trim();
+    let outName = document.getElementById('encFilename').value.trim();
     if (!outName) outName = fileToEncrypt.name.split('.')[0];
     const finalOutputName = outName + ".png";
 
