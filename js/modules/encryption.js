@@ -10,6 +10,10 @@ const MAX_METADATA_SEARCH_SIZE = 50 * 1024; // 搜索元数据的最大文件尾
 let fileToEncrypt = null;
 let fileToDecrypt = null;
 
+// ⭐ 新增: 用于存储本地拖拽的载体图片文件
+let localCarrierFile = null; 
+const LOCAL_CARRIER_PREFIX = 'LOCAL::'; // 用于区分本地文件选项的前缀
+
 /**
  * 辅助函数: 记录日志到指定元素
  */
@@ -36,7 +40,7 @@ function downloadFile(blob, filename) {
     URL.revokeObjectURL(url);
 }
 
-// ====== 2. 初始化函数 (保持不变，用于加载图片列表和拖拽) ======
+// ====== 2. 初始化函数 ======
 
 /**
  * 初始化图片载体选择下拉菜单 (#carrierImage)
@@ -76,6 +80,10 @@ async function initCarrierImageSelector() {
             option.textContent = fileName;
             selector.appendChild(option);
         });
+
+        // 绑定事件处理器 (统一处理远程和本地文件预览)
+        selector.onchange = (e) => updateCarrierImageSelection(e.target.value);
+
     } catch (error) {
         selector.innerHTML = `<option value="" disabled selected>加载失败: ${error.message}</option>`;
         log('encLog', `图片列表加载失败: ${error.message}`, true);
@@ -83,7 +91,107 @@ async function initCarrierImageSelector() {
 }
 
 /**
- * 初始化文件选择/拖拽逻辑 (待加密文件)
+ * ⭐ 新增: 处理本地载体图片的拖拽逻辑
+ */
+function initLocalCarrierImageSupport() {
+    const dropzone = document.getElementById('localCarrierDropzone');
+    const selector = document.getElementById('carrierImage');
+    const logElementId = 'encLog';
+
+    if (!dropzone || !selector) return;
+
+    // 拖拽边框样式反馈
+    ['dragover', 'dragleave'].forEach(event => {
+        dropzone.addEventListener(event, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzone.style.borderColor = (event === 'dragover') ? 'var(--accent)' : 'rgba(96,165,250,0.5)';
+        });
+    });
+
+    // 文件放下时的处理
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dropzone.style.borderColor = 'rgba(96,165,250,0.5)';
+
+        const files = e.dataTransfer.files;
+        if (files.length === 0) {
+            return log(logElementId, '未拖入文件。');
+        }
+        
+        const file = files[0];
+        if (!file.type.startsWith('image/')) {
+            return log(logElementId, '错误：拖入的文件不是图片格式，请拖入 JPEG, PNG 或 WebP 文件。', true);
+        }
+
+        // 1. 存储本地文件
+        localCarrierFile = file;
+
+        // 2. 移除任何先前的本地文件选项
+        let oldOption = selector.querySelector(`option[value^="${LOCAL_CARRIER_PREFIX}"]`);
+        if(oldOption) {
+            oldOption.remove();
+        }
+
+        // 3. 添加新的本地文件到下拉菜单
+        const option = document.createElement('option');
+        const optionValue = LOCAL_CARRIER_PREFIX + file.name; 
+        option.value = optionValue;
+        option.textContent = `(本地文件) ${file.name}`;
+        selector.appendChild(option);
+        
+        // 4. 选中新选项并更新预览
+        selector.value = optionValue;
+        updateCarrierImageSelection(optionValue);
+
+        log(logElementId, `已添加本地载体图片：${file.name}，文件大小：${(file.size / 1024 / 1024).toFixed(2)} MB。`);
+    });
+}
+
+/**
+ * ⭐ 新增: 统一处理载体图片的选择和预览 (无论远程还是本地)
+ */
+function updateCarrierImageSelection(selectedValue) {
+    const previewDiv = document.getElementById('carrierPreview');
+    const nameSpan = document.getElementById('carrierName');
+    const imgElement = document.getElementById('carrierImagePreview');
+
+    if (!selectedValue) {
+        previewDiv.style.display = 'none';
+        nameSpan.textContent = '--';
+        imgElement.src = '';
+        localCarrierFile = null;
+        return;
+    }
+    
+    // 如果选择了远程文件，清除本地文件引用
+    if (!selectedValue.startsWith(LOCAL_CARRIER_PREFIX)) {
+        localCarrierFile = null;
+    }
+
+    if (selectedValue.startsWith(LOCAL_CARRIER_PREFIX) && localCarrierFile) {
+        // 本地文件预览
+        const fileName = selectedValue.replace(LOCAL_CARRIER_PREFIX, '');
+        nameSpan.textContent = `(本地) ${fileName}`;
+        // 使用 URL.createObjectURL 进行本地预览
+        imgElement.src = URL.createObjectURL(localCarrierFile);
+        previewDiv.style.display = 'block';
+    } else if (!selectedValue.startsWith(LOCAL_CARRIER_PREFIX)) {
+        // 远程文件预览
+        const imagePath = `picture/${selectedValue}`;
+        nameSpan.textContent = selectedValue;
+        imgElement.src = imagePath;
+        previewDiv.style.display = 'block';
+    } else {
+         // 理论上不应该发生，但以防万一
+        previewDiv.style.display = 'none';
+    }
+}
+
+
+/**
+ * 初始化文件选择/拖拽逻辑 (待加密文件, 保持不变)
  */
 function initEncryptFileSelection() {
     const encInput = document.getElementById('encInput');
@@ -121,7 +229,7 @@ function initEncryptFileSelection() {
 }
 
 /**
- * 初始化文件选择/拖拽逻辑 (待解密文件)
+ * 初始化文件选择/拖拽逻辑 (待解密文件, 保持不变)
  */
 function initDecryptFileSelection() {
     const decInput = document.getElementById('decInput');
@@ -177,30 +285,42 @@ function initDecryptFileSelection() {
 // ====== 3. 加密/解密核心逻辑 (支持大文件) ======
 
 /**
- * 核心加密函数 (已修复大文件拼接结构)
- * 新结构: [图片载体] [隐藏文件数据] [元数据JSON] [FSDATA::]
+ * 核心加密函数 (已支持本地载体图片)
  */
 async function startEncryption() {
     const logElementId = 'encLog';
-    const carrierImageName = document.getElementById('carrierImage').value;
+    const selectedValue = document.getElementById('carrierImage').value;
+    const isLocalFile = selectedValue.startsWith(LOCAL_CARRIER_PREFIX);
+    const carrierImageName = isLocalFile ? selectedValue.replace(LOCAL_CARRIER_PREFIX, '') : selectedValue;
+
     const encLevel = document.getElementById('encLevel').value;
     
     if (!fileToEncrypt) {
         return log(logElementId, '请先选择待加密文件！', true);
     }
-    if (!carrierImageName) {
+    if (!selectedValue) {
         return log(logElementId, '请选择一张图片作为载体！', true);
     }
 
     log(logElementId, `开始加密文件到载体：${carrierImageName}...`);
 
     try {
-        // 1. 获取载体图片数据 (ArrayBuffer)
-        const carrierImageResponse = await fetch(`picture/${carrierImageName}`);
-        if (!carrierImageResponse.ok) {
-            throw new Error(`无法加载载体图片: picture/${carrierImageName}。请检查文件是否存在。`);
+        let carrierImageBuffer;
+
+        // 1. 获取载体图片数据 (ArrayBuffer) - 区分本地和远程文件
+        if (isLocalFile && localCarrierFile) {
+            log(logElementId, `正在读取本地载体图片 (${carrierImageName})...`);
+            carrierImageBuffer = await localCarrierFile.arrayBuffer();
+        } else if (!isLocalFile) {
+            const carrierImageResponse = await fetch(`picture/${carrierImageName}`);
+            if (!carrierImageResponse.ok) {
+                throw new Error(`无法加载载体图片: picture/${carrierImageName}。请检查文件是否存在。`);
+            }
+            carrierImageBuffer = await carrierImageResponse.arrayBuffer();
+        } else {
+            throw new Error("无法获取载体图片数据。");
         }
-        const carrierImageBuffer = await carrierImageResponse.arrayBuffer();
+
 
         // 2. 读取待加密文件数据 (ArrayBuffer)
         log(logElementId, '正在读取待加密文件内容...');
@@ -233,15 +353,12 @@ async function startEncryption() {
             magic: MAGIC_MARKER.slice(0, -2), 
             level: encLevel === 'level2' ? 2 : 1,
             name: originalFileName,
-            // 注意: 这里存储的是加密或伪装后的数据大小，用于解密定位
             hiddenSize: hiddenDataBuffer.byteLength 
         };
-        // 元数据字符串 + 标记，用于解密时在文件末尾进行搜索
         const metadataString = JSON.stringify(metadata) + MAGIC_MARKER; 
         const metadataBuffer = new TextEncoder().encode(metadataString).buffer;
 
         // 5. 拼接数据 (使用 Blob 构造函数安全拼接大文件)
-        // FIX: 确保元数据和标记在文件末尾，方便解密时搜索。
         const segments = [
             carrierImageBuffer,
             hiddenDataBuffer,   // 隐藏数据
@@ -251,8 +368,8 @@ async function startEncryption() {
         // 6. 下载结果
         const resultBlob = new Blob(segments, { type: 'image/png' }); 
         
-        const carrierBaseName = carrierImageName.substring(0, carrierImageName.lastIndexOf('.'));
-        const newFileName = `${carrierBaseName}_hidden.png`; 
+        const baseName = carrierImageName.substring(0, carrierImageName.lastIndexOf('.'));
+        const newFileName = `${baseName}_hidden.png`; 
 
         downloadFile(resultBlob, newFileName);
 
@@ -264,7 +381,7 @@ async function startEncryption() {
 }
 
 /**
- * 核心解密函数 (已修复大文件提取和定位逻辑)
+ * 核心解密函数 (保持不变)
  */
 async function startDecryption() {
     const logElementId = 'decLog';
@@ -309,13 +426,10 @@ async function startDecryption() {
         }
         
         if (markerIndexInTail === -1) {
-            // 这是用户遇到的错误：未找到标记。
             return log(logElementId, '未找到文件隐写标记，这不是一个加密文件或标记已被破坏。请注意，重新压缩图片文件会导致标记丢失！', true);
         }
 
         // 2. 提取元数据字符串
-        // 元数据字符串紧接在 MAGIC_MARKER 之前。
-        // FIX: 元数据是 tailUint8Array 中从索引 0 到 markerIndexInTail 之间的所有内容。
         const metadataTail = tailUint8Array.subarray(0, markerIndexInTail);
         const metadataString = textDecoder.decode(metadataTail);
         
@@ -332,14 +446,8 @@ async function startDecryption() {
         }
         
         // 4. 计算隐藏数据位置
-        // 文件结构: [Image] [Hidden Data] [JSON] [FSDATA::]
-        // 总元数据块大小 = JSON 长度 + 标记长度
         const totalMetadataBlockSize = metadataTail.length + MAGIC_MARKER.length;
-        
-        // 隐藏数据结束位置 (即 JSON 元数据开始的位置)
         const hiddenDataEndByte = fileSize - totalMetadataBlockSize;
-        
-        // 隐藏数据开始位置
         const hiddenDataStartByte = hiddenDataEndByte - metadata.hiddenSize;
         
         if (hiddenDataStartByte < 0 || hiddenDataEndByte > fileSize) {
@@ -348,7 +456,6 @@ async function startDecryption() {
 
         // 5. 提取隐藏数据 (Blob.slice() 提取数据)
         log(logElementId, `正在提取隐藏数据（大小：${(metadata.hiddenSize / 1024 / 1024).toFixed(2)} MB）...`);
-        // fileToDecrypt 是一个 File 对象（Blob 的子类），可以直接 slice 提取
         const hiddenDataBlob = fileToDecrypt.slice(hiddenDataStartByte, hiddenDataEndByte);
         
         let decryptedDataBlob;
@@ -356,7 +463,6 @@ async function startDecryption() {
 
         // 6. 解密/提取
         if (metadata.level === 2) {
-            // ⭐ 修复后这里会正常弹出密码框
             const password = prompt("文件已进行二级加密，请输入解密密码:");
             if (!password) {
                 return log(logElementId, '解密取消：未输入密码。', true);
@@ -369,15 +475,12 @@ async function startDecryption() {
             const hiddenDataBuffer = await hiddenDataBlob.arrayBuffer();
             const encryptedString = new TextDecoder().decode(hiddenDataBuffer);
             
-            // 解密
             const decrypted = CryptoJS.AES.decrypt(encryptedString, password);
             
-            // 检查解密是否失败
             if (decrypted.words.length === 0 && decrypted.sigBytes === 0) {
                  return log(logElementId, '密码错误或解密失败，请检查密码。', true);
             }
             
-            // Word Array to Uint8Array/Blob
             const decryptedUint8Array = new Uint8Array(decrypted.sigBytes);
             for (let i = 0; i < decrypted.sigBytes; i++) {
                 decryptedUint8Array[i] = (decrypted.words[i >>> 2] >>> (24 - (i % 4) * 8)) & 0xff;
@@ -387,7 +490,6 @@ async function startDecryption() {
             log(logElementId, '二级解密成功！');
 
         } else {
-            // 一级解密：直接使用提取的 Blob
             decryptedDataBlob = hiddenDataBlob;
             log(logElementId, '一级伪装提取成功！');
         }
@@ -406,6 +508,7 @@ async function startDecryption() {
 
 document.addEventListener('DOMContentLoaded', () => {
     initCarrierImageSelector(); 
+    initLocalCarrierImageSupport(); // ⭐ 启动本地拖拽支持
     initEncryptFileSelection();
     initDecryptFileSelection();
 
