@@ -195,10 +195,15 @@
                         <label class="small">选择图片载体 (根目录 /picture 文件夹)</label>
                         <select id="carrierImage">
                             <option value="" disabled selected>请选择一张图片作为载体...</option>
-                            <option value="placeholder">（加载图片列表中...）</option> 
-                        </select>
+                            </select>
                     </div>
 
+                    <div id="carrierPreview" style="margin-top:12px;display:none;padding:10px;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,0.02);">
+                        <p class="small" style="margin:0;">载体名称: <span id="carrierName" style="font-weight:600;">--</span></p>
+                        <div style="text-align:center;margin-top:8px;">
+                            <img id="carrierImagePreview" src="" alt="载体图片预览" style="max-width:100%;max-height:150px;border-radius:6px;">
+                        </div>
+                    </div>
                     <div id="level2-warning" class="small" style="margin-top:8px;padding:8px;border:1px solid #f97316;border-radius:6px;background:rgba(249,115,22,0.1);display:none;">
                         **注意：** 二级加密使用 AES-256 标准，**必须**在本站解密，否则无法恢复。
                     </div>
@@ -330,6 +335,33 @@ document.querySelectorAll('[data-enc-tab]').forEach(b => b.onclick = () => {
 // ⭐ NEW: 二级加密警告显示/隐藏
 document.getElementById('encLevel').onchange = e => {
     document.getElementById('level2-warning').style.display = e.target.value === 'level2' ? 'block' : 'none';
+};
+
+// ⭐ NEW: 图片载体选择和预览逻辑 (前端测试用)
+document.getElementById('carrierImage').onchange = e => {
+    const selectedFileName = e.target.value;
+    const previewDiv = document.getElementById('carrierPreview');
+    const nameSpan = document.getElementById('carrierName');
+    const imgElement = document.getElementById('carrierImagePreview');
+    
+    if (selectedFileName) {
+        // 地址检查: 载体图片源于根目录新建文件夹 picture
+        const imagePath = `picture/${selectedFileName}`;
+        
+        // 更新名称显示
+        nameSpan.textContent = selectedFileName;
+        
+        // 更新预览图的 src，验证地址是否正确（即 picture/文件名）
+        imgElement.src = imagePath;
+        
+        // 显示预览区
+        previewDiv.style.display = 'block';
+    } else {
+        // 未选择时隐藏
+        previewDiv.style.display = 'none';
+        nameSpan.textContent = '--';
+        imgElement.src = '';
+    }
 };
 
 // 日志样式统一
