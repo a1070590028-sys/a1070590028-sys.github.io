@@ -104,8 +104,43 @@ async function initCarrierImageSelector() {
 function initLocalCarrierImageSupport() {
     const dropzone = document.getElementById('localCarrierDropzone');
     const selector = document.getElementById('carrierImage');
-    if (!dropzone || !selector) return;
+    const input = document.getElementById('localCarrierInput'); // 新增的 input 元素
+    if (!dropzone || !selector || !input) return;
 
+    // --- 新增逻辑：点击 Dropzone 触发 Input 点击 ---
+    dropzone.onclick = () => input.click();
+
+    // --- 新增逻辑：处理 Input change 事件 ---
+    input.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            // 清空文件选择框的值，防止下次点击时没有 change 事件
+            e.target.value = ''; 
+            return log('encLog', '请选择图片文件', true);
+        }
+        
+        localCarrierFile = file;
+
+        // 更新 UI
+        const old = selector.querySelector(`option[value^="${LOCAL_CARRIER_PREFIX}"]`);
+        if (old) old.remove(); // 删除旧的本地载体选项
+
+        const opt = document.createElement("option");
+        opt.value = LOCAL_CARRIER_PREFIX + file.name;
+        opt.textContent = `(本地) ${file.name}`;
+        selector.appendChild(opt);
+        selector.value = opt.value; // 选中新添加的选项
+
+        updateCarrierImageSelection(opt.value);
+        log('encLog', `已加载载体: ${file.name}`);
+        
+        // 记得清空文件选择框的值，以便下次选择同一文件也能触发 change 事件
+        e.target.value = '';
+    };
+
+    // --- 现有逻辑：处理拖放事件 ---
     ['dragover', 'dragleave'].forEach(evt => dropzone.addEventListener(evt, e => {
         e.preventDefault(); e.stopPropagation();
         dropzone.style.borderColor = evt === 'dragover' ? 'var(--accent)' : 'rgba(96,165,250,0.5)';
