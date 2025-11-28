@@ -1,7 +1,6 @@
-// js/modules/encryption.js
+// js/modules/encryption.js (patched)
 
 // ====== 1. 常量与配置 ======
-
 const MAGIC_MARKER = 'FSDATA::';
 const MAX_METADATA_SEARCH_SIZE = 50 * 1024; 
 const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB 分块
@@ -13,13 +12,15 @@ let localCarrierFile = null;
 const LOCAL_CARRIER_PREFIX = 'LOCAL::';
 
 // ====== 2. 辅助工具函数 ======
-
 function log(elementId, message, isError = false) {
     const logElement = document.getElementById(elementId);
     if (logElement) {
         const color = isError ? 'var(--danger)' : 'var(--text-muted)';
         const prefix = isError ? '❌ ' : '';
         logElement.innerHTML = `<span style="color:${color};">${prefix}${message}</span>`;
+    } else {
+        // 退化：如果日志元素不存在，输出到控制台，方便调试
+        if (isError) console.error(`[${elementId}] ${message}`); else console.log(`[${elementId}] ${message}`);
     }
 }
 
@@ -46,7 +47,6 @@ function bytesToInt(arr) {
 }
 
 // ====== 3. Web Crypto API 核心 ======
-
 async function deriveKey(password, salt) {
     const enc = new TextEncoder();
     const keyMaterial = await window.crypto.subtle.importKey(
@@ -72,7 +72,6 @@ async function deriveKey(password, salt) {
 }
 
 // ====== 4. 初始化与 UI 逻辑 ======
-
 async function initCarrierImageSelector() {
     const selector = document.getElementById('carrierImage');
     if (!selector) return;
@@ -93,7 +92,9 @@ async function initCarrierImageSelector() {
             selector.appendChild(opt);
         });
 
-        selector.onchange = (e) => updateCarrierImageSelection(e.target.value);
+        selector.onchange = (e) => {
+            try { updateCarrierImageSelection(e.target.value); } catch (err) { console.error(err); }
+        };
 
     } catch (e) {
         selector.innerHTML = '<option disabled>加载失败</option>';
@@ -104,43 +105,37 @@ async function initCarrierImageSelector() {
 function initLocalCarrierImageSupport() {
     const dropzone = document.getElementById('localCarrierDropzone');
     const selector = document.getElementById('carrierImage');
-    const input = document.getElementById('localCarrierInput'); // 新增的 input 元素
+    const input = document.getElementById('localCarrierInput');
     if (!dropzone || !selector || !input) return;
 
-    // --- 新增逻辑：点击 Dropzone 触发 Input 点击 ---
     dropzone.onclick = () => input.click();
 
-    // --- 新增逻辑：处理 Input change 事件 ---
     input.onchange = e => {
         const file = e.target.files[0];
         if (!file) return;
 
         if (!file.type.startsWith("image/")) {
-            // 清空文件选择框的值，防止下次点击时没有 change 事件
-            e.target.value = ''; 
+            e.target.value = '';
             return log('encLog', '请选择图片文件', true);
         }
         
         localCarrierFile = file;
 
-        // 更新 UI
         const old = selector.querySelector(`option[value^="${LOCAL_CARRIER_PREFIX}"]`);
-        if (old) old.remove(); // 删除旧的本地载体选项
+        if (old) old.remove();
 
         const opt = document.createElement("option");
         opt.value = LOCAL_CARRIER_PREFIX + file.name;
         opt.textContent = `(本地) ${file.name}`;
         selector.appendChild(opt);
-        selector.value = opt.value; // 选中新添加的选项
+        selector.value = opt.value;
 
-        updateCarrierImageSelection(opt.value);
+        // update safely
+        try { updateCarrierImageSelection(opt.value); } catch (err) { console.warn(err); }
         log('encLog', `已加载载体: ${file.name}`);
-        
-        // 记得清空文件选择框的值，以便下次选择同一文件也能触发 change 事件
         e.target.value = '';
     };
 
-    // --- 现有逻辑：处理拖放事件 ---
     ['dragover', 'dragleave'].forEach(evt => dropzone.addEventListener(evt, e => {
         e.preventDefault(); e.stopPropagation();
         dropzone.style.borderColor = evt === 'dragover' ? 'var(--accent)' : 'rgba(96,165,250,0.5)';
@@ -165,29 +160,30 @@ function initLocalCarrierImageSupport() {
         selector.appendChild(opt);
         selector.value = opt.value;
 
-        updateCarrierImageSelection(opt.value);
+        try { updateCarrierImageSelection(opt.value); } catch (err) { console.warn(err); }
         log('encLog', `已加载载体: ${file.name}`);
     });
 }
 
 function updateCarrierImageSelection(val) {
+    // --- 安全检查：预览元素可能不存在，先取并判断 ---
     const preview = document.getElementById('carrierPreview');
-    const name = document.getElementById('carrierName');
+    const nameEl = document.getElementById('carrierName');
     const img = document.getElementById('carrierImagePreview');
 
     if (!val) {
-        preview.style.display = 'none';
+        if (preview) preview.style.display = 'none';
         return;
     }
 
     if (val.startsWith(LOCAL_CARRIER_PREFIX) && localCarrierFile) {
-        name.textContent = localCarrierFile.name;
-        img.src = URL.createObjectURL(localCarrierFile);
-        preview.style.display = 'block';
+        if (nameEl) nameEl.textContent = localCarrierFile.name;
+        if (img) img.src = URL.createObjectURL(localCarrierFile);
+        if (preview) preview.style.display = 'block';
     } else {
-        name.textContent = val;
-        img.src = `picture/${val}`;
-        preview.style.display = 'block';
+        if (nameEl) nameEl.textContent = val;
+        if (img) img.src = `picture/${val}`;
+        if (preview) preview.style.display = 'block';
         localCarrierFile = null;
     }
 }
@@ -205,62 +201,83 @@ function initFileSelection(inputId, dropzoneId, logId, isDecrypt) {
 
         if (isDecrypt) {
             fileToDecrypt = file;
-            document.getElementById('decFileDetail').style.display = 'block';
-            document.getElementById('decFileName').textContent = file.name;
-            document.getElementById('decFileSize').textContent = `${sizeMB} MB`;
-            document.getElementById('decLevelDisplay').textContent = '待解析...';
+            const detailEl = document.getElementById('decFileDetail');
+            if (detailEl) detailEl.style.display = 'block';
+            const nameEl = document.getElementById('decFileName');
+            if (nameEl) nameEl.textContent = file.name;
+            const sizeEl = document.getElementById('decFileSize');
+            if (sizeEl) sizeEl.textContent = `${sizeMB} MB`;
+            const levelEl = document.getElementById('decLevelDisplay');
+            if (levelEl) levelEl.textContent = '待解析...';
         } else {
             fileToEncrypt = file;
         }
 
-        dropzone.querySelector('.dropzone-title').textContent = `已选: ${file.name}`;
+        if (dropzone && dropzone.querySelector) dropzone.querySelector('.dropzone-title').textContent = `已选: ${file.name}`;
         log(logId, `已加载: ${file.name} (${sizeMB} MB)`);
     };
 
-    dropzone.onclick = () => input.click();
+    dropzone && (dropzone.onclick = () => input.click());
     input.onchange = () => handler(input.files);
 
-    dropzone.addEventListener('dragover', e => {
-        e.preventDefault();
-        dropzone.style.borderColor = 'var(--accent)';
-    });
-    dropzone.addEventListener('dragleave', e => {
-        e.preventDefault();
-        dropzone.style.borderColor = 'var(--border)';
-    });
-    dropzone.addEventListener('drop', e => {
-        e.preventDefault();
-        dropzone.style.borderColor = 'var(--border)';
-        handler(e.dataTransfer.files);
-    });
+    if (dropzone) {
+        dropzone.addEventListener('dragover', e => {
+            e.preventDefault();
+            dropzone.style.borderColor = 'var(--accent)';
+        });
+        dropzone.addEventListener('dragleave', e => {
+            e.preventDefault();
+            dropzone.style.borderColor = 'var(--border)';
+        });
+        dropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropzone.style.borderColor = 'var(--border)';
+            handler(e.dataTransfer.files);
+        });
+    }
 }
 
 // ====== 5. 核心业务逻辑 (Web Crypto) ======
-
 async function startEncryption() {
     const logId = 'encLog';
-    const carrierVal = document.getElementById('carrierImage').value;
-    const level = document.getElementById('encLevel').value;
 
-    document.getElementById('encSaltDisplay').value = '';
-    document.getElementById('encFilenameDisplay').value = '';
+    // 清理/初始化显示（仅对存在的元素操作）
+    const saltEl = document.getElementById('encSaltDisplay');
+    if (saltEl) saltEl.value = '';
 
-    if (!fileToEncrypt) return log(logId, '请先选择文件', true);
-    if (!carrierVal) return log(logId, '请选择载体', true);
+    // 注意：原代码尝试清空 encFilenameDisplay —— 这个元素在 HTML 中不存在，改用 encFilename（输入框）
+    // 读取 carrier 选择（安全读取）
+    const carrierSelect = document.getElementById('carrierImage');
+    const carrierVal = carrierSelect ? carrierSelect.value : '';
+    const levelEl = document.getElementById('encLevel');
+    const level = levelEl ? levelEl.value : 'level2';
 
-    // ------------------ 新逻辑：读取 UI 输入框 ------------------
-    let outName = document.getElementById('encFilename').value.trim();
+    // 检查文件和载体（早期检查）
+    // 但先安全读取输出文件名输入框
+    const outNameInput = document.getElementById('encFilename'); // 使用 HTML 中实际存在的 id
+    let outName = '';
+    if (outNameInput) outName = outNameInput.value.trim();
+
+    if (!fileToEncrypt) {
+        log(logId, '请先选择文件', true);
+        return;
+    }
+    if (!carrierVal) {
+        log(logId, '请选择载体', true);
+        return;
+    }
+
     if (!outName) outName = fileToEncrypt.name.split('.')[0];
     const finalOutputName = outName + ".png";
 
-    // Level2 加密密码
-    const pwd = document.getElementById('encPasswordInput').value.trim();
+    const pwdInput = document.getElementById('encPasswordInput');
+    const pwd = pwdInput ? pwdInput.value.trim() : '';
+
     if (level === "level2" && !pwd) {
         log(logId, "请输入加密密码", true);
-        document.getElementById('encPasswordInput').focus();
+        if (pwdInput) pwdInput.focus();
         return;
     }
-    // ------------------------------------------------------------
 
     try {
         log(logId, '正在初始化加密环境...');
@@ -268,6 +285,7 @@ async function startEncryption() {
         let carrierBlob;
         if (carrierVal.startsWith(LOCAL_CARRIER_PREFIX)) {
             carrierBlob = localCarrierFile;
+            if (!carrierBlob) throw new Error('本地载体未找到');
         } else {
             const res = await fetch(`picture/${carrierVal}`);
             if (!res.ok) throw new Error('无法下载载体图');
@@ -314,10 +332,12 @@ async function startEncryption() {
 
                 offset += CHUNK_SIZE;
 
-                if (offset >= totalSize) {
-                    log(logId, `加密完成 100%`);
-                }
+                // 进度提示（粗略）
+                const pct = Math.min(100, Math.round((offset / totalSize) * 100));
+                log(logId, `加密进度：${pct}%`);
             }
+
+            log(logId, `加密完成 100%`);
         } else {
             segments.push(fileToEncrypt);
             hiddenTotalSize = fileToEncrypt.size;
@@ -340,8 +360,11 @@ async function startEncryption() {
         downloadFile(finalBlob, finalOutputName);
         log(logId, `✅ 成功生成: ${finalOutputName}`);
 
-        document.getElementById('encSaltDisplay').value = saltBase64 || "一级加密无盐";
-        document.getElementById('encFilenameDisplay').value = finalOutputName;
+        if (saltEl) saltEl.value = saltBase64 || "一级加密无盐";
+
+        // 如果你想在页面上显示输出文件名，请确保页面存在 id="encFilenameDisplay" 的元素，
+        // 或者我们可以把输出名写回 encFilename（输入框）:
+        if (outNameInput) outNameInput.value = outName; // 保持输入框同步
 
     } catch (e) {
         console.error(e);
@@ -395,16 +418,16 @@ async function startDecryption() {
 
         if (absHiddenStart < 0) throw new Error("文件结构损坏");
 
-        detail.textContent = `Level ${meta.level} (${meta.name})`;
+        detail && (detail.textContent = `Level ${meta.level} (${meta.name})`);
         log(logId, `检测到加密数据: ${(meta.hiddenSize / 1024 / 1024).toFixed(2)} MB`);
 
         let resultSegments = [];
 
         if (meta.level === 2) {
-            const pwd = document.getElementById('decPasswordInput').value.trim();
+            const pwd = (document.getElementById('decPasswordInput') || {}).value || '';
             if (!pwd) {
                 log(logId, '请输入解密密码', true);
-                document.getElementById('decPasswordInput').focus();
+                document.getElementById('decPasswordInput') && document.getElementById('decPasswordInput').focus();
                 return;
             }
 
@@ -458,13 +481,14 @@ async function startDecryption() {
 }
 
 // ====== 6. 启动 ======
-
 document.addEventListener('DOMContentLoaded', () => {
     initCarrierImageSelector();
     initLocalCarrierImageSupport();
     initFileSelection('encInput', 'dropzoneEnc', 'encLog', false);
     initFileSelection('decInput', 'dropzoneDec', 'decLog', true);
 
-    document.getElementById('startEncryption').onclick = startEncryption;
-    document.getElementById('startDecrypt').onclick = startDecryption;
+    const startEncryptBtn = document.getElementById('startEncrypt');
+    const startDecryptBtn = document.getElementById('startDecrypt');
+    if (startEncryptBtn) startEncryptBtn.onclick = startEncryption;
+    if (startDecryptBtn) startDecryptBtn.onclick = startDecryption;
 });
