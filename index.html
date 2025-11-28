@@ -251,6 +251,76 @@
     </div>
 </div>
 
+<div class="post-card">
+    <h2 class="card-title">🐶 文字转狗叫密语 <span class="toggle-icon">▾</span></h2>
+    <div class="card-content">
+        <p style="margin-top:8px">将普通文字转换成“汪星语”，并可使用密钥进行加密/解密。</p>
+        
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn active" data-dog-tab="encode">转换为狗叫</button>
+            <button class="btn" data-dog-tab="decode">还原为文字</button>
+        </div>
+
+        <div id="dog-encode-panel" style="display:block;margin-top:16px;">
+            <div class="compress-grid" style="grid-template-columns:1fr 340px; gap: 18px;">
+                
+                <div style="padding:12px">
+                    <div class="compress-param" style="margin-top:0;">
+                        <label class="small">输入普通文字：</label>
+                        <textarea id="dogInputText" placeholder="在这里输入你想要转换为汪星语的文字..." rows="5" style="resize:vertical;"></textarea>
+                    </div>
+
+                    <div class="compress-param">
+                        <label class="small">输出汪星语：</label>
+                        <div id="dogOutputLog" class="log-box" style="min-height: 100px;">点击按钮开始转换...</div>
+                    </div>
+                </div>
+
+                <div class="controls post-card" style="padding:14px;height:fit-content">
+                    <h3 class="params-title">转换参数</h3>
+                    
+                    <div class="compress-param">
+                        <label class="small">密钥 (可选，用于扰乱替换规则)</label>
+                        <input id="dogEncodeKey" type="text" placeholder="留空则使用默认模式">
+                    </div>
+
+                    <button class="btn" id="dogEncodeBtn" style="width:100%;margin-top:10px;">🐕 开始转换 🐕</button>
+                </div>
+
+            </div>
+        </div>
+        
+        <div id="dog-decode-panel" style="display:none;margin-top:16px;">
+            <div class="compress-grid" style="grid-template-columns:1fr 340px; gap: 18px;">
+                
+                <div style="padding:12px">
+                    <div class="compress-param" style="margin-top:0;">
+                        <label class="small">输入汪星语：</label>
+                        <textarea id="dogInputSpeak" placeholder="在这里粘贴你需要还原的汪星语..." rows="5" style="resize:vertical;"></textarea>
+                    </div>
+
+                    <div class="compress-param">
+                        <label class="small">还原的普通文字：</label>
+                        <div id="dogDecodeLog" class="log-box" style="min-height: 100px;">点击按钮开始还原...</div>
+                    </div>
+                </div>
+
+                <div class="controls post-card" style="padding:14px;height:fit-content">
+                    <h3 class="params-title">还原参数</h3>
+                    
+                    <div class="compress-param">
+                        <label class="small">密钥 (如果转换时使用了密钥，还原时必须使用)</label>
+                        <input id="dogDecodeKey" type="text" placeholder="输入转换时使用的密钥">
+                    </div>
+
+                    <button class="btn" id="dogDecodeBtn" style="width:100%;margin-top:10px;">🔓 开始还原 🔓</button>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>    
 
     <div class="post-card">
         <h2 class="card-title">图片 ↔ PDF 互转 <span class="toggle-icon">▾</span></h2>
@@ -412,6 +482,15 @@ document.querySelectorAll('[data-enc-tab]').forEach(b => b.onclick = () => {
     document.getElementById(b.dataset.encTab + '-panel').style.display = 'block';
 });
 
+// ⭐ 新增：狗叫密语 Tab 切换（使用 data-dog-tab）
+document.querySelectorAll('[data-dog-tab]').forEach(b => b.onclick = () => {
+    document.querySelectorAll('[data-dog-tab]').forEach(x => x.classList.remove('active'));
+    document.getElementById('dog-encode-panel').style.display = 'none';
+    document.getElementById('dog-decode-panel').style.display = 'none';
+    b.classList.add('active');
+    document.getElementById('dog-' + b.dataset.dogTab + '-panel').style.display = 'grid'; // 注意这里是 grid
+});
+    
 // 自定义尺寸显隐
 document.getElementById('pageSize').onchange = e => {
     document.getElementById('customSizeRow').style.display = e.target.value === 'custom' ? 'block' : 'none';
