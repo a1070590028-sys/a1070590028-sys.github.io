@@ -172,89 +172,89 @@
                 <button class="btn" data-steg-tab="decrypt">文件解密 (隐藏图)</button>
             </div>
 
-            <div id="encryptTab" style="margin-top:12px;">
-                <div class="compress-grid">
-                    <div style="padding:12px">
-                        <h3 class="params-title">1. 待隐藏文件</h3>
-                        <div id="dropzoneEnc" class="dropzone dropzone-area">
-                            <div class="dropzone-title">拖拽任意文件到这里，或点击选择</div>
-                            <input type="file" id="encInput" style="display:none">
-                        </div>
-                        <div class="small" style="margin-top:8px">处理日志：<div id="encLog" style="color:var(--text-muted);font-size:13px;"></div></div>
-                        
-                        <button class="btn" id="startEncrypt" style="width:100%; margin-top: 20px;">开始加密并下载</button>
+            <div id="encryptTab" class="steg-content-area compress-grid" style="margin-top:12px;">
+                <div style="padding:12px">
+                    <h3 class="params-title">待隐藏文件</h3>
+                    <div id="dropzoneEnc" class="dropzone">
+                        <div class="dropzone-title">拖拽任意文件到这里，或点击选择</div>
+                        <input type="file" id="encInput" style="display:none">
                     </div>
                     
-                    <div class="controls post-card" style="padding:14px; height:fit-content;">
-                        <h3 class="params-title">2. 载体图片与设置</h3>
-                        
-                        <div id="localCarrierDropzone" class="dropzone dropzone-area" style="margin-bottom: 10px; border-style: dashed; border-color: rgba(96,165,250,0.5);">
-                            <div class="dropzone-title small">拖拽本地图片到这里 (优先)</div>
-                        </div>
-                        <select id="carrierImage">
-                            <option value="" disabled selected>请选择一张图片作为载体...</option>
+                    <button class="btn" id="startEncrypt" style="width:100%; margin-top: 15px;">开始加密并下载</button>
+
+                    <div class="small" style="margin-top:15px">处理日志：<div id="encLog" style="color:var(--text-muted);font-size:13px;"></div></div>
+                </div>
+
+                <div class="controls post-card" style="padding:14px; height: fit-content;">
+                    <h3 class="params-title">🛡️ 加密参数设置</h3>
+
+                    <h4 style="margin-top: 15px; font-size: 15px;">载体图片</h4>
+                    <div id="localCarrierDropzone" class="dropzone" style="margin-bottom: 8px; padding: 8px; border-style: dashed; border-color: rgba(96,165,250,0.5);">
+                        <div class="dropzone-title small" style="margin: 0;">拖拽本地图片到这里 (优先)</div>
+                    </div>
+                    <select id="carrierImage">
+                        <option value="" disabled selected>请选择一张图片作为载体...</option>
+                    </select>
+                    
+                    <div id="carrierPreview" style="margin-top:10px; display:none; text-align: center;">
+                        <img id="carrierImagePreview" src="" alt="载体预览" style="max-width: 100%; max-height: 100px; border-radius: 4px; margin-top: 5px; object-fit: contain;">
+                        <p class="small" style="margin-top: 5px;">已选载体: <span id="carrierName">--</span></p>
+                    </div>
+
+                    <h4 style="margin-top: 15px; font-size: 15px;">加密等级</h4>
+                    <div class="param-item">
+                        <label class="small">加密等级</label>
+                        <select id="encLevel">
+                            <option value="level1">Level 1: 无加密，仅隐写</option>
+                            <option value="level2" selected>Level 2: AES-GCM-256 强加密</option>
                         </select>
-                        
-                        <div id="carrierPreview" style="margin-top:15px; display:none; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px; margin-bottom: 15px;">
-                            <p class="small">已选载体: <span id="carrierName">--</span></p>
-                            <img id="carrierImagePreview" src="" alt="载体预览" style="max-width: 100%; max-height: 120px; border-radius: 8px; margin-top: 5px; object-fit: contain;">
-                        </div>
+                    </div>
 
-                        <div class="param-item">
-                            <label class="small">加密等级</label>
-                            <select id="encLevel">
-                                <option value="level1">Level 1: 无加密，仅隐写</option>
-                                <option value="level2" selected>Level 2: AES-GCM-256 强加密</option>
-                            </select>
+                    <div class="params-section" id="encryptionParams" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.1);">
+                        <h4 style="font-size: 15px; margin: 0 0 10px 0;">生成结果 (Level 2 必存)</h4>
+                        <div class="param-item" style="margin-bottom: 10px;">
+                            <label for="encSaltDisplay" style="font-size: 13px; color: var(--text-muted);">密钥盐 (Salt Base64)</label>
+                            <input type="text" id="encSaltDisplay" readonly placeholder="加密完成后显示，请保存">
                         </div>
                         
-                        <div class="params-section" id="encryptionParams" style="margin-top: 15px;">
-                            <h3 class="params-title">🛡️ Level 2 参数</h3>
-                            
-                            <div class="param-item" style="margin-bottom: 10px;">
-                                <label for="encSaltDisplay" style="font-size: 13px; color: var(--text-muted);">密钥盐 (Salt Base64) - **解密必须**</label>
-                                <input type="text" id="encSaltDisplay" readonly placeholder="加密完成后显示，用于解密">
-                            </div>
-                            
-                            <div class="param-item">
-                                <label for="encFilenameDisplay" style="font-size: 13px; color: var(--text-muted);">加密后文件名</label>
-                                <input type="text" id="encFilenameDisplay" readonly placeholder="生成后显示">
-                            </div>
+                        <div class="param-item">
+                            <label for="encFilenameDisplay" style="font-size: 13px; color: var(--text-muted);">加密后文件名</label>
+                            <input type="text" id="encFilenameDisplay" readonly placeholder="生成后显示">
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div id="decryptTab" style="margin-top:12px; display:none;">
-                <div class="compress-grid">
-                    <div style="padding:12px">
-                        <h3 class="params-title">1. 选择隐藏文件</h3>
-                        <div id="dropzoneDec" class="dropzone dropzone-area">
-                            <div class="dropzone-title">拖拽加密后的图片文件到这里，或点击选择</div>
-                            <input type="file" id="decInput" accept="image/png,.png" style="display:none">
-                        </div>
-                        <div class="small" style="margin-top:8px">处理日志：<div id="decLog" style="color:var(--text-muted);font-size:13px;"></div></div>
-
-                        <div id="decFileDetail" style="margin-top:15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; display:none;">
-                            <h3 class="params-title">文件信息</h3>
-                            <div class="param-item small">文件名: <span id="decFileName">--</span></div>
-                            <div class="param-item small">文件大小: <span id="decFileSize">--</span></div>
-                            <div class="param-item small">加密等级: <span id="decLevelDisplay">--</span></div>
-                        </div>
-                        
-                        <button class="btn" id="startDecrypt" style="width:100%; margin-top: 20px;">开始解密并还原文件</button>
+            <div id="decryptTab" class="steg-content-area compress-grid" style="margin-top:12px; display:none;">
+                <div style="padding:12px">
+                    <h3 class="params-title">选择包含隐藏数据的文件</h3>
+                    <div id="dropzoneDec" class="dropzone">
+                        <div class="dropzone-title">拖拽加密后的图片文件到这里，或点击选择</div>
+                        <input type="file" id="decInput" accept="image/png,.png" style="display:none">
                     </div>
                     
-                    <div class="controls post-card" style="padding:14px; height:fit-content;">
-                        <h3 class="params-title">2. 解密设置</h3>
-                        <div class="param-item" style="margin-top: 15px;">
-                            <label for="decPasswordInput" class="small">解密密码 (Level 2 必填)</label>
-                            <input type="password" id="decPasswordInput" placeholder="输入 Level 2 加密时的密码">
-                        </div>
+                    <button class="btn" id="startDecrypt" style="width:100%; margin-top: 15px;">开始解密并还原文件</button>
+                    
+                    <div class="small" style="margin-top:15px">处理日志：<div id="decLog" style="color:var(--text-muted);font-size:13px;"></div></div>
+                </div>
+
+                <div class="controls post-card" style="padding:14px; height: fit-content;">
+                    <h3 class="params-title">🔐 解密设置</h3>
+
+                    <h4 style="margin-top: 10px; font-size: 15px;">文件解析信息</h4>
+                    <div id="decFileDetail" style="padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; display:block;">
+                        <div class="param-item small">文件名: <span id="decFileName">--</span></div>
+                        <div class="param-item small">文件大小: <span id="decFileSize">--</span></div>
+                        <div class="param-item small">加密等级: <span id="decLevelDisplay">--</span></div>
+                    </div>
+
+                    <div class="param-item">
+                        <label for="decPasswordInput" class="small">解密密码 (Level 2 必填)</label>
+                        <input type="password" id="decPasswordInput" placeholder="输入 Level 2 加密时的密码">
                     </div>
                 </div>
             </div>
-            </div>
+        </div>
     </div>
     <div class="post-card">
         <h2 class="card-title">未来内容 <span class="toggle-icon">▾</span></h2>
@@ -335,7 +335,7 @@
 <script type="module" src="js/main.js"></script>
 
 <script>
-// Tab 切换 (图片/PDF)
+// Tab 切换 (图片/PDF 互转)
 document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => {
     document.querySelectorAll('[data-tab]').forEach(x => x.classList.remove('active'));
     document.querySelectorAll('#img2pdf, #pdf2img').forEach(x => x.style.display = 'none');
@@ -355,12 +355,10 @@ document.head.appendChild(style);
 // ⭐ 隐写卡片 Tab 切换 (新)
 document.querySelectorAll('[data-steg-tab]').forEach(b => b.onclick = () => {
     document.querySelectorAll('[data-steg-tab]').forEach(x => x.classList.remove('active'));
-    // 关键：切换整个 tab 区域的显示/隐藏
-    document.getElementById('encryptTab').style.display = 'none';
-    document.getElementById('decryptTab').style.display = 'none';
-    
+    document.querySelectorAll('#encryptTab, #decryptTab').forEach(x => x.style.display = 'none');
     b.classList.add('active');
-    document.getElementById(b.dataset.steg-tab + 'Tab').style.display = 'block'; 
+    // 使用 grid 确保两列布局正确
+    document.getElementById(b.dataset.steg-tab + 'Tab').style.display = 'grid'; 
 });
 </script>
 </body>
