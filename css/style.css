@@ -257,19 +257,56 @@ input[type="checkbox"]:checked::after{
     background:rgba(96,165,250,0.25);border-color:var(--accent);color:#fff;
 }
 
-/* 日志区 */
-#log,#imgLog,#pdfLog, #encLog, #decLog {
-    margin-top:6px;color:var(--text-muted);font-size:13px;max-height:160px;overflow:auto;
-    padding:10px 12px;border-radius:8px;background:var(--log-bg);
-    border:1px solid var(--border);line-height:1.5;
+/* ==================== 全站统一日志格式（最终版） ==================== */
+.log-box,
+#log, #imgLog, #pdfLog, #encLog, #decLog {
+    margin-top: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    line-height: 1.5;
+    border-radius: 8px;
+
+    /* 背景：统一为略透明的卡片风 */
+    background: rgba(255, 255, 255, 0.05);
+
+    /* 边框：统一为全站的 var(--border) */
+    border: 1px solid var(--border);
+
+    /* 文字颜色：统一 muted 色 */
+    color: var(--text-muted);
+
+    /* 高度限制 & 滚动条 */
+    max-height: 160px;
+    overflow-y: auto;
 }
-#log::-webkit-scrollbar,#imgLog::-webkit-scrollbar,#pdfLog::-webkit-scrollbar, #encLog::-webkit-scrollbar, #decLog::-webkit-scrollbar {width:8px;background:transparent}
-#log::-webkit-scrollbar-thumb,#imgLog::-webkit-scrollbar-thumb,#pdfLog::-webkit-scrollbar-thumb, #encLog::-webkit-scrollbar-thumb, #decLog::-webkit-scrollbar-thumb {
-    background:rgba(255,255,255,0.15);border-radius:4px;
+
+/* 滚动条统一 */
+#log::-webkit-scrollbar,
+#imgLog::-webkit-scrollbar,
+#pdfLog::-webkit-scrollbar,
+#encLog::-webkit-scrollbar,
+#decLog::-webkit-scrollbar {
+    width: 8px;
+    background: transparent;
 }
-#log::-webkit-scrollbar-thumb:hover,#imgLog::-webkit-scrollbar-thumb:hover,#pdfLog::-webkit-scrollbar-thumb:hover, #encLog::-webkit-scrollbar-thumb:hover, #decLog::-webkit-scrollbar-thumb:hover {
-    background:rgba(255,255,255,0.3);
+
+#log::-webkit-scrollbar-thumb,
+#imgLog::-webkit-scrollbar-thumb,
+#pdfLog::-webkit-scrollbar-thumb,
+#encLog::-webkit-scrollbar-thumb,
+#decLog::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15);
+    border-radius: 4px;
 }
+
+#log::-webkit-scrollbar-thumb:hover,
+#imgLog::-webkit-scrollbar-thumb:hover,
+#pdfLog::-webkit-scrollbar-thumb:hover,
+#encLog::-webkit-scrollbar-thumb:hover,
+#decLog::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.3);
+}
+
 
 /* 响应式 */
 @media(max-width:860px){
@@ -442,3 +479,4 @@ header h1,
     background-position: right 10px center !important;
     background-size: 1em !important;
 }
+
