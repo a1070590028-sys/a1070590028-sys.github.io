@@ -329,7 +329,7 @@ document.getElementById('pageSize').onchange = e => {
     document.getElementById('customSizeRow').style.display = e.target.value === 'custom' ? 'block' : 'none';
 };
 
-// ⭐ NEW: 文件加密/解密 Tab 切换
+// 文件加密/解密 Tab 切换
 document.querySelectorAll('[data-enc-tab]').forEach(b => b.onclick = () => {
     document.querySelectorAll('[data-enc-tab]').forEach(x => x.classList.remove('active'));
     
@@ -350,12 +350,12 @@ document.querySelectorAll('[data-enc-tab]').forEach(b => b.onclick = () => {
     }
 });
 
-// ⭐ NEW: 二级加密警告显示/隐藏
+// 二级加密警告显示/隐藏
 document.getElementById('encLevel').onchange = e => {
     document.getElementById('level2-warning').style.display = e.target.value === 'level2' ? 'block' : 'none';
 };
 
-// ⭐ NEW: 图片载体选择和预览逻辑 (前端测试用)
+// 图片载体选择和预览逻辑 (前端测试用)
 document.getElementById('carrierImage').onchange = e => {
     const selectedFileName = e.target.value;
     const previewDiv = document.getElementById('carrierPreview');
@@ -382,11 +382,22 @@ document.getElementById('carrierImage').onchange = e => {
     }
 };
 
-// 日志样式统一
+// ⭐ 修复后的日志样式统一代码块 ⭐
 const style = document.createElement('style');
-// 📢 修正：加入 #encLog 和 #decLog 的样式
-style.textContent = `#imgLog,#pdfLog,#encLog,#decLog{margin-top:6px;color:var(--text-muted);font-size:13px;max-height:160px;overflow:auto;padding:10px 12px;border-radius:8px;
-`;
+style.textContent = `#log, #imgLog, #pdfLog, #encLog, #decLog {
+    margin-top:6px;
+    color:var(--text-muted);
+    font-size:13px;
+    max-height:160px;
+    overflow:auto;
+    padding:10px 12px;
+    border-radius:8px;
+    border: 1px solid var(--border); /* 补全边框 */
+    background: var(--bg-secondary); /* 补全背景 */
+}`;
+
+document.head.appendChild(style);
+
 </script>
 </body>
 </html>
