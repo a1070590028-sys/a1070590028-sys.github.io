@@ -481,14 +481,21 @@ header h1,
 }
 
 #dogOutputLog, #dogDecodeLog {
-    white-space: pre-wrap;   /* 关键：保留换行符和空格 */
-    word-break: break-all;   /* 关键：防止长单词撑破容器 */
+    /* --- 1. 解决换行符显示问题 (核心) --- */
+    white-space: pre-wrap;   /* 确保保留并显示所有换行符和空格 */
+    word-break: break-all;   /* 防止超长密文撑破容器 */
     
-    /* 可选美化：给日志加个框，看起来更像代码块 */
-    padding: 10px;
-    background-color: #f5f5f5;
-    border-radius: 4px;
-    font-family: monospace; /* 用等宽字体看起来更整齐 */
+    /* --- 2. 解决内容溢出（无拖动条）问题 --- */
+    height: 200px;           /* 设置一个固定的最大高度（请根据需要调整此值） */
+    overflow: auto;          /* 当内容超出高度时，显示滚动条 */
+    
+    /* --- 3. 可选：优化日志视觉效果 --- */
+    padding: 10px;           /* 文本与边框的内边距 */
+    background-color: #f7f7f7;/* 浅灰色背景，看起来像代码块 */
+    border: 1px solid #ccc;  /* 边框 */
+    border-radius: 4px;      /* 轻微的圆角 */
+    font-family: monospace;  /* 使用等宽字体，使字符对齐更整齐 */
 }
 }
+
 
