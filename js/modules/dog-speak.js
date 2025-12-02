@@ -1,4 +1,4 @@
-// js/modules/dog-speak.js (双空格分段 + 高安全 CFB + UTF16)
+// js/modules/dog-speak.js (使用中文顿号“、”分段 + 更健壮的解析)
 
 // 狗语词库 (真实狗叫声)
 const DOG_SPEAK_WORDS = [
@@ -12,8 +12,9 @@ const DOG_SPEAK_WORDS = [
     "哼"
 ];
 
-const BASE = DOG_SPEAK_WORDS.length; // 9
+const BASE = DOG_SPEAK_WORDS.length;
 const MAX_VALUE = 65536; // UTF-16 范围
+const SEPARATOR = "、"; // ← 输出分段符：中文顿号
 
 // ---------------------------
 // 高安全 KeyStream
@@ -29,7 +30,7 @@ function getKeyStreamValue(seedText, position) {
 }
 
 // ---------------------------
-// UTF16 value -> 狗语
+// UTF16 value -> 狗语（可变长度）
 function valueToDogSpeak(value) {
     value = value >>> 0;
     if (value === 0) return DOG_SPEAK_WORDS[0];
@@ -43,11 +44,20 @@ function valueToDogSpeak(value) {
     return arr.reverse().join(" ");
 }
 
-// 狗语 -> value
+// 狗语 -> value（支持传入字符串或数组）
 function dogSpeakToValue(words) {
+    let arr;
+    if (Array.isArray(words)) {
+        arr = words;
+    } else if (typeof words === "string") {
+        arr = words.trim().split(/\s+/).filter(w => w.length > 0);
+    } else {
+        return null;
+    }
+
     let v = 0;
-    for (let i = 0; i < words.length; i++) {
-        const idx = DOG_SPEAK_WORDS.indexOf(words[i]);
+    for (let i = 0; i < arr.length; i++) {
+        const idx = DOG_SPEAK_WORDS.indexOf(arr[i]);
         if (idx === -1) return null;
         v = v * BASE + idx;
     }
@@ -55,16 +65,17 @@ function dogSpeakToValue(words) {
 }
 
 // ---------------------------
-// 加密（双空格分段）
+// 加密（使用顿号分段）
 function encodeToDogSpeak(text, key) {
-    if (!text.trim()) return "嗷呜！请输入要转换的文字。";
-    if (!key.trim()) return "嗷！密钥必填，请填写。";
+    if (!text || !text.toString().trim()) return "嗷呜！请输入要转换的文字。";
+    if (!key || !key.toString().trim()) return "嗷！密钥必填，请填写。";
 
     const IV_Base = getKeyStreamValue(key + "IV_SEED", 0);
     const encoded = [];
     let prev = IV_Base;
 
-    for (let i = 0; i < text.length; i++) {
+    // 遍历字符（支持代理对等）
+    for (let i = 0, len = text.length; i < len; i++) {
         const code = text.charCodeAt(i);
         const Ki = getKeyStreamValue(key, i + 1);
         const enc = (code + Ki + prev) % MAX_VALUE;
@@ -73,27 +84,40 @@ function encodeToDogSpeak(text, key) {
     }
 
     const ivSpeak = valueToDogSpeak(IV_Base);
-    return ivSpeak + "  " + encoded.join("  ");  // ← 双空格分段
+    // 按约定用中文顿号分段（IV 首段 + 每字符段，用顿号连接）
+    return ivSpeak + SEPARATOR + encoded.join(SEPARATOR);
 }
 
 // ---------------------------
-// 解密（双空格分段）
+// 解密（更健壮：支持顿号、双空格、竖线、换行等分隔）
 function decodeFromDogSpeak(dogSpeak, key) {
-    if (!dogSpeak.trim()) return "汪？请输入要还原的汪星语。";
-    if (!key.trim()) return "汪？密钥必填，请填写。";
+    if (!dogSpeak || !dogSpeak.toString().trim()) return "汪？请输入要还原的汪星语。";
+    if (!key || !key.toString().trim()) return "汪？密钥必填，请填写。";
 
-    const blocks = dogSpeak.split(/ {2,}/).filter(b => b.trim().length > 0);
-    if (blocks.length < 2) return "密文格式错误，缺少 IV";
+    // 兼容多种分隔：中文顿号、两个及以上空格、竖线、换行
+    const rawBlocks = dogSpeak.split(/、| {2,}|\|+|\r?\n+/).map(b => b.trim()).filter(b => b.length > 0);
 
-    const IV_Base = dogSpeakToValue(blocks[0].trim().split(/\s+/));
-    if (IV_Base === null) return "IV 解码失败";
+    if (rawBlocks.length < 2) return "密文格式错误，缺少 IV 或密文段。";
+
+    // IV 可以是若干个狗语词（以空格分隔），所以对第一个块再拆分词
+    const ivWords = rawBlocks[0].split(/\s+/).filter(w => w.length > 0);
+    const IV_Base = dogSpeakToValue(ivWords);
+    if (IV_Base === null) return "IV 解码失败，IV 包含未知词汇。";
 
     let decoded = [];
     let prev = IV_Base;
 
-    for (let i = 1; i < blocks.length; i++) {
-        const parts = blocks[i].trim().split(/\s+/);
-        const enc = dogSpeakToValue(parts);
+    // blocks 从 1 开始，对应第一个明文字节（i 与 KeyStream 位置对齐：i）
+    for (let i = 1; i < rawBlocks.length; i++) {
+        const part = rawBlocks[i].trim();
+        if (!part) {
+            decoded.push("?");
+            prev = 0;
+            continue;
+        }
+
+        const words = part.split(/\s+/).filter(w => w.length > 0);
+        const enc = dogSpeakToValue(words);
         if (enc === null) {
             decoded.push("?");
             prev = 0;
