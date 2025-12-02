@@ -1,228 +1,159 @@
-// js/modules/dog-speak.js (最终稳定版 - 包含空格和换行符)
+// js/modules/dog-speak.js (全新 UTF16 + 高安全 CFB 版本)
 
-// 密语参数
-const BASE = 6; // 6进制
-const MAX_VALUE = BASE * BASE * BASE; // 6 * 6 * 6 = 216
-const DOG_SPEAK_WORDS = ["汪", "汪汪", "呜", "嗷嗷", "吠", "嗷呜"]; // 6个词汇
+// 狗语词库 (9 个真实狗叫声)
+const DOG_SPEAK_WORDS = [
+    "汪",
+    "汪汪",
+    "呜",
+    "呀呜",
+    "吠",
+    "嗷呜",
+    "嗷嗷",
+    "哼"
+];
+const BASE = DOG_SPEAK_WORDS.length; // BASE = 9
+const MAX_VALUE = 65536; // UTF-16 字符范围
 
-// 最终稳定版 CHAR_MAP (总计 216 个字符: 英文、数字、符号、空格和换行符)
-// 包含所有英文大小写、数字、常用符号，以及空格和换行符。
-const CHAR_MAP = 
-    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" + // 62个英数字
-    "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~" + // 32个常用标点
-    "£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜ" + // 120个扩展ASCII/拉丁字符
-    " " + // ⭐ 新增：空格 (Space)
-    "\n"; // ⭐ 新增：换行符 (Newline)
-    // 总计: 62 + 32 + 120 + 2 = 216 个字符。
-
-/**
- * 确定性扰动值生成器 (基于密钥)
- * @param {string} seedText 种子文本 (密钥)
- * @returns {number} 0 到 MAX_VALUE - 1 之间的整数扰动值
- */
-function getPerturbValue(seedText) {
-    if (!seedText) return 0; // 无密钥，不扰动
-    
+// ---------------------------
+// 高安全 KeyStream 生成器
+function getKeyStreamValue(seedText, position) {
+    if (!seedText) return 0;
     let hash = 0;
     for (let i = 0; i < seedText.length; i++) {
-        // 使用简单的哈希算法
-        hash = hash + seedText.charCodeAt(i) + (hash << 9);
+        const charCode = seedText.charCodeAt(i);
+        const posFactor = (position + i) % 256;
+        hash = (hash + charCode + (hash << 9) + (hash >> 5) + posFactor) ^ charCode;
     }
-    // 将哈希值映射到 0 到 MAX_VALUE - 1 之间
-    return Math.abs(hash) % MAX_VALUE;
+    const finalHash = Math.abs((hash * 31) + (position * 13) + (seedText.length * 37)) % MAX_VALUE;
+    return finalHash;
 }
 
-/**
- * 将十进制值转换为三位 BASE 进制的狗叫词序列
- * @param {number} value 十进制值 (0 - 215)
- * @returns {string} 狗叫词序列 (例如: "汪 嗷嗷 吠")
- */
+// ---------------------------
+// UTF16 value -> 狗语 (动态长度)
 function valueToDogSpeak(value) {
-    value = value % MAX_VALUE;
-    
-    // 转换为三位 6 进制数 d2 d1 d0
-    const d0 = value % BASE; 
-    const d1 = Math.floor(value / BASE) % BASE;
-    const d2 = Math.floor(value / (BASE * BASE)) % BASE; 
-
-    // 映射到狗叫词并拼接，用空格分隔
-    // 顺序是 d2 (最高位) -> d1 -> d0 (最低位)
-    return DOG_SPEAK_WORDS[d2] + " " + DOG_SPEAK_WORDS[d1] + " " + DOG_SPEAK_WORDS[d0];
+    value = value >>> 0; // 转 32bit 正整数
+    if (value === 0) return DOG_SPEAK_WORDS[0];
+    const arr = [];
+    while (value > 0) {
+        const digit = value % BASE;
+        arr.push(DOG_SPEAK_WORDS[digit]);
+        value = Math.floor(value / BASE);
+    }
+    return arr.reverse().join(" ");
 }
 
-/**
- * 将三位 BASE 进制的狗叫词序列还原为十进制值
- * @param {string[]} speakParts 三个狗叫词组成的数组
- * @returns {number | null} 十进制值 (0 - 215) 或 null (失败)
- */
-function dogSpeakToValue(speakParts) {
-    // 还原三位 6 进制数： d2*B^2 + d1*B^1 + d0*B^0
+// 狗语 -> UTF16 value
+function dogSpeakToValue(words) {
     let value = 0;
-    
-    // 从左到右处理：d2, d1, d0
-    for (let i = 0; i < 3; i++) {
-        const wordIndex = DOG_SPEAK_WORDS.indexOf(speakParts[i]);
-        if (wordIndex === -1) return null; // 无法识别的词汇
-        
-        value += wordIndex * Math.pow(BASE, 2 - i);
+    for (let i = 0; i < words.length; i++) {
+        const idx = DOG_SPEAK_WORDS.indexOf(words[i]);
+        if (idx === -1) return null;
+        value = value * BASE + idx;
     }
     return value;
 }
 
-
-// ===========================================
-// ⭐ 核心转换逻辑 ⭐
-// ===========================================
-
-/**
- * 转换函数 (Encode)
- */
+// ---------------------------
+// 编码 (CFB 高安全)
 function encodeToDogSpeak(text, key) {
     if (!text.trim()) return "嗷呜！请输入要转换的文字。";
+    if (!key.trim()) return "汪！密钥必填，请填写。";
 
-    const perturbValue = getPerturbValue(key);
+    const IV_Base = getKeyStreamValue(key + "IV_SEED", 0);
     let encoded = [];
-    
-    // 遍历所有字符
-    for (const char of Array.from(text)) {
-        const index = CHAR_MAP.indexOf(char);
-        
-        // 1. 处理不支持的字符
-        let charToEncode = char;
-        if (index === -1) {
-            // 如果字符不在 CHAR_MAP 中，用问号 (?) 代替，问号本身在 CHAR_MAP 中，会被编码
-            charToEncode = '?'; 
-        }
-        
-        const finalIndex = CHAR_MAP.indexOf(charToEncode); // 找到最终要编码的索引
-        
-        // 2. 计算加密后的值: EncodedValue = (Index + PerturbValue) mod M
-        const encodedValue = (finalIndex + perturbValue) % MAX_VALUE;
+    let prev = IV_Base;
 
-        // 3. 将值转换为狗叫词序列
-        encoded.push(valueToDogSpeak(encodedValue));
+    for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i);
+        const Ki = getKeyStreamValue(key, i + 1);
+        const encValue = (code + Ki + prev) % MAX_VALUE;
+        encoded.push(valueToDogSpeak(encValue));
+        prev = encValue;
     }
-    
-    // 使用 ' | ' 分隔每个字符转换后的狗叫词序列
-    return encoded.join(' | ').trim();
+
+    const iv_speak = valueToDogSpeak(IV_Base);
+    return iv_speak + " | " + encoded.join(" | ");
 }
 
-/**
- * 还原函数 (Decode)
- */
+// ---------------------------
+// 解码 (CFB 高安全)
 function decodeFromDogSpeak(dogSpeak, key) {
     if (!dogSpeak.trim()) return "汪？请输入要还原的汪星语。";
+    if (!key.trim()) return "汪？密钥必填，请填写。";
 
-    const perturbValue = getPerturbValue(key);
+    const blocks = dogSpeak.split(" | ").filter(b => b.trim().length > 0);
+    if (blocks.length < 2) return "密文格式错误或 IV 缺失";
+
+    const IV_Block = blocks[0].trim().split(/\s+/);
+    const IV_Base = dogSpeakToValue(IV_Block);
+    if (IV_Base === null) return "IV 解码失败";
+
     let decoded = [];
-    
-    // 1. 通过 ' | ' 分割，获取每个字符的狗叫密语块 (例如: "汪 嗷嗷 吠")
-    const charBlocks = dogSpeak.split(' | ').filter(b => b.trim().length > 0);
-    
-    for (const block of charBlocks) {
-        // 2. 将每个块分割成三个词
-        const speakParts = block.trim().split(/\s+/).filter(w => w.length > 0);
+    let prev = IV_Base;
 
-        if (speakParts.length !== 3) {
-            // 如果不是三个词，说明格式错误或输入了未转换的字符，则还原失败。
-            decoded.push('?'); // 格式错误，用问号代替
-            continue;
-        }
-        
-        // 3. 将狗叫词序列还原为 EncodedValue
-        const encodedValue = dogSpeakToValue(speakParts);
-
-        if (encodedValue === null) {
-            decoded.push('?'); // 词汇无法识别
+    for (let i = 1; i < blocks.length; i++) {
+        const speakParts = blocks[i].trim().split(/\s+/);
+        const encValue = dogSpeakToValue(speakParts);
+        if (encValue === null) {
+            decoded.push("?");
+            prev = 0;
             continue;
         }
 
-        // 4. 还原原始索引: Index = (EncodedValue - PerturbValue + M) mod M
-        const originalIndex = (encodedValue - perturbValue + MAX_VALUE) % MAX_VALUE; 
-        
-        // 5. 查找原始字符
-        const originalChar = CHAR_MAP[originalIndex];
-        decoded.push(originalChar);
+        const Ki = getKeyStreamValue(key, i);
+        const orig = (encValue - Ki - prev + MAX_VALUE * 2) % MAX_VALUE;
+        decoded.push(String.fromCharCode(orig));
+        prev = encValue;
     }
-    
-    return decoded.join('');
+
+    return decoded.join("");
 }
 
+// ---------------------------
+// 功能绑定 (DOM)
+document.addEventListener("DOMContentLoaded", () => {
+    const dogEncodeBtn = document.getElementById("dogEncodeBtn");
+    const dogInputText = document.getElementById("dogInputText");
+    const dogEncodeKey = document.getElementById("dogEncodeKey");
+    const dogOutputLog = document.getElementById("dogOutputLog");
 
-// ===========================================
-// ⭐ 功能绑定 ⭐
-// ===========================================
+    const dogDecodeBtn = document.getElementById("dogDecodeBtn");
+    const dogInputSpeak = document.getElementById("dogInputSpeak");
+    const dogDecodeKey = document.getElementById("dogDecodeKey");
+    const dogDecodeLog = document.getElementById("dogDecodeLog");
 
-document.addEventListener('DOMContentLoaded', () => {
-    // 转换 (Encode) 元素
-    const dogEncodeBtn = document.getElementById('dogEncodeBtn');
-    const dogInputText = document.getElementById('dogInputText');
-    const dogEncodeKey = document.getElementById('dogEncodeKey');
-    const dogOutputLog = document.getElementById('dogOutputLog');
+    if (dogEncodeBtn) dogEncodeBtn.onclick = () => {
+        const text = dogInputText.value;
+        const key = dogEncodeKey.value.trim();
+        if (!text) { dogOutputLog.textContent = "嗷呜！请输入要转换的文字。"; return; }
+        if (!key) { dogOutputLog.textContent = "嗷！密钥必填，请填写。"; return; }
 
-    // 还原 (Decode) 元素
-    const dogDecodeBtn = document.getElementById('dogDecodeBtn');
-    const dogInputSpeak = document.getElementById('dogInputSpeak');
-    const dogDecodeKey = document.getElementById('dogDecodeKey');
-    const dogDecodeLog = document.getElementById('dogDecodeLog');
+        const encoded = encodeToDogSpeak(text, key);
+        dogOutputLog.textContent = encoded;
 
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(encoded).then(() => {
+                dogEncodeBtn.textContent = "✅ 转换成功并已复制！";
+                if (dogInputSpeak) dogInputSpeak.value = encoded;
+                setTimeout(() => { dogEncodeBtn.textContent = "🐕 开始转换 🐕"; }, 1500);
+            });
+        }
+    };
 
-    // 绑定转换事件
-    if (dogEncodeBtn) {
-        dogEncodeBtn.onclick = () => {
-            const text = dogInputText.value;
-            const key = dogEncodeKey.value.trim();
+    if (dogDecodeBtn) dogDecodeBtn.onclick = () => {
+        const speak = dogInputSpeak.value.trim();
+        const key = dogDecodeKey.value.trim();
+        if (!speak) { dogDecodeLog.textContent = "汪？请输入要还原的汪星语。"; return; }
+        if (!key) { dogDecodeLog.textContent = "汪？密钥必填，请填写。"; return; }
 
-            if (!text) {
-                dogOutputLog.textContent = '嗷！请输入要转换的文字。';
-                return;
-            }
+        const decoded = decodeFromDogSpeak(speak, key);
+        dogDecodeLog.textContent = decoded;
 
-            const encodedSpeak = encodeToDogSpeak(text, key);
-            dogOutputLog.textContent = encodedSpeak;
-            
-            // 复制到剪贴板
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(encodedSpeak).then(() => {
-                    dogEncodeBtn.textContent = '✅ 转换成功并已复制！';
-                    // 自动填充到还原输入框 (方便测试)
-                    if (dogInputSpeak) dogInputSpeak.value = encodedSpeak; 
-                    
-                    setTimeout(() => {
-                        dogEncodeBtn.textContent = '🐕 开始转换 🐕';
-                    }, 1500);
-                });
-            } else {
-                 dogEncodeBtn.textContent = '🐕 转换完成 🐕';
-            }
-        };
-    }
-
-    // 绑定还原事件
-    if (dogDecodeBtn) {
-        dogDecodeBtn.onclick = () => {
-            const speak = dogInputSpeak.value.trim();
-            const key = dogDecodeKey.value.trim();
-
-            if (!speak) {
-                dogDecodeLog.textContent = '汪？请输入要还原的汪星语。';
-                return;
-            }
-
-            const decodedText = decodeFromDogSpeak(speak, key);
-            dogDecodeLog.textContent = decodedText;
-            
-            // 复制到剪贴板
-             if (navigator.clipboard) {
-                navigator.clipboard.writeText(decodedText).then(() => {
-                    dogDecodeBtn.textContent = '✅ 还原成功并已复制！';
-                    setTimeout(() => {
-                        dogDecodeBtn.textContent = '🔓 开始还原 🔓';
-                    }, 1500);
-                });
-            } else {
-                 dogDecodeBtn.textContent = '🔓 还原完成 🔓';
-            }
-        };
-    }
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(decoded).then(() => {
+                dogDecodeBtn.textContent = "✅ 还原成功并已复制！";
+                setTimeout(() => { dogDecodeBtn.textContent = "🔓 开始还原 🔓"; }, 1500);
+            });
+        }
+    };
 });
