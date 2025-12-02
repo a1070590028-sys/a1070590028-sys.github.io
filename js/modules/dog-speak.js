@@ -1,4 +1,4 @@
-// js/modules/dog-speak.js (使用中文顿号“、”分段 + 更健壮的解析)
+// js/modules/dog-speak.js (最终稳定版 - 支持多语言 + 换行符 + 中文顿号)
 
 // 狗语词库 (真实狗叫声)
 const DOG_SPEAK_WORDS = [
@@ -14,7 +14,7 @@ const DOG_SPEAK_WORDS = [
 
 const BASE = DOG_SPEAK_WORDS.length;
 const MAX_VALUE = 65536; // UTF-16 范围
-const SEPARATOR = "、"; // ← 输出分段符：中文顿号
+const SEPARATOR = "、"; // 中文顿号作为密文块分隔符
 
 // ---------------------------
 // 高安全 KeyStream
@@ -30,7 +30,7 @@ function getKeyStreamValue(seedText, position) {
 }
 
 // ---------------------------
-// UTF16 value -> 狗语（可变长度）
+// UTF16 value -> 狗语
 function valueToDogSpeak(value) {
     value = value >>> 0;
     if (value === 0) return DOG_SPEAK_WORDS[0];
@@ -44,7 +44,7 @@ function valueToDogSpeak(value) {
     return arr.reverse().join(" ");
 }
 
-// 狗语 -> value（支持传入字符串或数组）
+// 狗语 -> value
 function dogSpeakToValue(words) {
     let arr;
     if (Array.isArray(words)) {
@@ -65,7 +65,7 @@ function dogSpeakToValue(words) {
 }
 
 // ---------------------------
-// 加密（使用顿号分段）
+// 加密（使用顿号分段，换行符保留）
 function encodeToDogSpeak(text, key) {
     if (!text || !text.toString().trim()) return "嗷呜！请输入要转换的文字。";
     if (!key || !key.toString().trim()) return "嗷！密钥必填，请填写。";
@@ -74,8 +74,7 @@ function encodeToDogSpeak(text, key) {
     const encoded = [];
     let prev = IV_Base;
 
-    // 遍历字符（支持代理对等）
-    for (let i = 0, len = text.length; i < len; i++) {
+    for (let i = 0; i < text.length; i++) {
         const code = text.charCodeAt(i);
         const Ki = getKeyStreamValue(key, i + 1);
         const enc = (code + Ki + prev) % MAX_VALUE;
@@ -84,22 +83,20 @@ function encodeToDogSpeak(text, key) {
     }
 
     const ivSpeak = valueToDogSpeak(IV_Base);
-    // 按约定用中文顿号分段（IV 首段 + 每字符段，用顿号连接）
     return ivSpeak + SEPARATOR + encoded.join(SEPARATOR);
 }
 
 // ---------------------------
-// 解密（更健壮：支持顿号、双空格、竖线、换行等分隔）
+// 解密（更健壮，兼容换行）
 function decodeFromDogSpeak(dogSpeak, key) {
     if (!dogSpeak || !dogSpeak.toString().trim()) return "汪？请输入要还原的汪星语。";
     if (!key || !key.toString().trim()) return "汪？密钥必填，请填写。";
 
-    // 兼容多种分隔：中文顿号、两个及以上空格、竖线、换行
-    const rawBlocks = dogSpeak.split(/、| {2,}|\|+|\r?\n+/).map(b => b.trim()).filter(b => b.length > 0);
+    // 拆分顿号，不拆换行符
+    const rawBlocks = dogSpeak.split(SEPARATOR).map(b => b.trim()).filter(b => b.length > 0);
 
     if (rawBlocks.length < 2) return "密文格式错误，缺少 IV 或密文段。";
 
-    // IV 可以是若干个狗语词（以空格分隔），所以对第一个块再拆分词
     const ivWords = rawBlocks[0].split(/\s+/).filter(w => w.length > 0);
     const IV_Base = dogSpeakToValue(ivWords);
     if (IV_Base === null) return "IV 解码失败，IV 包含未知词汇。";
@@ -107,17 +104,11 @@ function decodeFromDogSpeak(dogSpeak, key) {
     let decoded = [];
     let prev = IV_Base;
 
-    // blocks 从 1 开始，对应第一个明文字节（i 与 KeyStream 位置对齐：i）
     for (let i = 1; i < rawBlocks.length; i++) {
-        const part = rawBlocks[i].trim();
-        if (!part) {
-            decoded.push("?");
-            prev = 0;
-            continue;
-        }
-
+        const part = rawBlocks[i];
         const words = part.split(/\s+/).filter(w => w.length > 0);
         const enc = dogSpeakToValue(words);
+
         if (enc === null) {
             decoded.push("?");
             prev = 0;
@@ -134,9 +125,8 @@ function decodeFromDogSpeak(dogSpeak, key) {
 }
 
 // ---------------------------
-// 绑定 DOM（无自动复制）
+// DOM 绑定（无自动复制）
 document.addEventListener("DOMContentLoaded", () => {
-
     const dogEncodeBtn = document.getElementById("dogEncodeBtn");
     const dogInputText = document.getElementById("dogInputText");
     const dogEncodeKey = document.getElementById("dogEncodeKey");
@@ -150,10 +140,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (dogEncodeBtn) dogEncodeBtn.onclick = () => {
         const text = dogInputText.value;
         const key = dogEncodeKey.value.trim();
-
         if (!text) { dogOutputLog.textContent = "嗷呜！请输入要转换的文字。"; return; }
         if (!key) { dogOutputLog.textContent = "嗷！密钥必填，请填写。"; return; }
-
         const encoded = encodeToDogSpeak(text, key);
         dogOutputLog.textContent = encoded;
     };
@@ -161,10 +149,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (dogDecodeBtn) dogDecodeBtn.onclick = () => {
         const speak = dogInputSpeak.value.trim();
         const key = dogDecodeKey.value.trim();
-
         if (!speak) { dogDecodeLog.textContent = "汪？请输入要还原的汪星语。"; return; }
         if (!key) { dogDecodeLog.textContent = "汪？密钥必填，请填写。"; return; }
-
         const decoded = decodeFromDogSpeak(speak, key);
         dogDecodeLog.textContent = decoded;
     };
