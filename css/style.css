@@ -351,9 +351,9 @@ input[type="checkbox"]:checked::after{
 
 /* 终极补丁：完美双模式（最高优先级） */
 .dropzone-title,
-#dropzone > div:first-child > div,
-#dropzoneImg > div:first-child > div,
-#dropzonePdf > div:first-child,
+#dropzone > div:first-child,    /* 修正图片压缩拖拽区 */
+#dropzoneImg > div:first-child,  /* 修正图片转 PDF 拖拽区 */
+#dropzonePdf > div:first-child,  /* 修正 PDF 转图片拖拽区 */
 .params-title,
 .controls h3 {
     font-weight: 600 !important;
@@ -497,6 +497,7 @@ header h1,
     font-family: monospace;  /* 使用等宽字体，使字符对齐更整齐 */
 }
 }
+
 
 
 
