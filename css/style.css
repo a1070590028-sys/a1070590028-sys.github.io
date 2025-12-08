@@ -353,7 +353,7 @@ input[type="checkbox"]:checked::after{
 .dropzone-title,
 #dropzone > div:first-child > div,
 #dropzoneImg > div:first-child > div,
-#dropzonePdf > div:first-child > div,
+#dropzonePdf > div:first-child,
 .params-title,
 .controls h3 {
     font-weight: 600 !important;
@@ -497,5 +497,6 @@ header h1,
     font-family: monospace;  /* 使用等宽字体，使字符对齐更整齐 */
 }
 }
+
 
 
