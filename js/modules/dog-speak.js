@@ -1,6 +1,8 @@
-// js/modules/dog-speak.js (UTF-16 + 换行符保留 + 中文顿号分段)
+// js/modules/dog-speak.js
+// 使用 AES-256-GCM + PBKDF2 实现真正安全的加密，并保持原有狗语编码与前端交互逻辑。
 
-// 狗语词库（真实狗叫声）
+// ---------------------------
+// 狗语词库
 const DOG_SPEAK_WORDS = [
     "汪",
     "汪汪",
@@ -13,128 +15,156 @@ const DOG_SPEAK_WORDS = [
 ];
 
 const BASE = DOG_SPEAK_WORDS.length;
-const MAX_VALUE = 65536; // UTF-16 范围
-const SEPARATOR = "、"; // 输出分段符：中文顿号
+const MAX_VALUE = 65536; // 0..65535
+const SEPARATOR = "、";   // 中文顿号
 
 // ---------------------------
-// 高安全 KeyStream
-function getKeyStreamValue(seedText, position) {
-    if (!seedText) return 0;
-    let hash = 0;
-    for (let i = 0; i < seedText.length; i++) {
-        const code = seedText.charCodeAt(i);
-        const posFactor = (position + i) % 256;
-        hash = (hash + code + (hash << 9) + (hash >> 5) + posFactor) ^ code;
-    }
-    return Math.abs(hash * 31 + position * 13 + seedText.length * 37) % MAX_VALUE;
-}
-
-// ---------------------------
-// UTF-16 value -> 狗语
+// 单个 0..65535 → 狗语
 function valueToDogSpeak(value) {
     value = value >>> 0;
     if (value === 0) return DOG_SPEAK_WORDS[0];
 
-    const arr = [];
+    const out = [];
     while (value > 0) {
-        let d = value % BASE;
-        arr.push(DOG_SPEAK_WORDS[d]);
+        out.push(DOG_SPEAK_WORDS[value % BASE]);
         value = Math.floor(value / BASE);
     }
-    return arr.reverse().join(" ");
+    return out.reverse().join(" ");
 }
 
-// 狗语 -> value（支持传入字符串或数组）
+// 狗语 → 数字（0..65535）
 function dogSpeakToValue(words) {
     let arr;
-    if (Array.isArray(words)) {
-        arr = words;
-    } else if (typeof words === "string") {
-        arr = words.trim().split(/\s+/).filter(w => w.length > 0);
-    } else {
-        return null;
-    }
+    if (Array.isArray(words)) arr = words;
+    else arr = words.split(/\s+/).filter(x => x);
 
     let v = 0;
-    for (let i = 0; i < arr.length; i++) {
-        const idx = DOG_SPEAK_WORDS.indexOf(arr[i]);
+    for (let w of arr) {
+        const idx = DOG_SPEAK_WORDS.indexOf(w);
         if (idx === -1) return null;
         v = v * BASE + idx;
     }
-    return v;
+    return v >>> 0;
 }
 
 // ---------------------------
-// 加密（使用顿号分段，支持换行符）
-function encodeToDogSpeak(text, key) {
-    if (!text || !text.toString().trim()) return "嗷呜！请输入要转换的文字。";
-    if (!key || !key.toString().trim()) return "嗷！密钥必填，请填写。";
-
-    const IV_Base = getKeyStreamValue(key + "IV_SEED", 0);
-    const encoded = [];
-    let prev = IV_Base;
-
-    // 遍历字符（支持代理对和换行符）
-    for (let i = 0, len = text.length; i < len; i++) {
-        const code = text.charCodeAt(i);
-        const Ki = getKeyStreamValue(key, i + 1);
-        const enc = (code + Ki + prev) % MAX_VALUE;
-        encoded.push(valueToDogSpeak(enc));
-        prev = enc;
+// Uint8Array → 狗语（按 2 字节一组）
+function bytesToDogSpeak(bytes) {
+    const out = [];
+    for (let i = 0; i < bytes.length; i += 2) {
+        const hi = bytes[i] || 0;
+        const lo = bytes[i + 1] || 0;
+        const v = (hi << 8) | lo;
+        out.push(valueToDogSpeak(v));
     }
-
-    const ivSpeak = valueToDogSpeak(IV_Base);
-    return ivSpeak + SEPARATOR + encoded.join(SEPARATOR);
+    return out.join(SEPARATOR);
 }
 
-// ---------------------------
-// 解密（更健壮，支持顿号、双空格、竖线、换行等分隔符）
-function decodeFromDogSpeak(dogSpeak, key) {
-    if (!dogSpeak || !dogSpeak.toString().trim()) return "汪？请输入要还原的汪星语。";
-    if (!key || !key.toString().trim()) return "汪？密钥必填，请填写。";
+// 狗语 → Uint8Array
+function dogSpeakToBytes(dogSpeak) {
+    const blocks = dogSpeak
+        .split(/、| {2,}|\|+|\r?\n+/)
+        .map(b => b.trim())
+        .filter(b => b.length > 0);
 
-    // 兼容多种分隔符：顿号、双空格、竖线、换行
-    const rawBlocks = dogSpeak.split(/、| {2,}|\|+|\r?\n+/).map(b => b.trim()).filter(b => b.length > 0);
-
-    if (rawBlocks.length < 2) return "密文格式错误，缺少 IV 或密文段。";
-
-    // IV 可以是若干个狗语词（以空格分隔）
-    const ivWords = rawBlocks[0].split(/\s+/).filter(w => w.length > 0);
-    const IV_Base = dogSpeakToValue(ivWords);
-    if (IV_Base === null) return "IV 解码失败，IV 包含未知词汇。";
-
-    let decoded = [];
-    let prev = IV_Base;
-
-    for (let i = 1; i < rawBlocks.length; i++) {
-        const part = rawBlocks[i].trim();
-        if (!part) {
-            decoded.push("\n"); // 空段当换行
-            prev = 0;
-            continue;
-        }
-
-        const words = part.split(/\s+/).filter(w => w.length > 0);
-        const enc = dogSpeakToValue(words);
-        if (enc === null) {
-            decoded.push("?"); // 无法识别
-            prev = 0;
-            continue;
-        }
-
-        const Ki = getKeyStreamValue(key, i);
-        const orig = (enc - Ki - prev + MAX_VALUE * 2) % MAX_VALUE;
-        decoded.push(String.fromCharCode(orig));
-        prev = enc;
+    const arr = [];
+    for (let b of blocks) {
+        const v = dogSpeakToValue(b.split(/\s+/));
+        const num = v ?? 0;
+        arr.push((num >> 8) & 0xFF, num & 0xFF);
     }
-
-    return decoded.join("");
+    return new Uint8Array(arr);
 }
 
 // ---------------------------
-// DOM 绑定（无自动复制）
+// WebCrypto 工具函数
+async function randomBytes(n) {
+    const out = new Uint8Array(n);
+    crypto.getRandomValues(out);
+    return out;
+}
+
+async function deriveKey(password, salt) {
+    const enc = new TextEncoder();
+    const passKey = await crypto.subtle.importKey(
+        "raw",
+        enc.encode(password),
+        "PBKDF2",
+        false,
+        ["deriveKey"]
+    );
+
+    return await crypto.subtle.deriveKey(
+        {
+            name: "PBKDF2",
+            salt,
+            iterations: 100000,
+            hash: "SHA-256"
+        },
+        passKey,
+        { name: "AES-GCM", length: 256 },
+        false,
+        ["encrypt", "decrypt"]
+    );
+}
+
+// ---------------------------
+// AES-256-GCM 加密 → 狗语
+async function encryptAES(text, password) {
+    if (!text || !password) throw new Error("参数缺失");
+
+    const encoder = new TextEncoder();
+    const salt = await randomBytes(16);
+    const iv = await randomBytes(12);
+
+    const key = await deriveKey(password, salt);
+
+    const ciphertext = new Uint8Array(
+        await crypto.subtle.encrypt(
+            { name: "AES-GCM", iv, tagLength: 128 },
+            key,
+            encoder.encode(text)
+        )
+    );
+
+    // salt + iv + ciphertext
+    const pack = new Uint8Array(salt.length + iv.length + ciphertext.length);
+    pack.set(salt, 0);
+    pack.set(iv, salt.length);
+    pack.set(ciphertext, salt.length + iv.length);
+
+    return bytesToDogSpeak(pack);
+}
+
+// ---------------------------
+// 狗语 → AES-256-GCM 解密
+async function decryptAES(dogSpeak, password) {
+    if (!dogSpeak || !password) throw new Error("参数缺失");
+
+    const allBytes = dogSpeakToBytes(dogSpeak);
+    if (allBytes.length < 28) throw new Error("密文格式错误");
+
+    const salt = allBytes.slice(0, 16);
+    const iv = allBytes.slice(16, 28);
+    const ciphertext = allBytes.slice(28);
+
+    const key = await deriveKey(password, salt);
+
+    try {
+        const plainBuf = await crypto.subtle.decrypt(
+            { name: "AES-GCM", iv, tagLength: 128 },
+            key,
+            ciphertext
+        );
+        return new TextDecoder().decode(plainBuf);
+    } catch (e) {
+        throw new Error("解密失败（密码错误或数据损坏）");
+    }
+}
+
+// ---------------------------
+// DOM 绑定（完全保留你原来的交互逻辑）
 document.addEventListener("DOMContentLoaded", () => {
-
     const dogEncodeBtn = document.getElementById("dogEncodeBtn");
     const dogInputText = document.getElementById("dogInputText");
     const dogEncodeKey = document.getElementById("dogEncodeKey");
@@ -145,25 +175,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const dogDecodeKey = document.getElementById("dogDecodeKey");
     const dogDecodeLog = document.getElementById("dogDecodeLog");
 
-    if (dogEncodeBtn) dogEncodeBtn.onclick = () => {
+    if (dogEncodeBtn) dogEncodeBtn.onclick = async () => {
         const text = dogInputText.value;
         const key = dogEncodeKey.value.trim();
 
         if (!text) { dogOutputLog.textContent = "嗷呜！请输入要转换的文字。"; return; }
-        if (!key) { dogOutputLog.textContent = "嗷！密钥必填，请填写。"; return; }
+        if (!key)  { dogOutputLog.textContent = "嗷！密钥必填，请填写。"; return; }
 
-        const encoded = encodeToDogSpeak(text, key);
-        dogOutputLog.textContent = encoded;
+        try {
+            const out = await encryptAES(text, key);
+            dogOutputLog.textContent = out;
+        } catch (err) {
+            dogOutputLog.textContent = "加密失败：" + err.message;
+        }
     };
 
-    if (dogDecodeBtn) dogDecodeBtn.onclick = () => {
+    if (dogDecodeBtn) dogDecodeBtn.onclick = async () => {
         const speak = dogInputSpeak.value.trim();
         const key = dogDecodeKey.value.trim();
 
         if (!speak) { dogDecodeLog.textContent = "汪？请输入要还原的汪星语。"; return; }
-        if (!key) { dogDecodeLog.textContent = "汪？密钥必填，请填写。"; return; }
+        if (!key)   { dogDecodeLog.textContent = "汪？密钥必填，请填写。"; return; }
 
-        const decoded = decodeFromDogSpeak(speak, key);
-        dogDecodeLog.textContent = decoded;
+        try {
+            const out = await decryptAES(speak, key);
+            dogDecodeLog.textContent = out;
+        } catch (err) {
+            dogDecodeLog.textContent = "解密失败：" + err.message;
+        }
     };
 });
