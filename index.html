@@ -261,12 +261,12 @@
 </div>
 
 <div class="post-card">
-    <h2 class="card-title">🐶 狗叫密语 <span class="toggle-icon">▾</span></h2>
+    <h2 class="card-title">🐾 兽语密文 <span class="toggle-icon">▾</span></h2>
     <div class="card-content">
-        <p style="margin-top:8px">将普通文字转换成“大狗叫”，并使用密钥进行加密/解密。</p>
+        <p style="margin-top:8px">将普通文字转换成“兽语密文”，并使用密钥进行加密/解密。</p>
         
         <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn active" data-dog-tab="encode">转换为狗叫</button>
+            <button class="btn active" data-dog-tab="encode">转换为密文</button>
             <button class="btn" data-dog-tab="decode">还原为文字</button>
         </div>
 
@@ -276,17 +276,22 @@
                 <div style="padding:12px">
                     <div class="compress-param" style="margin-top:0;">
                         <label class="small">输入普通文字：</label>
-                        <textarea id="dogInputText" placeholder="在这里输入你想要转换为汪星语的文字..." rows="5" style="resize:vertical;"></textarea>
+                        <textarea id="dogInputText" placeholder="在这里输入你想要转换为兽语密文的文字..." rows="5" style="resize:vertical;"></textarea>
                     </div>
 
                     <div class="compress-param">
-                        <label class="small">输出汪星语：</label>
+                        <label class="small">输出兽语密文：</label>
                         <div id="dogOutputLog" class="log-box" style="min-height: 100px;">点击按钮开始转换...</div>
+                    </div>
+                    
+                    <div style="margin-top: 10px; display: flex; gap: 8px;">
+                        <button class="btn" id="dogCopyBtn" style="flex: 1;">复制密文</button>
+                        <button class="btn" id="dogDownloadTxtBtn" style="flex: 1;">下载为 TXT</button>
                     </div>
                 </div>
 
                 <div class="controls post-card" style="padding:14px;height:fit-content">
-                    <h3 class="params-title">转换参数</h3>
+                    <h3 class="params-title">参数设置</h3>
                     
                     <div class="compress-param">
                         <label class="small">密钥 (用于扰乱替换规则)</label>
@@ -304,10 +309,18 @@
                 
                 <div style="padding:12px">
                     <div class="compress-param" style="margin-top:0;">
-                        <label class="small">输入汪星语：</label>
-                        <textarea id="dogInputSpeak" placeholder="在这里粘贴你需要还原的汪星语..." rows="5" style="resize:vertical;"></textarea>
+                        <label class="small">输入兽语密文：</label>
+                        <textarea id="dogInputSpeak" placeholder="在这里粘贴你需要还原的兽语密文..." rows="5" style="resize:vertical;"></textarea>
                     </div>
-
+                    
+                    <div class="compress-param" style="margin-top: 10px;">
+                        <label class="small">或从 TXT 文件读取密文：</label>
+                        <div id="dogReadDropzone" class="dropzone" style="margin:0; padding:10px 12px;">
+                            <div class="dropzone-title" style="font-size: 14px;">拖拽或点击上传 TXT 文件</div>
+                            <input type="file" id="dogReadInput" accept=".txt" style="display:none">
+                        </div>
+                    </div>
+                    
                     <div class="compress-param">
                         <label class="small">还原的普通文字：</label>
                         <div id="dogDecodeLog" class="log-box" style="min-height: 100px;">点击按钮开始还原...</div>
