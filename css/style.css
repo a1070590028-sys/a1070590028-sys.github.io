@@ -497,6 +497,65 @@ header h1,
     font-family: monospace;  /* 使用等宽字体，使字符对齐更整齐 */
 }
 }
+/* 左侧导航栏 */
+#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 210px;
+    height: 100vh;
+    background: rgba(30, 41, 59, 0.45); /* 玻璃态 */
+    backdrop-filter: blur(14px);
+    border-right: 1px solid var(--border);
+    padding: 20px 10px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sidebar-title {
+    font-size: 18px;
+    color: var(--accent);
+    text-align: center;
+    margin-bottom: 15px;
+    font-weight: bold;
+}
+
+.sidebar-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    cursor: pointer;
+    text-align: center;
+    font-size: 14px;
+    transition: all .25s;
+}
+
+.sidebar-item:hover,
+.sidebar-item.active {
+    background: rgba(96,165,250,0.25);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* 页面右侧整体右移，为侧栏腾空间 */
+.container {
+    margin-left: 240px !important;
+}
+
+/* 页眉也右移 */
+header {
+    margin-left: 240px !important;
+}
+
+/* 页脚也右移 */
+footer {
+    margin-left: 240px !important;
+}
+
 
 
 
