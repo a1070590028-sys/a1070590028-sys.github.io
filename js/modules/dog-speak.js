@@ -343,11 +343,6 @@ async function decrypt(tokenStr, password, options = {}) {
 
 // ---------------------------
 // DOM bindings (keeps original element ids)
-// - dogEncodeBtn, dogInputText, dogEncodeKey, dogOutputLog
-// - dogDecodeBtn, dogInputSpeak, dogDecodeKey, dogDecodeLog
-// 新增：
-// - dogCopyBtn, dogDownloadTxtBtn
-// - dogReadInput, dogReadDropzone (for reading txt)
 
 document.addEventListener("DOMContentLoaded", () => {
   const dogEncodeBtn = document.getElementById("dogEncodeBtn");
@@ -364,11 +359,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const dogReadInput = document.getElementById("dogReadInput");
   const dogReadDropzone = document.getElementById("dogReadDropzone");
 
-  // ⭐ NEW: Log Elements ⭐
+  // ⭐ Log Elements ⭐
   const dogEncLog = document.getElementById("dogEncLog");
   const dogDecLog = document.getElementById("dogDecLog"); 
   
-  // ⭐ NEW: Log Helper Function ⭐
+  // ⭐ Log Helper Function (已修正颜色) ⭐
   /**
    * @param {string} message - 日志消息.
    * @param {boolean} isError - 是否为错误消息.
@@ -378,9 +373,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const logElement = isDecode ? dogDecLog : dogEncLog;
       if (!logElement) return;
       const date = new Date().toLocaleTimeString('zh-CN', { hour12: false });
-      // 使用 accent/error 颜色来保持与其它模块日志的风格一致性
-      // 假设 style.css 中已经定义了 --accent 和 --error 变量
-      const color = isError ? "var(--error, #f04747)" : "var(--accent, #60a5fa)"; 
+      
+      // ✅ FIX: 正常日志使用 --text-muted 颜色，与其它模块保持一致。
+      // 仅错误日志使用 --error 颜色。
+      const color = isError ? "var(--error, #f04747)" : "var(--text-muted, #94a3b8)"; 
       
       // Prepend new message and use <br> for newline
       logElement.innerHTML = `<span style="color:${color};">[${date}] ${message}</span><br>` + logElement.innerHTML;
@@ -416,21 +412,20 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // ==========================
-  // 新增：加密卡片 - 复制密文 (替换 alert)
+  // 复制密文
   // ==========================
   if (dogCopyBtn) dogCopyBtn.onclick = async () => {
     const speak = dogOutputLog.textContent.trim();
     if (!speak || speak === "点击按钮开始转换...") {
-      dogLog("请先生成密文！", true, false); // 替换 alert
+      dogLog("请先生成密文！", true, false); 
       return;
     }
     try {
-      // Use navigator.clipboard
       await navigator.clipboard.writeText(speak);
-      dogLog("密文已复制到剪贴板！", false, false); // 替换 alert
+      dogLog("密文已复制到剪贴板！", false, false); 
     } catch (err) {
       console.error("复制失败:", err);
-      // Fallback for older browsers (替换 alert)
+      // Fallback 
       const textarea = document.createElement('textarea');
       textarea.value = speak;
       document.body.appendChild(textarea);
@@ -438,28 +433,27 @@ document.addEventListener("DOMContentLoaded", () => {
       textarea.select();
       try {
         document.execCommand('copy');
-        dogLog("密文已复制到剪贴板！", false, false); // 替换 alert
+        dogLog("密文已复制到剪贴板！", false, false); 
       } catch (err) {
-        dogLog("复制失败，请手动选择复制。", true, false); // 替换 alert
+        dogLog("复制失败，请手动选择复制。", true, false); 
       }
       document.body.removeChild(textarea);
     }
   };
 
   // ==========================
-  // 新增：加密卡片 - 下载为 TXT (替换 alert)
+  // 下载为 TXT
   // ==========================
   if (dogDownloadTxtBtn) dogDownloadTxtBtn.onclick = () => {
     const speak = dogOutputLog.textContent.trim();
     const key = dogEncodeKey.value.trim();
     if (!speak || speak === "点击按钮开始转换...") {
-      dogLog("请先生成密文！", true, false); // 替换 alert
+      dogLog("请先生成密文！", true, false); 
       return;
     }
 
-    // 文件名为 密钥：X，x为具体的密钥
     const filename = `密钥：${key || '未填写'}.txt`;
-    dogLog(`开始下载文件: ${filename}`, false, false); // 增加日志
+    dogLog(`开始下载文件: ${filename}`, false, false); 
     
     const blob = new Blob([speak], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -480,12 +474,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const key = dogDecodeKey.value.trim();
     
     if (!speak) {
-      dogLog("请输入要还原的兽语。", true, true); // 替换原有提示
-      // 保持输出框状态
+      dogLog("请输入要还原的兽语。", true, true); 
       return;
     }
     if (!key)   { 
-      dogLog("密钥必填，请填写。", true, true); // 替换原有提示
+      dogLog("密钥必填，请填写。", true, true); 
       return; 
     }
 
@@ -494,15 +487,15 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const out = await decrypt(speak, key, { useCompression: CONFIG.USE_COMPRESSION });
       if (dogDecodeLog) dogDecodeLog.textContent = out;
-      dogLog("还原成功！", false, true); // 替换原有提示
+      dogLog("还原成功！", false, true); 
     } catch (err) {
       if (dogDecodeLog) dogDecodeLog.textContent = "还原失败。";
-      dogLog("解密失败：" + err.message, true, true); // 替换原有错误提示
+      dogLog("解密失败：" + err.message, true, true); 
     }
   };
   
   // ==========================
-  // 新增：解密卡片 - 上传并读取 TXT 文件
+  // 文件读取逻辑
   // ==========================
   if (dogReadInput) {
       dogReadInput.addEventListener('change', (e) => {
@@ -510,28 +503,24 @@ document.addEventListener("DOMContentLoaded", () => {
           if (file) {
               readDogSpeakFile(file);
           }
-          // 清空 input，以便再次上传同一个文件触发 change 事件
           e.target.value = '';
       });
   }
   
   if (dogReadDropzone) {
-      // 阻止默认行为，允许放置
       ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
           dogReadDropzone.addEventListener(eventName, (e) => {
               e.preventDefault();
               e.stopPropagation();
+              // 保持拖拽样式切换
               if (eventName === 'dragenter' || eventName === 'dragover') {
-                  // 假设存在 --accent 变量
                   dogReadDropzone.style.border = '2px solid var(--accent, #60a5fa)'; 
               } else if (eventName === 'dragleave' || eventName === 'drop') {
-                  // 假设存在 --border 变量
                   dogReadDropzone.style.border = '1px dashed var(--border, #333333)'; 
               }
           }, false);
       });
       
-      // 放置文件
       dogReadDropzone.addEventListener('drop', (e) => {
           const file = e.dataTransfer.files[0];
           if (file) {
@@ -539,19 +528,17 @@ document.addEventListener("DOMContentLoaded", () => {
           }
       });
       
-      // 点击打开文件选择器
       dogReadDropzone.onclick = () => {
           dogReadInput.click();
       };
       
-      // 初始样式设置（如果 dropzone 样式未在 CSS 中定义）
       dogReadDropzone.style.border = '1px dashed var(--border, #333333)';
       dogReadDropzone.style.cursor = 'pointer';
   }
   
   function readDogSpeakFile(file) {
       if (file.type !== 'text/plain' && !file.name.toLowerCase().endsWith('.txt')) {
-          dogLog("请上传 TXT 格式的文件。", true, true); // 替换 alert
+          dogLog("请上传 TXT 格式的文件。", true, true); 
           return;
       }
       
@@ -559,12 +546,12 @@ document.addEventListener("DOMContentLoaded", () => {
       reader.onload = (e) => {
           const content = e.target.result.trim();
           if (dogInputSpeak) {
-              dogInputSpeak.value = content; // 将读取的密文填充到输入框
-              dogLog("文件读取成功，密文已填充。", false, true); // 替换 dogDecodeLog.textContent 提示
+              dogInputSpeak.value = content; 
+              dogLog("文件读取成功，密文已填充。", false, true); 
           }
       };
       reader.onerror = () => {
-          dogLog("读取文件失败。", true, true); // 替换 dogDecodeLog.textContent 提示
+          dogLog("读取文件失败。", true, true); 
       };
       reader.readAsText(file);
   }
