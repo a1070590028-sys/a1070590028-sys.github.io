@@ -145,6 +145,51 @@ input[type="checkbox"]:checked::after{
     position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
 }
 
+/* ==================== FIXED: 统一 log 样式 (新增 #dogOutputLog, #dogDecodeLog) ==================== */
+#log, #imgLog, #pdfLog, #encLog, #decLog, #dogOutputLog, #dogDecodeLog {
+    padding: 8px 10px !important;
+    border-radius: 8px !important;
+
+    color: var(--text-muted) !important;
+
+    max-height: 160px !important;
+    overflow-y: auto !important;
+
+    box-sizing: border-box !important;
+}
+
+/* 滚动条统一 (新增 #dogOutputLog, #dogDecodeLog) */
+#log::-webkit-scrollbar,
+#imgLog::-webkit-scrollbar,
+#pdfLog::-webkit-scrollbar,
+#encLog::-webkit-scrollbar,
+#decLog::-webkit-scrollbar,
+#dogOutputLog::-webkit-scrollbar,
+#dogDecodeLog::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+#log::-webkit-scrollbar-thumb,
+#imgLog::-webkit-scrollbar-thumb,
+#pdfLog::-webkit-scrollbar-thumb,
+#encLog::-webkit-scrollbar-thumb,
+#decLog::-webkit-scrollbar-thumb,
+#dogOutputLog::-webkit-scrollbar-thumb,
+#dogDecodeLog::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.15) !important;
+    border-radius: 4px !important;
+}
+
+#log::-webkit-scrollbar-thumb:hover,
+#imgLog::-webkit-scrollbar-thumb:hover,
+#pdfLog::-webkit-scrollbar-thumb:hover,
+#encLog::-webkit-scrollbar-thumb:hover,
+#decLog::-webkit-scrollbar-thumb:hover,
+#dogOutputLog::-webkit-scrollbar-thumb:hover,
+#dogDecodeLog::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.3) !important;
+}
+
 /* ==================== 固定按钮样式 (统一) ==================== */
 #bg-switcher-btn, #net-monitor-btn, #music-player-btn, #time-btn, #guestbook-btn { /* 添加 #guestbook-btn */
     position:fixed;width:54px;height:54px;border-radius:50%;
@@ -179,9 +224,7 @@ input[type="checkbox"]:checked::after{
 #guestbook-btn { 
     top: 28px;
     right: 90px; /* 54px (按钮宽度) + 24px (右边距) + 12px (间距) */
-}
-
-/* 面板通用样式 */
+} /* 面板通用样式 */ 
 #bg-switcher-panel,#net-monitor-panel,#music-player-panel,#time-panel, #guestbook-panel { /* 添加 #guestbook-panel */
     position:fixed;
     width:280px; /* 大部分面板的固定宽度 */
@@ -189,26 +232,26 @@ input[type="checkbox"]:checked::after{
     background:rgba(255,255,255,0.08);border:1px solid var(--border);
     backdrop-filter:blur(12px);color:var(--text);display:none;z-index:99999;
 }
+
 /* 统一面板标题样式 (居中) */
 #bg-switcher-panel h3,#net-monitor-panel h3,#music-player-panel h3,#time-panel h3, #guestbook-panel h3{ /* 添加 #guestbook-panel h3 */
     margin:0 0 12px;font-size:16px;color:var(--accent);
-    text-align: center; 
+    text-align: center;
 }
 
 /* 时间面板修正宽度和居中 */
 #time-panel {
-    top: 92px; 
+    top: 92px;
     right: 24px;
-    width: 280px; 
-    text-align: center; 
+    width: 280px;
+    text-align: center;
 }
 .time-detail-item {
     margin: 6px 0;
     font-size: 14px;
     color: var(--text);
-    white-space: nowrap; 
+    white-space: nowrap;
 }
-
 
 /* 背景和网络面板内容居中设置 */
 #bg-switcher-panel, #net-monitor-panel {
@@ -225,10 +268,10 @@ input[type="checkbox"]:checked::after{
 #music-player-panel{
     bottom:92px;
     left:24px;
-    display: none; 
-    flex-direction: column; 
-    align-items: center; 
-    text-align: center; 
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
 }
 
 /* 网络面板 → 右下角按钮上方 */
@@ -239,14 +282,14 @@ input[type="checkbox"]:checked::after{
 
 /* ⭐ NEW: 留言板面板定位和宽度 ⭐ */
 #guestbook-panel {
-    top: 92px; 
+    top: 92px;
     right: 24px;
     width: 320px; /* 略宽一些，以容纳内容 */
 }
 
 /* 确保网络监控列表项文本居中 */
-.net-item{margin:6px 0;font-size:14px;color:var(--text); text-align: center;} 
-
+.net-item{margin:6px 0;font-size:14px;color:var(--text);
+    text-align: center;}
 .bg-options{display:flex;flex-direction:column;gap:8px}
 .bg-opt{
     padding:9px 12px;border-radius:8px;background:transparent;
@@ -258,8 +301,6 @@ input[type="checkbox"]:checked::after{
     background:rgba(96,165,250,0.25);border-color:var(--accent);color:#fff;
 }
 
-
-
 /* 响应式 */
 @media(max-width:860px){
     .compress-grid{grid-template-columns:1fr}
@@ -267,109 +308,87 @@ input[type="checkbox"]:checked::after{
 }
 
 /* ==================== 音乐播放器专用样式优化 (V3) ==================== */
-
-/* 1. 三个播放控制按钮（圆形） */
-#prevBtn, #playBtn, #nextBtn {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 50% !important;
-    padding: 0 !important;
-    font-size: 18px !important;
-    line-height: 36px !important;
-    background: rgba(96,165,250,0.25) !important;
-    border: 1px solid var(--accent) !important;
-    margin: 0 6px !important;
-    cursor: pointer; 
-    color: var(--text); 
-    transition: all 0.2s; 
-    display: inline-flex; 
-    justify-content: center; 
-    align-items: center; 
+/* 1. 三个播放按钮统一 */
+.controls-row button {
+    background: transparent;
+    border: none;
+    color: var(--text);
+    cursor: pointer;
+    font-size: 20px;
+    padding: 0 10px;
+    transition: color 0.2s;
 }
-#prevBtn:hover, #playBtn:hover, #nextBtn:hover { 
-    background: rgba(96,165,250,0.4) !important;
-    transform: scale(1.1);
-    color: #fff;
-}
-.controls-row { 
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin: 8px 0;
-    width: 100%;
-}
-#songTitle { 
-    font-weight:600;
-    cursor:pointer;
-    margin-bottom:12px;
+.controls-row button:hover {
+    color: var(--accent);
 }
 
-/* 2. 进度条和音量条等长且自适应 */
-/* 容器 */
-.player-row { 
+/* 2. 进度条容器 */
+.player-row {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: 10px;
     width: 100%;
-    margin: 6px 0;
-    gap: 0;
 }
-/* 侧边占位 (确保对齐) */
-.player-side-item { 
-    width: 40px;
-    text-align: center;
-    flex-shrink: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 12px;
+.player-side-item {
+    font-size: 13px;
     color: var(--text-muted);
 }
-.player-side-item.icon { 
-    font-size: 16px;
-    opacity: 0.8;
+#progress {
+    flex-grow: 1;
 }
 
-/* 进度条 */
-#progress, #volume {
-    flex: 1; 
-    width: auto !important;
-    margin: 0 6px;
-    max-width: 100%;
-}
-/* 歌单 */
-#playlistContainer { 
+/* 3. 歌单列表 */
+#songListContainer {
     width: 100%;
-    text-align: left;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.1);
 }
-#music-player-panel .panel-title { 
-    position: relative;
-    width: 100%;
-    text-align: center;
+#songList {
+    max-height: 120px;
+    overflow-y: auto;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+#songList li {
+    padding: 6px 8px;
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#songList li:hover {
+    background: rgba(96,165,250,0.1);
+    color: var(--accent);
+}
+#songList li.current {
+    font-weight: bold;
+    color: var(--accent);
+    background: rgba(96,165,250,0.2);
 }
 
-
-/* 终极补丁：完美双模式（最高优先级） */
-.dropzone-title,
-#dropzone > div:first-child,    /* 修正图片压缩拖拽区 */
-#dropzoneImg > div:first-child,  /* 修正图片转 PDF 拖拽区 */
-#dropzonePdf > div:first-child,  /* 修正 PDF 转图片拖拽区 */
-.params-title,
-.controls h3 {
+/* ==================== 强制字体/颜色样式 (为了适配 Vanta.js 的背景) ==================== */
+/* 统一输入框/按钮的标题文字颜色，使其在所有背景下清晰可见 */
+/* 请注意：这些规则应保持在 style.css 的末尾，以确保覆盖性 */
+.dropzone-title, #dropzoneEnc > div:first-child, /* 修正文件加密拖拽区 */
+#localCarrierDropzone > div:first-child, /* 修正载体图片拖拽区 */
+#dropzoneDec > div:first-child, /* 修正解密文件拖拽区 */
+#dropzoneImg > div:first-child, /* 修正图片压缩拖拽区 */
+#dropzonePdf > div:first-child, /* 修正图片转 PDF 拖拽区 */
+.params-title, .controls h3 {
     font-weight: 600 !important;
     color: var(--accent-light) !important;
     margin: 0 0 8px 0 !important;
     font-size: 15px !important;
 }
 
-header h1,
-.post-card h2.card-title,
-.toggle-icon,
-#time-btn,
-#guestbook-btn, /* 确保按钮颜色正确 */
-.btn:hover,
-.bg-opt:hover,
-.bg-opt.active {
+header h1, .post-card h2.card-title, .toggle-icon, #time-btn, #guestbook-btn, /* 确保按钮颜色正确 */
+.btn:hover, .bg-opt:hover, .bg-opt.active {
     color: var(--accent) !important;
 }
 
@@ -390,114 +409,31 @@ header h1,
 .guestbook-item:last-child {
     border-bottom: none;
 }
+
 /* 修正此处，确保关闭了可能的多余花括号 */
-
-
 /* === ⭐ V3 样式修复：统一输入框与选择框的样式 (确保高度/内边距完全一致) ⭐ === */
-
-/* 统一输入框、密码框、数字输入框和选择框的视觉样式 */
-.post-card input[type="text"], 
-.post-card input[type="number"], 
-.post-card input[type="password"], 
-.post-card select {
-    width: 100% !important;
-    /* 核心修复：确保 padding 统一，覆盖掉所有其他冲突的样式 */
-    padding: 10px 12px !important; 
-    margin-top: 5px;
-    border: 1px solid var(--border);
+input[type="text"],
+input[type="password"],
+input[type="number"],
+select,
+textarea {
+    width: 100%;
+    padding: 8px 10px;
     border-radius: 8px;
-    /* 核心修复：使用 --input-bg 变量，并给一个浅色回退值，确保日间模式为白框 */
-    background-color: var(--input-bg, rgba(255, 255, 255, 0.9)) !important; 
+    border: 1px solid var(--border);
+    background: var(--input-bg); /* 使用变量 */
     color: var(--text);
-    transition: border-color 0.2s;
-    -webkit-appearance: none; 
-    -moz-appearance: none;
-    appearance: none;
+    font-size: 14px;
+    box-sizing: border-box;
 }
 
-/* 焦点状态保持一致 */
-.post-card input:focus, 
-.post-card select:focus {
-    border-color: var(--accent);
-    outline: none;
-    box-shadow: 0 0 0 1px var(--accent);
+/* 修复狗叫密语输出区域的换行和滚动条问题 */
+/* 确保 dog log 区域可以正确显示和滚动 */
+#dogOutputSpeak, #dogInputSpeak, #dogDecodedText, #dogOutputLog, #dogDecodeLog {
+    /* 确保内容超出时出现垂直滚动条 */
+    overflow-y: auto !important; 
+    /* 强制在任何字符处打断长单词，确保不会横向溢出 */
+    word-break: break-all !important; 
+    /* 确保日志框有足够的最小高度 */
+    min-height: 100px !important;
 }
-
-/* 针对select元素，手动添加一个向下的小箭头 */
-.post-card select {
-    /* 覆盖掉在文件前面定义的 select 样式中的 padding 和 background-image */
-    padding-right: 30px !important; 
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%2394a3b8' d='M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z'/%3E%3C/svg%3E") !important;
-    background-repeat: no-repeat !important;
-    background-position: right 10px center !important;
-    background-size: 1em !important;
-}
-
-/* =========================================================
-      ⭐ 全站日志框统一样式（最终版，强制覆盖） ⭐
-   ========================================================= */
-#log, #imgLog, #pdfLog, #encLog, #decLog, .log-box {
-    margin-top: 8px !important;
-    padding: 10px 12px !important;
-    font-size: 13px !important;
-    line-height: 1.5 !important;
-
-    background: rgba(255,255,255,0.05) !important; /* 透明白 5% */
-    border: 1px solid var(--border) !important;
-    border-radius: 8px !important;
-
-    color: var(--text-muted) !important;
-
-    max-height: 160px !important;
-    overflow-y: auto !important;
-
-    box-sizing: border-box !important;
-}
-
-/* 滚动条统一 */
-#log::-webkit-scrollbar,
-#imgLog::-webkit-scrollbar,
-#pdfLog::-webkit-scrollbar,
-#encLog::-webkit-scrollbar,
-#decLog::-webkit-scrollbar {
-    width: 8px !important;
-}
-
-#log::-webkit-scrollbar-thumb,
-#imgLog::-webkit-scrollbar-thumb,
-#pdfLog::-webkit-scrollbar-thumb,
-#encLog::-webkit-scrollbar-thumb,
-#decLog::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.15) !important;
-    border-radius: 4px !important;
-}
-
-#log::-webkit-scrollbar-thumb:hover,
-#imgLog::-webkit-scrollbar-thumb:hover,
-#pdfLog::-webkit-scrollbar-thumb:hover,
-#encLog::-webkit-scrollbar-thumb:hover,
-#decLog::-webkit-scrollbar-thumb:hover {
-    background: rgba(255,255,255,0.3) !important;
-}
-
-#dogOutputLog, #dogDecodeLog {
-    /* --- 1. 解决换行符显示问题 (核心) --- */
-    white-space: pre-wrap;   /* 确保保留并显示所有换行符和空格 */
-    word-break: break-all;   /* 防止超长密文撑破容器 */
-    
-    /* --- 2. 解决内容溢出（无拖动条）问题 --- */
-    height: 200px;           /* 设置一个固定的最大高度（请根据需要调整此值） */
-    overflow: auto;          /* 当内容超出高度时，显示滚动条 */
-    
-    /* --- 3. 可选：优化日志视觉效果 --- */
-    padding: 10px;           /* 文本与边框的内边距 */
-    background-color: #f7f7f7;/* 浅灰色背景，看起来像代码块 */
-    border: 1px solid #ccc;  /* 边框 */
-    border-radius: 4px;      /* 轻微的圆角 */
-    font-family: monospace;  /* 使用等宽字体，使字符对齐更整齐 */
-}
-}
-
-
-
-
