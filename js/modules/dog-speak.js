@@ -345,18 +345,28 @@ async function decrypt(tokenStr, password, options = {}) {
 // DOM bindings (keeps original element ids)
 // - dogEncodeBtn, dogInputText, dogEncodeKey, dogOutputLog
 // - dogDecodeBtn, dogInputSpeak, dogDecodeKey, dogDecodeLog
+// 新增：
+// - dogCopyBtn, dogDownloadTxtBtn
+// - dogReadInput, dogReadDropzone (for reading txt)
 
 document.addEventListener("DOMContentLoaded", () => {
   const dogEncodeBtn = document.getElementById("dogEncodeBtn");
   const dogInputText = document.getElementById("dogInputText");
   const dogEncodeKey = document.getElementById("dogEncodeKey");
   const dogOutputLog = document.getElementById("dogOutputLog");
+  const dogCopyBtn = document.getElementById("dogCopyBtn");
+  const dogDownloadTxtBtn = document.getElementById("dogDownloadTxtBtn");
 
   const dogDecodeBtn = document.getElementById("dogDecodeBtn");
   const dogInputSpeak = document.getElementById("dogInputSpeak");
   const dogDecodeKey = document.getElementById("dogDecodeKey");
   const dogDecodeLog = document.getElementById("dogDecodeLog");
+  const dogReadInput = document.getElementById("dogReadInput");
+  const dogReadDropzone = document.getElementById("dogReadDropzone");
 
+  // ==========================
+  // 加密/转换 逻辑
+  // ==========================
   if (dogEncodeBtn) dogEncodeBtn.onclick = async () => {
     const text = dogInputText.value;
     const key = dogEncodeKey.value.trim();
@@ -371,6 +381,63 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  // ==========================
+  // 新增：加密卡片 - 复制密文
+  // ==========================
+  if (dogCopyBtn) dogCopyBtn.onclick = async () => {
+    const speak = dogOutputLog.textContent.trim();
+    if (!speak || speak === "点击按钮开始转换...") {
+      alert("请先生成密文！");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(speak);
+      alert("密文已复制到剪贴板！");
+    } catch (err) {
+      console.error("复制失败:", err);
+      // Fallback for older browsers
+      const textarea = document.createElement('textarea');
+      textarea.value = speak;
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        alert("密文已复制到剪贴板！");
+      } catch (err) {
+        alert("复制失败，请手动选择复制。");
+      }
+      document.body.removeChild(textarea);
+    }
+  };
+
+  // ==========================
+  // 新增：加密卡片 - 下载为 TXT
+  // ==========================
+  if (dogDownloadTxtBtn) dogDownloadTxtBtn.onclick = () => {
+    const speak = dogOutputLog.textContent.trim();
+    const key = dogEncodeKey.value.trim();
+    if (!speak || speak === "点击按钮开始转换...") {
+      alert("请先生成密文！");
+      return;
+    }
+
+    // 文件名为 密钥：X，x为具体的密钥
+    const filename = `密钥：${key || '未填写'}.txt`;
+    const blob = new Blob([speak], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // ==========================
+  // 解密/还原 逻辑
+  // ==========================
   if (dogDecodeBtn) dogDecodeBtn.onclick = async () => {
     const speak = dogInputSpeak.value.trim();
     const key = dogDecodeKey.value.trim();
@@ -384,6 +451,74 @@ document.addEventListener("DOMContentLoaded", () => {
       if (dogDecodeLog) dogDecodeLog.textContent = "解密失败：" + err.message;
     }
   };
+  
+  // ==========================
+  // 新增：解密卡片 - 上传并读取 TXT 文件
+  // ==========================
+  if (dogReadInput) {
+      dogReadInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+              readDogSpeakFile(file);
+          }
+          // 清空 input，以便再次上传同一个文件触发 change 事件
+          e.target.value = '';
+      });
+  }
+  
+  if (dogReadDropzone) {
+      // 阻止默认行为，允许放置
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+          dogReadDropzone.addEventListener(eventName, (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (eventName === 'dragenter' || eventName === 'dragover') {
+                  dogReadDropzone.style.border = '2px solid var(--accent)'; // 拖拽进入时改变样式
+              } else if (eventName === 'dragleave' || eventName === 'drop') {
+                  dogReadDropzone.style.border = '1px dashed var(--border)'; // 恢复样式
+              }
+          }, false);
+      });
+      
+      // 放置文件
+      dogReadDropzone.addEventListener('drop', (e) => {
+          const file = e.dataTransfer.files[0];
+          if (file) {
+              readDogSpeakFile(file);
+          }
+      });
+      
+      // 点击打开文件选择器
+      dogReadDropzone.onclick = () => {
+          dogReadInput.click();
+      };
+      
+      // 初始样式设置（如果 dropzone 样式未在 CSS 中定义）
+      dogReadDropzone.style.border = '1px dashed var(--border)';
+      dogReadDropzone.style.cursor = 'pointer';
+  }
+  
+  function readDogSpeakFile(file) {
+      if (file.type !== 'text/plain' && !file.name.toLowerCase().endsWith('.txt')) {
+          alert("请上传 TXT 格式的文件。");
+          return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          const content = e.target.result.trim();
+          if (dogInputSpeak) {
+              dogInputSpeak.value = content; // 将读取的密文填充到输入框
+              dogDecodeLog.textContent = "文件读取成功，密文已填充。";
+          }
+      };
+      reader.onerror = () => {
+          dogDecodeLog.textContent = "读取文件失败。";
+      };
+      reader.readAsText(file);
+  }
+  // ==========================
+  
 });
 
 // ---------------------------
