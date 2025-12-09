@@ -220,422 +220,367 @@ function baseTokensToBytes(str) {
     }
   }
 
-  // 1. Check if token count is a multiple of TOKENS_PER_CHUNK
   if (indices.length % TOKENS_PER_CHUNK !== 0) {
-    throw new Error("Token 数量不正确，解密失败");
+    throw new Error("token 数量不对，非完整块");
   }
 
-  // 2. Convert tokens back to bytes (4 tokens -> 3 bytes)
-  const tempBytes = [];
+  const bytesArr = [];
   for (let i = 0; i < indices.length; i += TOKENS_PER_CHUNK) {
     let val = 0;
-    // Reconstruct the 24-bit value from 4 base-BASE digits
     for (let d = 0; d < TOKENS_PER_CHUNK; d++) {
       val = val * BASE + indices[i + d];
     }
-
-    // Convert 24-bit value back to 3 bytes (big-endian)
-    tempBytes.push((val >> 16) & 0xFF);
-    tempBytes.push((val >> 8) & 0xFF);
-    tempBytes.push(val & 0xFF);
+    const b0 = (val >> 16) & 0xFF;
+    const b1 = (val >> 8) & 0xFF;
+    const b2 = val & 0xFF;
+    bytesArr.push(b0, b1, b2);
   }
-
-  // 3. Extract original length (first 2 bytes) and trim
-  if (tempBytes.length < 2) throw new Error("数据头损坏，无法确定原始长度");
-
-  const lenHi = tempBytes[0];
-  const lenLo = tempBytes[1];
-  const originalLen = (lenHi << 8) | lenLo;
-
-  const resultBytes = tempBytes.slice(2, 2 + originalLen);
-  
-  // Basic validation
-  if (resultBytes.length !== originalLen) {
-      // This is expected if the last chunk was padded with zeros, but ensures we don't return extra padding.
-      // If the math is correct, slice(2, 2 + originalLen) should be exactly originalLen bytes.
-  }
-  
-  return new Uint8Array(resultBytes);
+  const all = new Uint8Array(bytesArr);
+  const realLen = (all[0] << 8) | all[1];
+  const payload = all.slice(2, 2 + realLen);
+  return payload;
 }
 
 // ---------------------------
-// Main Cipher Logic (Encryption)
+// Encrypt / Decrypt using AES-CTR + HMAC-SHA256 (truncated)
+// Pack: [salt(16) | iv(12) | ciphertext | tag(truncated bytes)]
+// Final output is Base168 tokens (no separators)
 
-const DOG_SPEAK = {
-  // Encrypt: plaintext + password -> dog speak cipher
-  async encrypt(text, password, options = {}) {
-    const useCompression = (options.useCompression !== undefined) ? options.useCompression : CONFIG.USE_COMPRESSION;
-    if (!text || !password) throw new Error("参数缺失");
+async function encrypt(text, password, options = {}) {
+  const useCompression = (options.useCompression !== undefined) ? options.useCompression : CONFIG.USE_COMPRESSION;
+  if (!text || !password) throw new Error("参数缺失");
 
-    // 1) compress plaintext if enabled
-    const encoder = new TextEncoder();
-    const rawBytes = encoder.encode(text);
-    const plainBytes = useCompression ? compressBytesLZ77(rawBytes) : rawBytes;
+  // 1) compress plaintext if enabled
+  const encoder = new TextEncoder();
+  const rawBytes = encoder.encode(text);
+  const plainBytes = useCompression ? compressBytesLZ77(rawBytes) : rawBytes;
 
-    // 2) generate salt/iv and derive keys
-    const salt = await randomBytes(16);
-    const iv = await randomBytes(12);
-    const keyMat = await deriveKeyMaterial(password, salt);
-    const aesKeyRaw = keyMat.slice(0, 32);
-    const hmacKeyRaw = keyMat.slice(32, 64);
+  // 2) generate salt/iv and derive keys
+  const salt = await randomBytes(16);
+  const iv = await randomBytes(12);
+  const keyMat = await deriveKeyMaterial(password, salt);
+  const aesKeyRaw = keyMat.slice(0, 32);
+  const hmacKeyRaw = keyMat.slice(32, 64);
 
-    const aesKey = await crypto.subtle.importKey("raw", aesKeyRaw, { name: "AES-CTR" }, false, ["encrypt"]);
-    const hmacKey = await crypto.subtle.importKey("raw", hmacKeyRaw, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const aesKey = await crypto.subtle.importKey("raw", aesKeyRaw, { name: "AES-CTR" }, false, ["encrypt"]);
+  const hmacKey = await crypto.subtle.importKey("raw", hmacKeyRaw, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
 
-    const counter = makeCtrFromIv(iv);
-    const cipherBuf = await crypto.subtle.encrypt({ name: "AES-CTR", counter, length: 64 }, aesKey, plainBytes);
-    const ciphertext = new Uint8Array(cipherBuf);
+  const counter = makeCtrFromIv(iv);
+  const cipherBuf = await crypto.subtle.encrypt({ name: "AES-CTR", counter, length: 64 }, aesKey, plainBytes);
+  const ciphertext = new Uint8Array(cipherBuf);
 
-    // 3) compute HMAC over salt || iv || ciphertext
-    const macInput = new Uint8Array(salt.length + iv.length + ciphertext.length);
-    macInput.set(salt, 0);
-    macInput.set(iv, salt.length);
-    macInput.set(ciphertext, salt.length + iv.length);
-    
-    const fullTagBuf = await crypto.subtle.sign("HMAC", hmacKey, macInput);
-    const fullTag = new Uint8Array(fullTagBuf);
-    const tag = fullTag.slice(0, CONFIG.HMAC_TRUNCATE_BYTES);
+  // 3) compute HMAC over salt || iv || ciphertext
+  const macInput = new Uint8Array(salt.length + iv.length + ciphertext.length);
+  macInput.set(salt, 0);
+  macInput.set(iv, salt.length);
+  macInput.set(ciphertext, salt.length + iv.length);
 
-    // 4) pack final bytes
-    const out = new Uint8Array(salt.length + iv.length + ciphertext.length + tag.length);
-    let p = 0;
-    out.set(salt, p); p += salt.length;
-    out.set(iv, p); p += iv.length;
-    out.set(ciphertext, p); p += ciphertext.length;
-    out.set(tag, p); p += tag.length;
+  const fullTagBuf = await crypto.subtle.sign("HMAC", hmacKey, macInput);
+  const fullTag = new Uint8Array(fullTagBuf);
+  const tag = fullTag.slice(0, CONFIG.HMAC_TRUNCATE_BYTES);
 
-    // 5) tokenization
-    return bytesToBaseTokens(out);
-  },
+  // 4) pack final bytes
+  const out = new Uint8Array(salt.length + iv.length + ciphertext.length + tag.length);
+  let p = 0;
+  out.set(salt, p); p += salt.length;
+  out.set(iv, p); p += iv.length;
+  out.set(ciphertext, p); p += ciphertext.length;
+  out.set(tag, p); p += tag.length;
 
-  // Decrypt: dog speak cipher + password -> plaintext
-  async decrypt(dogSpeakCipher, password, options = {}) {
-    const useCompression = (options.useCompression !== undefined) ? options.useCompression : CONFIG.USE_COMPRESSION;
-    if (!dogSpeakCipher || !password) throw new Error("参数缺失");
+  // 5) encode to tokens and return string
+  const tokenStr = bytesToBaseTokens(out);
+  return tokenStr;
+}
 
-    // 1) detokenization
-    let cipherBytes;
-    try {
-        cipherBytes = baseTokensToBytes(dogSpeakCipher);
-    } catch (e) {
-        throw new Error(`Token 化还原失败: ${e.message}`);
-    }
+async function decrypt(tokenStr, password, options = {}) {
+  const useCompression = (options.useCompression !== undefined) ? options.useCompression : CONFIG.USE_COMPRESSION;
+  if (!tokenStr || !password) throw new Error("参数缺失");
 
-    const totalLen = cipherBytes.length;
-    const saltLen = 16;
-    const ivLen = 12;
-    const tagLen = CONFIG.HMAC_TRUNCATE_BYTES;
-    const headerLen = saltLen + ivLen + tagLen;
+  // tokens -> bytes
+  const allBytes = baseTokensToBytes(tokenStr);
+  // minimum lengths: salt(16)+iv(12)+tag + maybe zero ciphertext
+  const minLen = 16 + 12 + CONFIG.HMAC_TRUNCATE_BYTES;
+  if (allBytes.length < minLen) throw new Error("密文格式错误（长度太短）");
 
-    if (totalLen <= headerLen) throw new Error("密文太短，数据结构不完整");
+  const salt = allBytes.slice(0, 16);
+  const iv = allBytes.slice(16, 28);
+  const tag = allBytes.slice(allBytes.length - CONFIG.HMAC_TRUNCATE_BYTES);
+  const ciphertext = allBytes.slice(28, allBytes.length - CONFIG.HMAC_TRUNCATE_BYTES);
 
-    // 2) unpack bytes
-    let p = 0;
-    const salt = cipherBytes.slice(p, p + saltLen); p += saltLen;
-    const iv = cipherBytes.slice(p, p + ivLen); p += ivLen;
-    const ciphertext = cipherBytes.slice(p, totalLen - tagLen); 
-    const tag = cipherBytes.slice(totalLen - tagLen);
+  const keyMat = await deriveKeyMaterial(password, salt);
+  const aesKeyRaw = keyMat.slice(0, 32);
+  const hmacKeyRaw = keyMat.slice(32, 64);
+  const aesKey = await crypto.subtle.importKey("raw", aesKeyRaw, { name: "AES-CTR" }, false, ["decrypt"]);
+  const hmacKey = await crypto.subtle.importKey("raw", hmacKeyRaw, { name: "HMAC", hash: "SHA-256" }, false, ["verify", "sign"]);
 
-    // 3) derive keys
-    const keyMat = await deriveKeyMaterial(password, salt);
-    const aesKeyRaw = keyMat.slice(0, 32);
-    const hmacKeyRaw = keyMat.slice(32, 64);
-    
-    const aesKey = await crypto.subtle.importKey("raw", aesKeyRaw, { name: "AES-CTR" }, false, ["decrypt"]);
-    const hmacKey = await crypto.subtle.importKey("raw", hmacKeyRaw, { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
+  // verify HMAC
+  const macInput = new Uint8Array(salt.length + iv.length + ciphertext.length);
+  macInput.set(salt, 0);
+  macInput.set(iv, salt.length);
+  macInput.set(ciphertext, salt.length + iv.length);
 
-    // 4) verify HMAC over salt || iv || ciphertext
-    const macInput = new Uint8Array(salt.length + iv.length + ciphertext.length);
-    macInput.set(salt, 0);
-    macInput.set(iv, salt.length);
-    macInput.set(ciphertext, salt.length + iv.length);
+  const expectedFull = new Uint8Array(await crypto.subtle.sign("HMAC", hmacKey, macInput));
+  const expectedTag = expectedFull.slice(0, CONFIG.HMAC_TRUNCATE_BYTES);
 
-    const isMatch = await crypto.subtle.verify("HMAC", hmacKey, tag, macInput);
-    if (!isMatch) throw new Error("解密失败（密码错误或数据被篡改）");
+  // constant-time compare
+  if (expectedTag.length !== tag.length) throw new Error("解密失败（MAC 长度不对）");
+  let mismatch = 0;
+  for (let i = 0; i < tag.length; i++) mismatch |= (expectedTag[i] ^ tag[i]);
+  if (mismatch !== 0) throw new Error("解密失败（密码错误或数据被篡改）");
 
-    // 5) decrypt
-    const counter = makeCtrFromIv(iv);
-    try {
-        const plainBuf = await crypto.subtle.decrypt({ name: "AES-CTR", counter, length: 64 }, aesKey, ciphertext);
-        const plainBytes = new Uint8Array(plainBuf);
-
-        // 6) decompress if compression enabled
-        const resultBytes = useCompression ? decompressBytesLZ77(plainBytes) : plainBytes;
-        return new TextDecoder().decode(resultBytes);
-
-    } catch (e) {
-        throw new Error("解密失败（解密过程异常或数据结构损坏）");
-    }
+  // decrypt
+  const counter = makeCtrFromIv(iv);
+  try {
+    const plainBuf = await crypto.subtle.decrypt({ name: "AES-CTR", counter, length: 64 }, aesKey, ciphertext);
+    const plainBytes = new Uint8Array(plainBuf);
+    // decompress if compression enabled
+    const resultBytes = useCompression ? decompressBytesLZ77(plainBytes) : plainBytes;
+    return new TextDecoder().decode(resultBytes);
+  } catch (e) {
+    throw new Error("解密失败（解密过程异常）");
   }
-};
-
-
-// ==========================
-// 日志和复制辅助函数 (新增)
-// ==========================
-// 用于在指定元素中显示带时间戳的日志信息
-function dogLog(elementId, message) {
-    const logElement = document.getElementById(elementId);
-    if (logElement) {
-        // 格式化时间 [HH:MM:SS]
-        const now = new Date();
-        const timeStr = `[${now.toLocaleTimeString('zh-CN', {hour12: false})}]`;
-        
-        const newLogEntry = `${timeStr} ${message}\n`;
-        // 假设 logElement 是 textarea，使用 value 并将新日志放在顶部
-        if (logElement.tagName === 'TEXTAREA') {
-             logElement.value = newLogEntry + logElement.value;
-        } else {
-             // 否则设置 textContent (兼容 div，但不推荐)
-             logElement.textContent = newLogEntry + logElement.textContent;
-        }
-        // 滚动到顶部以显示最新的日志
-        logElement.scrollTop = 0;
-    }
 }
 
-// 复制到剪贴板并记录日志的函数
-function copyToClipboardAndLog(textToCopy, logElementId) {
-    const successMessage = '密文已复制到剪贴板！';
-    const errorMessage = '复制到剪贴板失败。';
+// ---------------------------
+// DOM bindings (keeps original element ids)
+// - dogEncodeBtn, dogInputText, dogEncodeKey, dogOutputLog
+// - dogDecodeBtn, dogInputSpeak, dogDecodeKey, dogDecodeLog
+// 新增：
+// - dogCopyBtn, dogDownloadTxtBtn
+// - dogReadInput, dogReadDropzone (for reading txt)
+
+document.addEventListener("DOMContentLoaded", () => {
+  const dogEncodeBtn = document.getElementById("dogEncodeBtn");
+  const dogInputText = document.getElementById("dogInputText");
+  const dogEncodeKey = document.getElementById("dogEncodeKey");
+  const dogOutputLog = document.getElementById("dogOutputLog");
+  const dogCopyBtn = document.getElementById("dogCopyBtn");
+  const dogDownloadTxtBtn = document.getElementById("dogDownloadTxtBtn");
+
+  const dogDecodeBtn = document.getElementById("dogDecodeBtn");
+  const dogInputSpeak = document.getElementById("dogInputSpeak");
+  const dogDecodeKey = document.getElementById("dogDecodeKey");
+  const dogDecodeLog = document.getElementById("dogDecodeLog");
+  const dogReadInput = document.getElementById("dogReadInput");
+  const dogReadDropzone = document.getElementById("dogReadDropzone");
+
+  // ⭐ NEW: Log Elements ⭐
+  const dogEncLog = document.getElementById("dogEncLog");
+  const dogDecLog = document.getElementById("dogDecLog"); 
+  
+  // ⭐ NEW: Log Helper Function ⭐
+  /**
+   * @param {string} message - 日志消息.
+   * @param {boolean} isError - 是否为错误消息.
+   * @param {boolean} isDecode - 是否为解密面板日志 (true = dogDecLog, false = dogEncLog).
+   */
+  function dogLog(message, isError = false, isDecode = false) {
+      const logElement = isDecode ? dogDecLog : dogEncLog;
+      if (!logElement) return;
+      const date = new Date().toLocaleTimeString('zh-CN', { hour12: false });
+      // 使用 accent/error 颜色来保持与其它模块日志的风格一致性
+      // 假设 style.css 中已经定义了 --accent 和 --error 变量
+      const color = isError ? "var(--error, #f04747)" : "var(--accent, #60a5fa)"; 
+      
+      // Prepend new message and use <br> for newline
+      logElement.innerHTML = `<span style="color:${color};">[${date}] ${message}</span><br>` + logElement.innerHTML;
+  }
+
+  // ==========================
+  // 加密/转换 逻辑
+  // ==========================
+  if (dogEncodeBtn) dogEncodeBtn.onclick = async () => {
+    const text = dogInputText.value;
+    const key = dogEncodeKey.value.trim();
     
-    dogLog(logElementId, "正在尝试复制密文...");
-
-    // 使用现代 Clipboard API 
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            dogLog(logElementId, successMessage);
-        }).catch(err => {
-            console.error('Clipboard API 复制失败:', err);
-            dogLog(logElementId, `错误：${errorMessage} (${err.message})`);
-        });
-    } else {
-        // Fallback: 使用 document.execCommand
-        try {
-            const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = textToCopy;
-            // 避免用户看到
-            tempTextArea.style.position = 'fixed';
-            tempTextArea.style.top = '0';
-            tempTextArea.style.left = '-9999px';
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempTextArea);
-            dogLog(logElementId, `${successMessage} (Fallback)`);
-        } catch (err2) {
-            console.error('Fallback 复制失败:', err2);
-            dogLog(logElementId, `错误：${errorMessage} (浏览器不支持)`);
-        }
-    }
-}
-// ==========================
-
-// 文件读取函数 (修改：移除 alert，使用 dogLog)
-function readDogSpeakFile(file) {
-    if (file.type !== 'text/plain' && !file.name.toLowerCase().endsWith('.txt')) {
-        // alert("请上传 TXT 格式的文件。"); // <-- REMOVED
-        dogLog('dogDecodeLog', "错误：请上传 TXT 格式的文件。");
+    if (!key) {
+        dogLog("密钥必填，请填写。", true, false); 
         return;
     }
     
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        const content = e.target.result.trim();
-        const dogInputSpeak = document.getElementById('dogInputSpeak'); 
-        if (dogInputSpeak) {
-            dogInputSpeak.value = content; // 将读取的密文填充到输入框
-            // dogDecodeLog.textContent = "文件读取成功，密文已填充。"; // <-- REMOVED
-            dogLog('dogDecodeLog', "文件读取成功，密文已填充。");
-        }
-    };
-    reader.onerror = () => {
-        // dogDecodeLog.textContent = "读取文件失败。"; // <-- REMOVED
-        dogLog('dogDecodeLog', "错误：读取文件失败。");
-    };
-    reader.readAsText(file);
-}
+    if (!text) { 
+        dogLog("请输入要转换的文字。", true, false); 
+        return; 
+    }
+
+    dogLog("开始转换...", false, false);
+
+    try {
+      const out = await encrypt(text, key, { useCompression: CONFIG.USE_COMPRESSION });
+      if (dogOutputLog) dogOutputLog.textContent = out;
+      dogLog("加密完成，密文已生成！", false, false);
+    } catch (err) {
+      if (dogOutputLog) dogOutputLog.textContent = "转换失败。";
+      dogLog("加密失败：" + err.message, true, false);
+    }
+  };
+
+  // ==========================
+  // 新增：加密卡片 - 复制密文 (替换 alert)
+  // ==========================
+  if (dogCopyBtn) dogCopyBtn.onclick = async () => {
+    const speak = dogOutputLog.textContent.trim();
+    if (!speak || speak === "点击按钮开始转换...") {
+      dogLog("请先生成密文！", true, false); // 替换 alert
+      return;
+    }
+    try {
+      // Use navigator.clipboard
+      await navigator.clipboard.writeText(speak);
+      dogLog("密文已复制到剪贴板！", false, false); // 替换 alert
+    } catch (err) {
+      console.error("复制失败:", err);
+      // Fallback for older browsers (替换 alert)
+      const textarea = document.createElement('textarea');
+      textarea.value = speak;
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        dogLog("密文已复制到剪贴板！", false, false); // 替换 alert
+      } catch (err) {
+        dogLog("复制失败，请手动选择复制。", true, false); // 替换 alert
+      }
+      document.body.removeChild(textarea);
+    }
+  };
+
+  // ==========================
+  // 新增：加密卡片 - 下载为 TXT (替换 alert)
+  // ==========================
+  if (dogDownloadTxtBtn) dogDownloadTxtBtn.onclick = () => {
+    const speak = dogOutputLog.textContent.trim();
+    const key = dogEncodeKey.value.trim();
+    if (!speak || speak === "点击按钮开始转换...") {
+      dogLog("请先生成密文！", true, false); // 替换 alert
+      return;
+    }
+
+    // 文件名为 密钥：X，x为具体的密钥
+    const filename = `密钥：${key || '未填写'}.txt`;
+    dogLog(`开始下载文件: ${filename}`, false, false); // 增加日志
+    
+    const blob = new Blob([speak], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // ==========================
+  // 解密/还原 逻辑
+  // ==========================
+  if (dogDecodeBtn) dogDecodeBtn.onclick = async () => {
+    const speak = dogInputSpeak.value.trim();
+    const key = dogDecodeKey.value.trim();
+    
+    if (!speak) {
+      dogLog("请输入要还原的兽语。", true, true); // 替换原有提示
+      // 保持输出框状态
+      return;
+    }
+    if (!key)   { 
+      dogLog("密钥必填，请填写。", true, true); // 替换原有提示
+      return; 
+    }
+
+    dogLog("开始还原...", false, true);
+
+    try {
+      const out = await decrypt(speak, key, { useCompression: CONFIG.USE_COMPRESSION });
+      if (dogDecodeLog) dogDecodeLog.textContent = out;
+      dogLog("还原成功！", false, true); // 替换原有提示
+    } catch (err) {
+      if (dogDecodeLog) dogDecodeLog.textContent = "还原失败。";
+      dogLog("解密失败：" + err.message, true, true); // 替换原有错误提示
+    }
+  };
+  
+  // ==========================
+  // 新增：解密卡片 - 上传并读取 TXT 文件
+  // ==========================
+  if (dogReadInput) {
+      dogReadInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+              readDogSpeakFile(file);
+          }
+          // 清空 input，以便再次上传同一个文件触发 change 事件
+          e.target.value = '';
+      });
+  }
+  
+  if (dogReadDropzone) {
+      // 阻止默认行为，允许放置
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+          dogReadDropzone.addEventListener(eventName, (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              if (eventName === 'dragenter' || eventName === 'dragover') {
+                  // 假设存在 --accent 变量
+                  dogReadDropzone.style.border = '2px solid var(--accent, #60a5fa)'; 
+              } else if (eventName === 'dragleave' || eventName === 'drop') {
+                  // 假设存在 --border 变量
+                  dogReadDropzone.style.border = '1px dashed var(--border, #333333)'; 
+              }
+          }, false);
+      });
+      
+      // 放置文件
+      dogReadDropzone.addEventListener('drop', (e) => {
+          const file = e.dataTransfer.files[0];
+          if (file) {
+              readDogSpeakFile(file);
+          }
+      });
+      
+      // 点击打开文件选择器
+      dogReadDropzone.onclick = () => {
+          dogReadInput.click();
+      };
+      
+      // 初始样式设置（如果 dropzone 样式未在 CSS 中定义）
+      dogReadDropzone.style.border = '1px dashed var(--border, #333333)';
+      dogReadDropzone.style.cursor = 'pointer';
+  }
+  
+  function readDogSpeakFile(file) {
+      if (file.type !== 'text/plain' && !file.name.toLowerCase().endsWith('.txt')) {
+          dogLog("请上传 TXT 格式的文件。", true, true); // 替换 alert
+          return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          const content = e.target.result.trim();
+          if (dogInputSpeak) {
+              dogInputSpeak.value = content; // 将读取的密文填充到输入框
+              dogLog("文件读取成功，密文已填充。", false, true); // 替换 dogDecodeLog.textContent 提示
+          }
+      };
+      reader.onerror = () => {
+          dogLog("读取文件失败。", true, true); // 替换 dogDecodeLog.textContent 提示
+      };
+      reader.readAsText(file);
+  }
+  // ==========================
+  
+});
 
 // ---------------------------
-// DOM bindings 
-
-document.addEventListener("DOMContentLoaded", () => {
-    const dogEncodeBtn = document.getElementById("dogEncodeBtn");
-    const dogInputText = document.getElementById("dogInputText");
-    const dogEncodeKey = document.getElementById("dogEncodeKey");
-    const dogOutputSpeak = document.getElementById("dogOutputSpeak");
-    const dogCopyBtn = document.getElementById("dogCopyBtn");
-    const dogDownloadTxtBtn = document.getElementById("dogDownloadTxtBtn");
-    
-    const dogDecodeBtn = document.getElementById("dogDecodeBtn");
-    const dogInputSpeak = document.getElementById("dogInputSpeak");
-    const dogDecodeKey = document.getElementById("dogDecodeKey");
-    // const dogDecodeLog = document.getElementById("dogDecodeLog"); // This is now the log area
-    const dogDecodedText = document.getElementById("dogDecodedText"); // <-- NEW decoded output area
-
-    const dogReadInput = document.getElementById("dogReadInput");
-    const dogReadDropzone = document.getElementById("dogReadDropzone");
-
-    // ==========================
-    // 加密/转换 逻辑 (修改：使用 dogLog 替换所有状态更新)
-    // ==========================
-    if (dogEncodeBtn) dogEncodeBtn.onclick = async () => {
-        const text = dogInputText.value.trim();
-        const key = dogEncodeKey.value.trim();
-        if (!text) {
-            dogLog('dogOutputLog', "请输入要加密的普通文字。");
-            return;
-        }
-        if (!key) {
-            dogLog('dogOutputLog', "请输入加密密钥。");
-            return;
-        }
-
-        // 清空输出
-        dogOutputSpeak.value = ""; 
-        
-        try {
-            const start = performance.now();
-            dogLog('dogOutputLog', "加密开始...");
-
-            const result = await DOG_SPEAK.encrypt(text, key); 
-            
-            const end = performance.now();
-            const time = (end - start).toFixed(2);
-            
-            dogOutputSpeak.value = result; 
-            dogLog('dogOutputLog', `加密完成，密文长度 ${result.length}，耗时 ${time} ms。`);
-
-        } catch (e) {
-            console.error("加密失败:", e);
-            dogLog('dogOutputLog', `错误：加密失败 (${e.message || '未知错误'})`);
-        }
-    };
-
-    // ==========================
-    // 复制逻辑 (修改：使用 copyToClipboardAndLog 替换 alert)
-    // ==========================
-    if (dogCopyBtn && dogOutputSpeak) {
-        dogCopyBtn.onclick = () => {
-            const speak = dogOutputSpeak.value;
-            if (!speak || speak === "点击按钮开始转换...") {
-                // alert("请先生成密文！"); // <-- REMOVED
-                dogLog('dogOutputLog', "请先进行加密操作，密文为空。");
-                return;
-            }
-            // 使用新的日志复制函数
-            copyToClipboardAndLog(speak, 'dogOutputLog');
-        };
-    }
-
-    // ==========================
-    // 下载逻辑 (修改：使用 dogLog 替换 alert)
-    // ==========================
-    if (dogDownloadTxtBtn) dogDownloadTxtBtn.onclick = () => {
-        const speak = dogOutputSpeak.value.trim();
-        const key = dogEncodeKey.value.trim();
-        if (!speak || speak === "点击按钮开始转换...") {
-            // alert("请先生成密文！"); // <-- REMOVED
-            dogLog('dogOutputLog', "请先生成密文！");
-            return;
-        }
-        // 文件名为 密钥：X，x为具体的密钥
-        const filename = `密钥：${key || '未填写'}.txt`;
-        const blob = new Blob([speak], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        
-        dogLog('dogOutputLog', `密文已下载为 ${filename}`);
-    };
-
-    // ==========================
-    // 解密/还原 逻辑 (修改：使用 dogLog 替换状态更新，输出到新元素)
-    // ==========================
-    if (dogDecodeBtn) dogDecodeBtn.onclick = async () => {
-        const speak = dogInputSpeak.value.trim();
-        const key = dogDecodeKey.value.trim();
-
-        // 总是清空输出区
-        if (dogDecodedText) dogDecodedText.value = '';
-        
-        if (!speak) {
-            // if (dogDecodeLog) dogDecodeLog.textContent = "请输入要还原的兽语。"; // <-- REMOVED
-            dogLog('dogDecodeLog', "请输入要还原的兽语。");
-            return;
-        }
-        if (!key) {
-            // if (dogDecodeLog) dogDecodeLog.textContent = "请输入解密密钥。"; // <-- REMOVED
-            dogLog('dogDecodeLog', "请输入解密密钥。");
-            return;
-        }
-
-        try {
-            const start = performance.now();
-            dogLog('dogDecodeLog', "解密开始...");
-
-            const result = await DOG_SPEAK.decrypt(speak, key); 
-            
-            const end = performance.now();
-            const time = (end - start).toFixed(2);
-            
-            if (dogDecodedText) {
-                dogDecodedText.value = result; // <-- Output to NEW area
-            }
-            dogLog('dogDecodeLog', `解密成功，耗时 ${time} ms。`);
-            
-        } catch (e) {
-            console.error("解密失败:", e);
-            // if (dogDecodeLog) dogDecodeLog.textContent = `解密失败：${e.message || '未知错误'}`; // <-- REMOVED
-            dogLog('dogDecodeLog', `错误：解密失败 (${e.message || '未知错误'})`);
-        }
-    };
-    
-    // ==========================
-    // TXT 文件读取逻辑
-    // ==========================
-    if (dogReadInput && dogReadDropzone) {
-        dogReadInput.addEventListener('change', () => {
-            const file = dogReadInput.files[0];
-            if (file) {
-                readDogSpeakFile(file);
-            }
-        });
-        
-        // 拖拽事件监听 (确保样式变化)
-        dogReadDropzone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dogReadDropzone.style.border = '2px dashed var(--accent)'; // 突出显示
-        }, false);
-        
-        dogReadDropzone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dogReadDropzone.style.border = '1px dashed var(--border)'; // 恢复样式
-        }, false);
-        
-        // 放置文件
-        dogReadDropzone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dogReadDropzone.style.border = '1px dashed var(--border)'; // 恢复样式
-            const file = e.dataTransfer.files[0];
-            if (file) {
-                readDogSpeakFile(file);
-            }
-        });
-        
-        // 点击打开文件选择器
-        dogReadDropzone.onclick = () => {
-            dogReadInput.click();
-        };
-        
-        // 初始样式设置（如果 dropzone 样式未在 CSS 中定义）
-        dogReadDropzone.style.border = '1px dashed var(--border)';
-        dogReadDropzone.style.cursor = 'pointer';
-    }
-    
-});
+// Expose functions for external use (optional)
+window.DogSpeak = {
+  encrypt,
+  decrypt,
+  DOG_SPEAK_WORDS,
+  BASE,
+  CONFIG,
+  // utility for migrating or testing:
+  compressBytesLZ77,
+  decompressBytesLZ77
+};
