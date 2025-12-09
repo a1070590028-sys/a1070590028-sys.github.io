@@ -7,7 +7,6 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="css/style.css">
 
-    <!-- 额外小样式：确保输入框/压缩参数样式统一（不会限制数字，允许任意字符） -->
     <style>
         /* 通用参数行：标题 + 控件 对齐 */
         .compress-param {
@@ -153,17 +152,14 @@
     <h2 class="card-title">🛡️文件加密与伪装 <span class="toggle-icon">▾</span></h2>
     <div class="card-content">
             <p style="margin-top:8px">使用AES技术进行文件加密，支持自选加密图。</p>
-        <!-- 顶部切换按钮 -->
         <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn active" data-enc-tab="encrypt">加密文件</button>
             <button class="btn" data-enc-tab="decrypt">解密文件</button>
         </div>
 
-<!-- ===================== 加密面板（两列布局） ===================== -->
 <div id="encrypt-panel" style="display:block;margin-top:16px;">
     <div class="compress-grid">
 
-        <!-- 左侧：上传与日志 -->
         <div style="padding:12px">
             <div id="dropzoneEnc" class="dropzone" style="margin-bottom:15px;">
                 <div class="dropzone-title">上传文件（任意格式）</div>
@@ -175,17 +171,14 @@
             <div id="encLog"></div>
         </div>
 
-        <!-- 右侧：参数卡片 -->
         <div class="controls post-card" style="padding:14px">
             <h3 class="params-title">参数设置</h3>
 
-            <!-- 输出文件名 -->
             <div class="compress-param">
                 <label class="small">输出文件名（无需扩展名）</label>
                 <input id="encFilename" type="text" placeholder="例如：secret_file">
             </div>
 
-            <!-- 加密级别 -->
             <div class="compress-param">
                 <label class="small">加密级别</label>
                 <select id="encLevel">
@@ -194,17 +187,14 @@
                 </select>
             </div>
 
-            <!-- 密码 -->
             <div class="compress-param">
                 <label class="small">加密密码（Level 2 必填）</label>
                 <input id="encPasswordInput" type="password" placeholder="请输入密码">
             </div>
 
-            <!-- 载体选择（已优化为“上传本地图片”） -->
             <div class="compress-param">
                 <label class="small">选择图片载体</label>
 
-                <!-- 新版 UI：上传本地图片（拖拽或点击） -->
                 <div id="localCarrierDropzone" class="dropzone" style="margin-bottom:10px;">
                     <div class="dropzone-title">上传本地图片（拖拽或点击）</div>
                     <input type="file" id="localCarrierInput" accept="image/*" style="display:none">
@@ -227,92 +217,84 @@
 </div>
 
 
-        <!-- ===================== 解密面板（单列布局） ===================== -->
         <div id="decrypt-panel" style="display:none;margin-top:16px;">
 
-            <!-- 上传区 -->
             <div id="dropzoneDec" class="dropzone" style="margin-bottom:15px;">
                 <div class="dropzone-title">上传加密后的文件</div>
+                <div class="small" style="margin-top:6px">支持图片、PDF 等文件格式</div>
                 <input type="file" id="decInput" style="display:none">
             </div>
 
-            <!-- 文件信息 -->
-            <div id="decFileDetail" style="margin-bottom:15px;padding:10px 0;border-bottom:1px solid var(--border);display:none;">
-                <div class="small">文件名：<span id="decFileName">--</span></div>
-                <div class="small">大小：<span id="decFileSize">--</span></div>
-                <div class="small">加密级别：<span id="decLevelDisplay" style="color:var(--accent)">解析中...</span></div>
+            <div class="compress-grid">
+                <div style="padding:12px">
+                    <div class="small">处理日志：</div>
+                    <div id="decLog"></div>
+                    
+                    <div class="compress-param" style="margin-top:10px;">
+                        <label class="small">加密密码</label>
+                        <input id="decPasswordInput" type="password" placeholder="请输入解密密码">
+                    </div>
+
+                    <button class="btn" id="startDecrypt" style="width:100%;margin-top:10px;">开始解密</button>
+                </div>
+                <div class="controls post-card" style="padding:14px">
+                    <h3 class="params-title">预览</h3>
+                    <div id="carrierPreview">
+                        <p class="small" style="text-align:center;">请先上传文件...</p>
+                    </div>
+                </div>
             </div>
-
-            <!-- 解密密码 -->
-            <div class="compress-param">
-                <label class="small">解密密码（Level 2 必填）</label>
-                <input id="decPasswordInput" type="password" placeholder="请输入密码">
-            </div>
-
-            <!-- 按钮 -->
-            <button class="btn" id="startDecrypt" style="width:100%;margin-top:10px;">开始解密</button>
-
-            <!-- 日志 -->
-            <div class="small" style="margin-top:10px;">处理日志：</div>
-            <div id="decLog"></div>
         </div>
-
     </div>
 </div>
 
 <div class="post-card">
     <h2 class="card-title">🐾 兽语密文 <span class="toggle-icon">▾</span></h2>
     <div class="card-content">
-        <p style="margin-top:8px">将普通文字转换成“兽语密文”，并使用密钥进行加密/解密。</p>
-        
+        <p style="margin-top:8px">使用 Base168 编码技术将普通文字转换为「兽语」密文，并使用 WebCrypto 强加密保护。</p>
         <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
-            <button class="btn active" data-dog-tab="encode">转换为密文</button>
-            <button class="btn" data-dog-tab="decode">还原为文字</button>
+            <button class="btn active" data-dog-tab="encode">转换/加密</button>
+            <button class="btn" data-dog-tab="decode">解密/还原</button>
         </div>
 
-        <div id="dog-encode-panel" style="display:block;margin-top:16px;">
+        <div id="dog-encode-panel" style="display:grid;margin-top:16px;">
             <div class="compress-grid" style="grid-template-columns:1fr 340px; gap: 18px;">
-                
                 <div style="padding:12px">
                     <div class="compress-param" style="margin-top:0;">
                         <label class="small">输入普通文字：</label>
-                        <textarea id="dogInputText" placeholder="在这里输入你想要转换为兽语密文的文字..." rows="5" style="resize:vertical;"></textarea>
+                        <textarea id="dogInputText" placeholder="在这里输入你需要加密的普通文字..." rows="5" style="resize:vertical;"></textarea>
                     </div>
-
-                    <div class="compress-param">
+                    <div class="compress-param" style="margin-top: 10px;">
                         <label class="small">输出兽语密文：</label>
-                        <div id="dogOutputLog" class="log-box" style="min-height: 100px;">点击按钮开始转换...</div>
+                        <textarea id="dogOutputSpeak" placeholder="加密完成的兽语密文将显示在此..." rows="5" readonly></textarea>
                     </div>
-                    
+                    <div class="compress-param">
+                        <label class="small">处理日志：</label>
+                        <textarea id="dogOutputLog" readonly placeholder="加密处理日志将在此显示..." style="min-height: 100px;"></textarea>
+                    </div>
                     <div style="margin-top: 10px; display: flex; gap: 8px;">
                         <button class="btn" id="dogCopyBtn" style="flex: 1;">复制密文</button>
                         <button class="btn" id="dogDownloadTxtBtn" style="flex: 1;">下载为 TXT</button>
                     </div>
                 </div>
-
                 <div class="controls post-card" style="padding:14px;height:fit-content">
                     <h3 class="params-title">参数设置</h3>
-                    
                     <div class="compress-param">
                         <label class="small">密钥 (用于扰乱替换规则)</label>
                         <input id="dogEncodeKey" type="text" placeholder="不能留空">
                     </div>
-
                     <button class="btn" id="dogEncodeBtn" style="width:100%;margin-top:10px;">开始转换</button>
                 </div>
-
             </div>
         </div>
         
         <div id="dog-decode-panel" style="display:none;margin-top:16px;">
             <div class="compress-grid" style="grid-template-columns:1fr 340px; gap: 18px;">
-                
                 <div style="padding:12px">
                     <div class="compress-param" style="margin-top:0;">
                         <label class="small">输入兽语密文：</label>
                         <textarea id="dogInputSpeak" placeholder="在这里粘贴你需要还原的兽语密文..." rows="5" style="resize:vertical;"></textarea>
                     </div>
-                    
                     <div class="compress-param" style="margin-top: 10px;">
                         <label class="small">或从 TXT 文件读取密文：</label>
                         <div id="dogReadDropzone" class="dropzone" style="margin:0; padding:10px 12px;">
@@ -320,203 +302,190 @@
                             <input type="file" id="dogReadInput" accept=".txt" style="display:none">
                         </div>
                     </div>
-                    
                     <div class="compress-param">
                         <label class="small">还原的普通文字：</label>
-                        <div id="dogDecodeLog" class="log-box" style="min-height: 100px;">点击按钮开始还原...</div>
+                        <textarea id="dogDecodedText" readonly placeholder="还原的普通文字将在此显示..." rows="5" style="resize:vertical;"></textarea>
+                    </div>
+                    <div class="compress-param">
+                        <label class="small">处理日志：</label>
+                        <textarea id="dogDecodeLog" readonly placeholder="解密处理日志将在此显示..." style="min-height: 100px;"></textarea>
                     </div>
                 </div>
-
                 <div class="controls post-card" style="padding:14px;height:fit-content">
                     <h3 class="params-title">还原参数</h3>
-                    
                     <div class="compress-param">
                         <label class="small">密钥 (如果转换时使用了密钥，还原时必须使用)</label>
                         <input id="dogDecodeKey" type="text" placeholder="输入转换时使用的密钥">
                     </div>
-
                     <button class="btn" id="dogDecodeBtn" style="width:100%;margin-top:10px;">开始还原</button>
                 </div>
-
             </div>
         </div>
 
     </div>
-</div>    
+</div>
 
-    <div class="post-card">
-        <h2 class="card-title">🚡 图片PDF 互转 <span class="toggle-icon">▾</span></h2>
-        <div class="card-content">
-            <p style="margin-top:8px">纯前端实现：多图转 PDF、PDF 转图片，全部离线处理，支持拖拽与批量下载。</p>
-            <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
-                <button class="btn active" data-tab="img2pdf">图片 → PDF</button>
-                <button class="btn" data-tab="pdf2img">PDF → 图片</button>
-            </div>
-            <div id="img2pdf" class="compress-grid" style="margin-top:12px;gap:18px">
+<div class="post-card">
+    <h2 class="card-title">🚡 图片PDF 互转 <span class="toggle-icon">▾</span></h2>
+    <div class="card-content">
+        <p style="margin-top:8px">在线图片与 PDF 格式文件相互转换，全程本地化处理，保护隐私。</p>
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn active" data-tab="img2pdf">图片转 PDF</button>
+            <button class="btn" data-tab="pdf2img">PDF 转图片</button>
+        </div>
+
+        <div id="img2pdf" style="display:grid;margin-top:16px;">
+            <div class="compress-grid">
                 <div style="padding:12px">
                     <div id="dropzoneImg" class="dropzone">
-                        <div class="dropzone-title">上传本地图片(拖拽/点击)</div>
-                        <div class="small" style="margin-top:6px">支持 JPG / PNG / WebP / GIF（静帧）</div>
-                        <input type="file" id="imgInput" accept="image/*" multiple style="display:none">
+                        <div class="dropzone-title">上传图片(拖拽/点击)</div>
+                        <div class="small" style="margin-top:6px">支持 JPEG / PNG / WebP / AVIF 等图片格式</div>
+                        <input id="fileInputImg" type="file" accept="image/*" multiple style="display:none">
                     </div>
-                    <div class="thumbs" id="imgThumbs"></div>
-                    <div class="file-row" style="margin-top:12px">
-                        <div class="small">已选：<span id="imgCount">0</span> 张</div>
+                    <div class="thumbs" id="thumbsImg"></div>
+                    <div style="margin-top:12px" class="file-row">
+                        <div class="small">已选：<span id="countImg">0</span> 张</div>
                         <div>
-                            <button class="btn" id="clearImgList">清空列表</button>
-                            <button class="btn" id="generatePdf">生成 PDF</button>
-                        </div>
+                            <button class="btn" id="clearBtnImg">清空列表</button>
+                            <button class="btn" id="convertBtn">开始转换</button>
+                            </div>
                     </div>
-                    <div class="small" style="margin-top:8px">处理日志：<div id="imgLog"></div></div>
+                    <div style="margin-top:8px" class="small">
+                        处理日志：<div id="imgLog"></div>
+                    </div>
                 </div>
-                <div class="controls post-card" style="padding:14px;height:fit-content">
-                    <h3 class="params-title">参数设置</h3>
-                    <div class="compress-param"><label class="small">页面尺寸</label>
-                        <select id="pageSize">
-                            <option value="a4">A4（竖版）</option>
-                            <option value="a4l">A4（横版）</option>
-                            <option value="letter">Letter</option>
-                            <option value="custom">自定义尺寸</option>
+                <div class="controls post-card" style="padding:14px">
+                    <h3 class="params-title">PDF 参数设置</h3>
+                    
+                    <div class="compress-param">
+                        <label class="small">页面方向</label>
+                        <select id="pdfOrientation">
+                            <option value="portrait">纵向 (Portrait)</option>
+                            <option value="landscape">横向 (Landscape)</option>
                         </select>
                     </div>
-                    <div class="compress-param" id="customSizeRow" style="display:none">
-                        <input type="number" id="customW" placeholder="宽 px" value="1920" style="width:48%">
-                        <input type="number" id="customH" placeholder="高 px" value="1080" style="width:48%;margin-left:4%">
+                    
+                    <div class="compress-param">
+                        <label class="small">页面尺寸</label>
+                        <select id="pdfSize">
+                            <option value="A4">A4</option>
+                            <option value="Letter">Letter</option>
+                            <option value="Legal">Legal</option>
+                            <option value="Tabloid">Tabloid</option>
+                            <option value="Custom">自定义</option>
+                        </select>
                     </div>
-                    <div class="compress-param"><label class="small">边距（px）</label><input id="margin" type="number" value="20" min="0"></div>
+
+                    <div id="customSizeInputs" style="display:none;">
+                        <div class="compress-param">
+                            <label class="small">自定义宽度 (mm)</label>
+                            <input id="customWidth" type="number" value="210" min="50" step="1">
+                        </div>
+                        <div class="compress-param">
+                            <label class="small">自定义高度 (mm)</label>
+                            <input id="customHeight" type="number" value="297" min="50" step="1">
+                        </div>
+                    </div>
+
+                    <div class="compress-param"><label class="small"><input id="pdfAutoResize" type="checkbox" checked> 图片自动缩放以适应页面</label></div>
+                    <div class="compress-param"><label class="small"><input id="pdfMargin" type="number" value="10" min="0" step="1"> 页边距 (mm)</label></div>
+                    <div class="compress-param"><label class="small">输出文件名</label><input id="pdfFilename" type="text" placeholder="例如：my_album" value="my_album"></div>
                 </div>
             </div>
-            <div id="pdf2img" style="display:none;padding:12px">
-                <div id="dropzonePdf" class="dropzone">
-                    <div style="font-weight:600;">拖拽 PDF 文件到这里，或点击选择</div>
-                    <div class="small" style="margin-top:6px">一次只支持单个 PDF</div>
-                    <input type="file" id="pdfInput" accept=".pdf" style="display:none">
-                </div>
-                <div class="thumbs" id="pdfThumbs"></div>
-                <div class="file-row" style="margin-top:12px">
-                    <div class="small">共 <span id="pdfPageCount">0</span> 页</div>
-                    <div>
-                        <button class="btn" id="clearPdfList">清空页面</button>
-                        <button class="btn" id="extractImages">提取图片</button>
-                        <button class="btn" id="downloadAllImages">打包下载</button>
+        </div>
+
+        <div id="pdf2img" style="display:none;margin-top:16px;">
+            <div id="dropzonePdf" class="dropzone" style="margin-bottom:15px;">
+                <div class="dropzone-title">上传 PDF 文件（拖拽/点击）</div>
+                <div class="small" style="margin-top:6px">仅支持单个 PDF 文件</div>
+                <input type="file" id="fileInputPdf" accept="application/pdf" style="display:none">
+            </div>
+
+            <div class="compress-grid">
+                <div class="controls post-card" style="padding:14px">
+                    <h3 class="params-title">图片参数设置</h3>
+                    <div class="compress-param">
+                        <label class="small">输出格式</label>
+                        <select id="pdfOutFormat">
+                            <option value="png">PNG (.png)</option>
+                            <option value="jpeg">JPEG (.jpg)</option>
+                            <option value="webp">WebP (.webp)</option>
+                        </select>
                     </div>
+                    <div class="compress-param">
+                        <label class="small">DPI (分辨率) <span id="dpiVal" class="small" style="float:right">150</span></label>
+                        <input id="dpiRange" type="range" min="72" max="300" step="1" value="150">
+                    </div>
+                    <div class="compress-param">
+                        <label class="small">图片质量 (仅 JPEG/WebP 有效) <span id="pdfQualityVal" class="small" style="float:right">0.90</span></label>
+                        <input id="pdfQuality" type="range" min="0.1" max="1" step="0.05" value="0.90">
+                    </div>
+
+                    <button class="btn" id="convertPdfBtn" style="width:100%;margin-top:10px;">开始转换</button>
+                    <button class="btn" id="downloadAllPdfBtn" style="width:100%;margin-top:10px;display:none;">打包下载</button>
                 </div>
-                <div class="small" style="margin-top:8px">处理日志：<div id="pdfLog"></div></div>
+                <div style="padding:12px">
+                    <div class="small">PDF 文件信息：<span id="pdfInfo" style="color:var(--accent);font-weight:600;">--</span></div>
+                    <div class="small">处理日志：<div id="pdfLog"></div></div>
+                    <div class="thumbs" id="thumbsPdf"></div>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="post-card">
-        <h2 class="card-title">✨ 未来内容 <span class="toggle-icon">▾</span></h2>
-        <div class="card-content"><p>敬请期待！</p></div>
-    </div>
 </div>
 
-<footer>© 2025 <span>Frey</span> • Powered by GitHub Pages</footer>
+<footer>
+    © 2024 <span>Frey</span>. All rights reserved.
+    <div class="small" style="margin-top: 4px;">由 Vanta.js, Three.js 驱动背景。</div>
+</footer>
 
-<div id="bg-switcher-btn"><span id="bg-icon"></span></div>
-<div id="bg-switcher-panel">
-    <h3>动态背景模式</h3>
-    <div class="bg-options">
-        <button data-mode="night" class="bg-opt active">夜间 · NET网格</button>
-        <button data-mode="day"   class="bg-opt">日间 · BIRDS飞鸟</button>
-        </div>
-</div>
+<script src="js/vanta.waves.min.js"></script>
+<script src="js/vanta-init.js"></script>
+<script src="js/color-switch.js"></script>
+<script src="js/time.js"></script>
+<script src="js/image-compress.js"></script>
+<script src="js/file-encrypt.js"></script>
+<script src="js/pdf-image-convert.js"></script>
+<script src="js/guestbook.js"></script>
+<script src="js/dog-speak.js"></script> <script>
+document.addEventListener("DOMContentLoaded", () => {
+    // 卡片展开/折叠逻辑
+    document.querySelectorAll('.post-card h2.card-title').forEach(title => {
+        title.onclick = function() {
+            const content = this.nextElementSibling;
+            const icon = this.querySelector('.toggle-icon');
+            content.classList.toggle('collapsed');
+            icon.style.transform = content.classList.contains('collapsed') ? 'rotate(0deg)' : 'rotate(180deg)';
+        };
+    });
 
-<div id="net-monitor-btn"><div class="net-icon">🌐</div></div>
-<div id="net-monitor-panel">
-    <h3>网络状态监控</h3>
-    <div class="net-item">网络状态：<span id="nm-status">--</span></div>
-    <div class="net-item">请求耗时：<span id="nm-request">--</span></div>
-    <div class="net-item">下载速度：<span id="nm-speed">--</span></div>
-    <div class="net-item">网络延迟：<span id="nm-latency">--</span></div>
-</div>
+    // 图片转 PDF / PDF 转图片 tab 切换 (使用 data-tab)
+    document.querySelectorAll('.post-card:nth-child(4) [data-tab]').forEach(b => b.onclick = () => {
+        document.querySelectorAll('.post-card:nth-child(4) [data-tab]').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('#img2pdf, #pdf2img').forEach(x => x.style.display = 'none');
+        b.classList.add('active');
+        document.getElementById(b.dataset.tab).style.display = b.dataset.tab === 'img2pdf' ? 'grid' : 'block';
+    });
 
-<div id="music-player-btn"><div class="music-icon">🎵</div></div>
-<div id="music-player-panel">
-    <h3 class="panel-title">
-        音乐播放器
-        <span id="toggleList" style="position:absolute;right:0;top:0;cursor:pointer;font-size:18px;opacity:0.6;">♪</span>
-    </h3>
-    
-    <div id="songTitle" class="net-item" style="font-weight:600;cursor:pointer;margin-bottom:12px;" title="点击展开歌单">加载中...</div>
-    
-    <div class="player-row">
-        <span id="currentTime" class="player-side-item">0:00</span>
-        <input type="range" id="progress" value="0" max="100">
-        <span id="duration" class="player-side-item">--:--</span>
-    </div>
+    // 加密 / 解密 tab 切换（使用 data-enc-tab）
+    document.querySelectorAll('[data-enc-tab]').forEach(b => b.onclick = () => {
+        document.querySelectorAll('[data-enc-tab]').forEach(x => x.classList.remove('active'));
+        document.getElementById('encrypt-panel').style.display = 'none';
+        document.getElementById('decrypt-panel').style.display = 'none';
+        b.classList.add('active');
+        document.getElementById(b.dataset.encTab + '-panel').style.display = 'block';
+    });
 
-    <div class="controls-row">
-        <button id="prevBtn" title="上一首">⏮</button>
-        <button id="playBtn" title="播放/暂停">▶</button>
-        <button id="nextBtn" title="下一首">⏭</button>
-    </div>
-
-    <div class="player-row">
-        <span class="player-side-item icon">🔈</span>
-        <input type="range" id="volume" min="0" max="100" value="70">
-        <span class="player-side-item icon">🔊</span>
-    </div>
-
-    <div id="playlistContainer" style="display:none;max-height:180px;overflow-y:auto;margin-top:12px;border-top:1px solid rgba(255,255,255,0.1);padding-top:8px;width:100%;">
-        <div style="text-align:center;color:#60a5fa;font-size:12px;padding:4px 0;margin-bottom:8px;border-bottom:1px solid rgba(96,165,250,0.3);font-weight:600;">
-            以下所有音乐均由 Frey 使用 AI 生成
-        </div>
-        <div id="playlistItems" style="font-size:13px;"></div>
-        <div style="padding:8px 0;color:#64748b;font-size:12px;text-align:center;">可拖拽本地 mp3 到此处添加</div>
-    </div>
-</div>
-
-<!-- libs -->
-<script src="js/lib/three.min.js"></script>
-<script src="js/lib/vanta.net.min.js"></script>
-<script src="js/lib/vanta.birds.min.js"></script>
-<script src="js/lib/vanta.clouds.min.js"></script>
-<script src="js/lib/browser-image-compression.min.js"></script>
-<script src="js/lib/jszip.min.js"></script>
-<script src="js/lib/jspdf.umd.min.js"></script>
-<script src="js/lib/pdf.min.js"></script>
-
-<script>
-    window.VANTA = window.VANTA || {};
-    Object.assign(window.VANTA, window.VANTA || {});
+    // 新增：狗叫密语 Tab 切换（使用 data-dog-tab）
+    document.querySelectorAll('[data-dog-tab]').forEach(b => b.onclick = () => {
+        document.querySelectorAll('[data-dog-tab]').forEach(x => x.classList.remove('active'));
+        document.getElementById('dog-encode-panel').style.display = 'none';
+        document.getElementById('dog-decode-panel').style.display = 'none';
+        b.classList.add('active');
+        document.getElementById('dog-' + b.dataset.dogTab + '-panel').style.display = b.dataset.dogTab === 'encode' ? 'grid' : 'grid'; // 保持 grid 布局
+    });
+});
 </script>
 
-<!-- 你的主逻辑文件 -->
-<script type="module" src="js/main.js"></script>
-
-<script>
-/* 小脚本：Tab 切换（图片/PDF互转）与加密/解密 tab */
-document.querySelectorAll('.post-card:nth-child(4) [data-tab]').forEach(b => b.onclick = () => {
-    document.querySelectorAll('.post-card:nth-child(4) [data-tab]').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('#img2pdf, #pdf2img').forEach(x => x.style.display = 'none');
-    b.classList.add('active');
-    document.getElementById(b.dataset.tab).style.display = b.dataset.tab === 'img2pdf' ? 'grid' : 'block';
-});
-
-// 加密 / 解密 tab 切换（使用 data-enc-tab）
-document.querySelectorAll('[data-enc-tab]').forEach(b => b.onclick = () => {
-    document.querySelectorAll('[data-enc-tab]').forEach(x => x.classList.remove('active'));
-    document.getElementById('encrypt-panel').style.display = 'none';
-    document.getElementById('decrypt-panel').style.display = 'none';
-    b.classList.add('active');
-    document.getElementById(b.dataset.encTab + '-panel').style.display = 'block';
-});
-
-// 新增：狗叫密语 Tab 切换（使用 data-dog-tab）
-document.querySelectorAll('[data-dog-tab]').forEach(b => b.onclick = () => {
-    document.querySelectorAll('[data-dog-tab]').forEach(x => x.classList.remove('active'));
-    document.getElementById('dog-encode-panel').style.display = 'none';
-    document.getElementById('dog-decode-panel').style.display = 'none';
-    b.classList.add('active');
-    document.getElementById('dog-' + b.dataset.dogTab + '-panel').style.display = 'grid'; // 注意这里是 grid
-});
-    
-// 自定义尺寸显隐
-document.getElementById('pageSize').onchange = e => {
-    document.getElementById('customSizeRow').style.display = e.target.value === 'custom' ? 'block' : 'none';
-};
-</script>
 </body>
 </html>
