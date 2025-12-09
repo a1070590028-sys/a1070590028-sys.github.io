@@ -261,21 +261,28 @@
 </div>
 
 <div class="post-card">
-    <h2 class="card-title">🐶 兽语密文 <span class="toggle-icon">▾</span></h2>
+    <h2 class="card-title">🐾 兽语密文 <span class="toggle-icon">▾</span></h2>
     <div class="card-content">
+        <p style="margin-top:8px">将普通文字转换成“兽语密文”，并使用密钥进行加密/解密。</p>
+        
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn active" data-dog-tab="encode">转换为密文</button>
+            <button class="btn" data-dog-tab="decode">还原为文字</button>
+        </div>
+
         <div id="dog-encode-panel" style="display:block;margin-top:16px;">
             <div class="compress-grid" style="grid-template-columns:1fr 340px; gap: 18px;">
+                
                 <div style="padding:12px">
                     <div class="compress-param" style="margin-top:0;">
                         <label class="small">输入普通文字：</label>
-                        <textarea id="dogInputText" placeholder="在这里输入你需要转换的文字..." rows="5" style="resize:vertical;"></textarea>
+                        <textarea id="dogInputText" placeholder="在这里输入你想要转换为兽语密文的文字..." rows="5" style="resize:vertical;"></textarea>
                     </div>
-                    
+
                     <div class="compress-param">
-                        <label class="small">生成的兽语密文：</label>
-                        <div id="dogOutputLog" class="log-box" style="min-height: 100px;">点击按钮开始转换...</div>
+                        <label class="small">生成的兽语密文：</label> <div id="dogOutputLog" class="log-box" style="min-height: 100px;">点击按钮开始转换...</div>
                     </div>
-                    
+
                     <div style="margin-top:8px" class="small">
                         处理日志：<div id="dogEncLog"></div>
                     </div>
@@ -285,11 +292,24 @@
                         <button class="btn" id="dogDownloadTxtBtn" style="flex: 1;">下载为 TXT</button>
                     </div>
                 </div>
-                </div>
-        </div>
 
+                <div class="controls post-card" style="padding:14px;height:fit-content">
+                    <h3 class="params-title">参数设置</h3>
+                    
+                    <div class="compress-param">
+                        <label class="small">密钥 (用于扰乱替换规则)</label>
+                        <input id="dogEncodeKey" type="text" placeholder="不能留空">
+                    </div>
+
+                    <button class="btn" id="dogEncodeBtn" style="width:100%;margin-top:10px;">开始转换</button>
+                </div>
+
+            </div>
+        </div>
+        
         <div id="dog-decode-panel" style="display:none;margin-top:16px;">
             <div class="compress-grid" style="grid-template-columns:1fr 340px; gap: 18px;">
+                
                 <div style="padding:12px">
                     <div class="compress-param" style="margin-top:0;">
                         <label class="small">输入兽语密文：</label>
@@ -308,16 +328,29 @@
                         <label class="small">还原的普通文字：</label>
                         <div id="dogDecodeLog" class="log-box" style="min-height: 100px;">点击按钮开始还原...</div>
                     </div>
-                    
+
                     <div style="margin-top:8px" class="small">
                         处理日志：<div id="dogDecLog"></div>
                     </div>
                 </div>
+
+                <div class="controls post-card" style="padding:14px;height:fit-content">
+                    <h3 class="params-title">还原参数</h3>
+                    
+                    <div class="compress-param">
+                        <label class="small">密钥 (如果转换时使用了密钥，还原时必须使用)</label>
+                        <input id="dogDecodeKey" type="text" placeholder="输入转换时使用的密钥">
+                    </div>
+
+                    <button class="btn" id="dogDecodeBtn" style="width:100%;margin-top:10px;">开始还原</button>
                 </div>
+
+            </div>
         </div>
+
     </div>
 </div>
-
+    
     <div class="post-card">
         <h2 class="card-title">🚡 图片PDF 互转 <span class="toggle-icon">▾</span></h2>
         <div class="card-content">
