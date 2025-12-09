@@ -1,8 +1,16 @@
 // js/modules/dog-speak.js
-// AES-CTR + HMAC-SHA256 (16-byte truncated tag) implementation
+// AES-CTR + HMAC-SHA256 (truncated tag 12 bytes) + LZ77-light compression (on plaintext)
 // Base168 tokenization (emoji + real animal onomatopoeia), 3-byte packing -> 4 tokens
-// Inserts paragraph tags like <🐱> when animal prefix changes (visual only).
 // No external libraries. Uses WebCrypto (browser).
+
+// ---------------------------
+// CONFIG
+const CONFIG = {
+  KDF_ITERATIONS: 200000,
+  DERIVE_BITS: 512,
+  HMAC_TRUNCATE_BYTES: 12, // structure compression: shorter tag (12 bytes). Change to 16 if you prefer.
+  USE_COMPRESSION: true     // true = compress plaintext before encrypting; false = skip compression
+};
 
 // ---------------------------
 // DOG_SPEAK_WORDS (Base = 168)
@@ -47,16 +55,11 @@ const BASE = DOG_SPEAK_WORDS.length; // 168
 // Helpers: build token index map and sorted token list for greedy matching
 const TOKEN_TO_INDEX = new Map();
 for (let i = 0; i < DOG_SPEAK_WORDS.length; i++) TOKEN_TO_INDEX.set(DOG_SPEAK_WORDS[i], i);
-
 // For decoding without separators, we use greedy longest-match
 const TOKENS_BY_LENGTH = [...DOG_SPEAK_WORDS].sort((a,b) => b.length - a.length);
 
-// ---------------------------
 // Utility: get first emoji/codepoint of token (animal prefix)
-// Use Array.from to handle surrogate pairs properly
-function firstCodepoint(str) {
-  return Array.from(str)[0] || "";
-}
+function firstCodepoint(str) { return Array.from(str)[0] || ""; }
 
 // ---------------------------
 // WebCrypto helpers
@@ -66,29 +69,13 @@ async function randomBytes(n) {
   return out;
 }
 
-async function deriveKeyMaterial(password, salt, bits = 512, iterations = 200000) {
+async function deriveKeyMaterial(password, salt, bits = CONFIG.DERIVE_BITS, iterations = CONFIG.KDF_ITERATIONS) {
   const enc = new TextEncoder();
-  const baseKey = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(password),
-    "PBKDF2",
-    false,
-    ["deriveBits"]
-  );
-  const derived = await crypto.subtle.deriveBits(
-    {
-      name: "PBKDF2",
-      salt,
-      iterations,
-      hash: "SHA-256"
-    },
-    baseKey,
-    bits
-  );
+  const baseKey = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
+  const derived = await crypto.subtle.deriveBits({ name: "PBKDF2", salt, iterations, hash: "SHA-256" }, baseKey, bits);
   return new Uint8Array(derived);
 }
 
-// AES-CTR requires a 16-byte counter; we'll use iv(12) + 4 zero bytes
 function makeCtrFromIv(iv12) {
   const ctr = new Uint8Array(16);
   ctr.set(iv12, 0);
@@ -96,18 +83,95 @@ function makeCtrFromIv(iv12) {
 }
 
 // ---------------------------
-// Packing: bytes <-> Base168 tokens
-// Strategy:
-//  - Prepend uint16 BE of original byte length (2 bytes) to the raw bytes.
-//  - Process in 3-byte chunks (24 bits). Each 3-byte chunk is converted to exactly 4 Base168 digits
-//    (since 168^4 > 2^24 and 168^3 < 2^24). We pad the chunk to 3 bytes with zeros if needed.
-//  - No separators between tokens, but we insert paragraph tags like <🐱> when animal prefix changes.
-//  - Decoder first strips all <...> tags, then performs greedy token parsing.
+// Lightweight LZ77-style compressor (bytes -> bytes)
+// Simple, deterministic, fast in JS, suitable for textual repetition.
+// Format (encoded stream of tokens):
+// [header: 2 bytes version][...tokens...]
+// token:
+//  - literal: 0x00 + byte
+//  - match:   0x01 + offsetHigh(1) + offsetLow(1) + length(1)   (offset 16-bit, length 1..255)
+// window size = 4096, minMatchLen = 3
+// Note: This is not optimal LZ77; it's a small working compressor that handles repetitions.
 
+const LZ = {
+  WINDOW: 4096,
+  MIN_MATCH: 3,
+  VERSION: 1
+};
+
+function compressBytesLZ77(input) {
+  if (!input || input.length === 0) return new Uint8Array([LZ.VERSION, 0, 0]); // header only
+  const out = [];
+  // header: version (1 byte) + reserved (2 bytes)
+  out.push(LZ.VERSION, 0, 0);
+
+  let pos = 0;
+  const n = input.length;
+  while (pos < n) {
+    const endWindow = Math.max(0, pos - LZ.WINDOW);
+    let bestLen = 0;
+    let bestOffset = 0;
+    // naive search for longest match (simple, O(n * window))
+    // To keep JS performance acceptable, limit search: only search last 1024 bytes
+    const searchStart = Math.max(endWindow, pos - 1024);
+    for (let j = searchStart; j < pos; j++) {
+      let k = 0;
+      while (k < 255 && pos + k < n && input[j + k] === input[pos + k]) k++;
+      if (k > bestLen && k >= LZ.MIN_MATCH) {
+        bestLen = k;
+        bestOffset = pos - j;
+        if (bestLen >= 255) break;
+      }
+    }
+    if (bestLen >= LZ.MIN_MATCH) {
+      // emit match token
+      out.push(0x01);
+      const off = bestOffset;
+      out.push((off >> 8) & 0xFF, off & 0xFF);
+      out.push(bestLen & 0xFF);
+      pos += bestLen;
+    } else {
+      // emit literal
+      out.push(0x00, input[pos]);
+      pos++;
+    }
+  }
+
+  return new Uint8Array(out);
+}
+
+function decompressBytesLZ77(buf) {
+  if (!buf || buf.length < 3) return new Uint8Array(0);
+  const ver = buf[0];
+  if (ver !== LZ.VERSION) throw new Error("Unsupported LZ version");
+  // reserved bytes ignored
+  let pos = 3;
+  const out = [];
+  while (pos < buf.length) {
+    const t = buf[pos++];
+    if (t === 0x00) {
+      const b = buf[pos++];
+      out.push(b);
+    } else if (t === 0x01) {
+      const hi = buf[pos++], lo = buf[pos++];
+      const off = (hi << 8) | lo;
+      const len = buf[pos++];
+      const start = out.length - off;
+      if (start < 0) throw new Error("LZ decompress error: invalid offset");
+      for (let i = 0; i < len; i++) out.push(out[start + i]);
+    } else {
+      throw new Error("LZ decompress error: unknown token");
+    }
+  }
+  return new Uint8Array(out);
+}
+
+// ---------------------------
+// Packing: bytes <-> Base168 tokens (3-byte -> 4 tokens)
+// Prepend uint16 BE of original byte length (2 bytes)
 const TOKENS_PER_CHUNK = 4;
 
 function bytesToBaseTokens(bytes) {
-  // prepend length (uint16 BE)
   const len = bytes.length;
   if (len > 0xFFFF) throw new Error("data too long to encode (max 65535 bytes)");
   const outBytes = new Uint8Array(2 + bytes.length);
@@ -133,33 +197,18 @@ function bytesToBaseTokens(bytes) {
       tokens.push(DOG_SPEAK_WORDS[digits[d]]);
     }
   }
-
-  // Insert paragraph tags <emoji> whenever animal prefix changes
-  let outStr = "";
-  let lastPrefix = null;
-  for (const t of tokens) {
-    const prefix = firstCodepoint(t);
-    if (lastPrefix === null || prefix !== lastPrefix) {
-      // insert tag like <🐱> before this token
-      outStr += `<${prefix}>`;
-      lastPrefix = prefix;
-    }
-    outStr += t;
-  }
-  return outStr;
+  // join into single string without separators
+  return tokens.join("");
 }
 
-function baseTokensToBytes(strWithTags) {
-  // Remove all paragraph tags like <...>
-  const cleaned = strWithTags.replace(/<[^>]+>/g, "");
-
+function baseTokensToBytes(str) {
   // parse tokens greedily (longest-match)
   const indices = [];
   let pos = 0;
-  while (pos < cleaned.length) {
+  while (pos < str.length) {
     let matched = false;
     for (const token of TOKENS_BY_LENGTH) {
-      if (cleaned.startsWith(token, pos)) {
+      if (str.startsWith(token, pos)) {
         indices.push(TOKEN_TO_INDEX.get(token));
         pos += token.length;
         matched = true;
@@ -187,25 +236,29 @@ function baseTokensToBytes(strWithTags) {
     bytesArr.push(b0, b1, b2);
   }
   const all = new Uint8Array(bytesArr);
-  // first two bytes are length
   const realLen = (all[0] << 8) | all[1];
   const payload = all.slice(2, 2 + realLen);
   return payload;
 }
 
 // ---------------------------
-// Encrypt / Decrypt using AES-CTR + HMAC-SHA256 (truncated tag)
-// Pack: [salt(16) | iv(12) | ciphertext | tag(16)]
-// Final output is Base168 tokens with paragraph tags inserted.
+// Encrypt / Decrypt using AES-CTR + HMAC-SHA256 (truncated)
+// Pack: [salt(16) | iv(12) | ciphertext | tag(truncated bytes)]
+// Final output is Base168 tokens (no separators)
 
-async function encrypt(text, password) {
+async function encrypt(text, password, options = {}) {
+  const useCompression = (options.useCompression !== undefined) ? options.useCompression : CONFIG.USE_COMPRESSION;
   if (!text || !password) throw new Error("参数缺失");
-  const encoder = new TextEncoder();
-  const data = encoder.encode(text);
 
+  // 1) compress plaintext if enabled
+  const encoder = new TextEncoder();
+  const rawBytes = encoder.encode(text);
+  const plainBytes = useCompression ? compressBytesLZ77(rawBytes) : rawBytes;
+
+  // 2) generate salt/iv and derive keys
   const salt = await randomBytes(16);
-  const iv = await randomBytes(12); // 12 bytes
-  const keyMat = await deriveKeyMaterial(password, salt, 512, 200000); // 64 bytes
+  const iv = await randomBytes(12);
+  const keyMat = await deriveKeyMaterial(password, salt);
   const aesKeyRaw = keyMat.slice(0, 32);
   const hmacKeyRaw = keyMat.slice(32, 64);
 
@@ -213,10 +266,10 @@ async function encrypt(text, password) {
   const hmacKey = await crypto.subtle.importKey("raw", hmacKeyRaw, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
 
   const counter = makeCtrFromIv(iv);
-  const cipherBuf = await crypto.subtle.encrypt({ name: "AES-CTR", counter, length: 64 }, aesKey, data);
+  const cipherBuf = await crypto.subtle.encrypt({ name: "AES-CTR", counter, length: 64 }, aesKey, plainBytes);
   const ciphertext = new Uint8Array(cipherBuf);
 
-  // compute HMAC over salt || iv || ciphertext
+  // 3) compute HMAC over salt || iv || ciphertext
   const macInput = new Uint8Array(salt.length + iv.length + ciphertext.length);
   macInput.set(salt, 0);
   macInput.set(iv, salt.length);
@@ -224,9 +277,9 @@ async function encrypt(text, password) {
 
   const fullTagBuf = await crypto.subtle.sign("HMAC", hmacKey, macInput);
   const fullTag = new Uint8Array(fullTagBuf);
-  const tag = fullTag.slice(0, 16); // truncate to 16 bytes
+  const tag = fullTag.slice(0, CONFIG.HMAC_TRUNCATE_BYTES);
 
-  // pack final bytes
+  // 4) pack final bytes
   const out = new Uint8Array(salt.length + iv.length + ciphertext.length + tag.length);
   let p = 0;
   out.set(salt, p); p += salt.length;
@@ -234,24 +287,27 @@ async function encrypt(text, password) {
   out.set(ciphertext, p); p += ciphertext.length;
   out.set(tag, p); p += tag.length;
 
-  // encode to tokens and insert paragraph tags
-  const tokenStrWithTags = bytesToBaseTokens(out);
-  return tokenStrWithTags;
+  // 5) encode to tokens and return string
+  const tokenStr = bytesToBaseTokens(out);
+  return tokenStr;
 }
 
-async function decrypt(tokenStrWithTags, password) {
-  if (!tokenStrWithTags || !password) throw new Error("参数缺失");
-  // remove tags and parse tokens -> bytes
-  const allBytes = baseTokensToBytes(tokenStrWithTags);
-  if (allBytes.length < 16 + 12 + 16) throw new Error("密文格式错误（长度太短）");
+async function decrypt(tokenStr, password, options = {}) {
+  const useCompression = (options.useCompression !== undefined) ? options.useCompression : CONFIG.USE_COMPRESSION;
+  if (!tokenStr || !password) throw new Error("参数缺失");
 
-  // extract parts
+  // tokens -> bytes
+  const allBytes = baseTokensToBytes(tokenStr);
+  // minimum lengths: salt(16)+iv(12)+tag + maybe zero ciphertext
+  const minLen = 16 + 12 + CONFIG.HMAC_TRUNCATE_BYTES;
+  if (allBytes.length < minLen) throw new Error("密文格式错误（长度太短）");
+
   const salt = allBytes.slice(0, 16);
   const iv = allBytes.slice(16, 28);
-  const tag = allBytes.slice(allBytes.length - 16);
-  const ciphertext = allBytes.slice(28, allBytes.length - 16);
+  const tag = allBytes.slice(allBytes.length - CONFIG.HMAC_TRUNCATE_BYTES);
+  const ciphertext = allBytes.slice(28, allBytes.length - CONFIG.HMAC_TRUNCATE_BYTES);
 
-  const keyMat = await deriveKeyMaterial(password, salt, 512, 200000);
+  const keyMat = await deriveKeyMaterial(password, salt);
   const aesKeyRaw = keyMat.slice(0, 32);
   const hmacKeyRaw = keyMat.slice(32, 64);
   const aesKey = await crypto.subtle.importKey("raw", aesKeyRaw, { name: "AES-CTR" }, false, ["decrypt"]);
@@ -264,10 +320,10 @@ async function decrypt(tokenStrWithTags, password) {
   macInput.set(ciphertext, salt.length + iv.length);
 
   const expectedFull = new Uint8Array(await crypto.subtle.sign("HMAC", hmacKey, macInput));
-  const expectedTag = expectedFull.slice(0, 16);
+  const expectedTag = expectedFull.slice(0, CONFIG.HMAC_TRUNCATE_BYTES);
 
   // constant-time compare
-  if (expectedTag.length !== tag.length) throw new Error("解密失败（MAC 不匹配）");
+  if (expectedTag.length !== tag.length) throw new Error("解密失败（MAC 长度不对）");
   let mismatch = 0;
   for (let i = 0; i < tag.length; i++) mismatch |= (expectedTag[i] ^ tag[i]);
   if (mismatch !== 0) throw new Error("解密失败（密码错误或数据被篡改）");
@@ -276,7 +332,10 @@ async function decrypt(tokenStrWithTags, password) {
   const counter = makeCtrFromIv(iv);
   try {
     const plainBuf = await crypto.subtle.decrypt({ name: "AES-CTR", counter, length: 64 }, aesKey, ciphertext);
-    return new TextDecoder().decode(plainBuf);
+    const plainBytes = new Uint8Array(plainBuf);
+    // decompress if compression enabled
+    const resultBytes = useCompression ? decompressBytesLZ77(plainBytes) : plainBytes;
+    return new TextDecoder().decode(resultBytes);
   } catch (e) {
     throw new Error("解密失败（解密过程异常）");
   }
@@ -305,7 +364,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!key)  { if (dogOutputLog) dogOutputLog.textContent = "密钥必填，请填写。"; return; }
 
     try {
-      const out = await encrypt(text, key);
+      const out = await encrypt(text, key, { useCompression: CONFIG.USE_COMPRESSION });
       if (dogOutputLog) dogOutputLog.textContent = out;
     } catch (err) {
       if (dogOutputLog) dogOutputLog.textContent = "加密失败：" + err.message;
@@ -319,7 +378,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!key)   { if (dogDecodeLog) dogDecodeLog.textContent = "密钥必填，请填写。"; return; }
 
     try {
-      const out = await decrypt(speak, key);
+      const out = await decrypt(speak, key, { useCompression: CONFIG.USE_COMPRESSION });
       if (dogDecodeLog) dogDecodeLog.textContent = out;
     } catch (err) {
       if (dogDecodeLog) dogDecodeLog.textContent = "解密失败：" + err.message;
@@ -333,5 +392,9 @@ window.DogSpeak = {
   encrypt,
   decrypt,
   DOG_SPEAK_WORDS,
-  BASE
+  BASE,
+  CONFIG,
+  // utility for migrating or testing:
+  compressBytesLZ77,
+  decompressBytesLZ77
 };
