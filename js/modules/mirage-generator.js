@@ -1,4 +1,4 @@
-// js/modules/mirage-generator.js (优化版)
+// js/modules/mirage-generator.js (最终优化版)
 
 /**
  * 视觉幻影（Mirage）增强生成器核心逻辑。
@@ -15,32 +15,50 @@ export function initMirageGenerator() {
     const WHITE_DROPZONE = document.getElementById('whiteFileDropzone');
     const BLACK_DROPZONE = document.getElementById('blackFileDropzone');
     
-    // ⭐ NEW: 结果预览和下载元素
-    const RESULT_SECTION = document.getElementById('mirage-result-section');
+    // ⭐ NEW: 按钮和预览区域
+    const PREVIEW_SECTION = document.getElementById('mirage-result-preview');
     const PREVIEW_CANVAS = document.getElementById('miragePreviewCanvas');
+    const GENERATE_BUTTON = document.getElementById('generateMirageBtn'); // NEW ID
     const DOWNLOAD_BUTTON = document.getElementById('downloadMirageBtn');
 
-    // 检查元素是否存在，防止在其他页面报错
-    if (!MSG_ELEMENT || !CANVAS_ELEMENT || !WHITE_FILE_INPUT || !BLACK_FILE_INPUT || !PREVIEW_CANVAS || !DOWNLOAD_BUTTON) return; 
+    // 检查元素是否存在
+    if (!MSG_ELEMENT || !CANVAS_ELEMENT || !WHITE_FILE_INPUT || !BLACK_FILE_INPUT || !PREVIEW_CANVAS || !DOWNLOAD_BUTTON || !GENERATE_BUTTON) return; 
 
     const CTX = CANVAS_ELEMENT.getContext('2d', { willReadFrequently: true });
-    // ⭐ NEW: 结果预览的上下文
     const PREVIEW_CTX = PREVIEW_CANVAS.getContext('2d');
     
-    // 全局变量用于存储生成的 PNG DataURL
     let generatedDataURL = null; 
     
     /**
-     * 消息提示
+     * 消息提示 (调整：不再隐藏/显示 MSG_ELEMENT，它默认显示)
      * @param {string} msg 
      * @param {boolean} isError 
      */
     function showMessage(msg, isError = false) {
-        MSG_ELEMENT.textContent = msg;
+        // 确保日志框内有内容，至少有一个空格占位
+        MSG_ELEMENT.innerHTML = msg || '&nbsp;'; 
         MSG_ELEMENT.style.color = isError ? '#dc3545' : '#28a745';
-        MSG_ELEMENT.style.display = 'block';
     }
     
+    /**
+     * 启用/禁用下载按钮
+     * @param {boolean} enable 
+     */
+    function setDownloadButtonState(enable) {
+        if (enable) {
+            DOWNLOAD_BUTTON.disabled = false;
+            DOWNLOAD_BUTTON.classList.remove('btn-disabled');
+            DOWNLOAD_BUTTON.classList.add('btn');
+        } else {
+            DOWNLOAD_BUTTON.disabled = true;
+            DOWNLOAD_BUTTON.classList.add('btn-disabled');
+            DOWNLOAD_BUTTON.classList.remove('btn');
+        }
+    }
+
+    // ... (loadImage, imageToFloat32Array 函数保持不变)
+    
+    // (这里插入 loadImage 和 imageToFloat32Array 函数的完整代码)
     /**
      * 加载并返回 Image 对象
      * @param {File} file 
@@ -92,6 +110,7 @@ export function initMirageGenerator() {
         }
         return floatArray;
     }
+    // ... (loadImage, imageToFloat32Array 函数结束)
 
 
     /**
@@ -99,8 +118,10 @@ export function initMirageGenerator() {
      */
     async function makeMirageEnhanced() {
         showMessage("正在加载图片...");
-        // 隐藏旧的预览/下载区域，清空旧数据
-        RESULT_SECTION.style.display = 'none'; 
+        
+        // 禁用下载按钮和隐藏预览区域
+        setDownloadButtonState(false);
+        PREVIEW_SECTION.style.display = 'none'; 
         generatedDataURL = null; 
         
         const whiteFile = WHITE_FILE_INPUT.files[0];
@@ -122,7 +143,6 @@ export function initMirageGenerator() {
                 showMessage("警告：两张图片尺寸不一致，将以 '白底图' 的尺寸为准进行缩放。", true);
             }
             
-            // 确保临时画布尺寸正确
             CANVAS_ELEMENT.width = width;
             CANVAS_ELEMENT.height = height;
             
@@ -130,13 +150,13 @@ export function initMirageGenerator() {
             
             showMessage(`图片加载成功。正在处理 ${width}x${height} 像素...`);
 
-            // 使用临时画布处理图片
             const wArr = imageToFloat32Array(imgW, width, height);
             const bArr = imageToFloat32Array(imgB, width, height);
 
             const resultImageData = CTX.createImageData(width, height);
             const resultData = resultImageData.data;
 
+            // 核心像素处理逻辑
             for (let i = 0; i < size; i++) {
                 const idx3 = i * 3;
                 const idx4 = i * 4;
@@ -185,13 +205,13 @@ export function initMirageGenerator() {
         } catch (e) {
             console.error(e);
             showMessage("❌ 处理失败: " + e.message, true);
+            // 失败时也禁用下载按钮
+            setDownloadButtonState(false);
         }
     }
     
     /**
      * 处理生成结果：预览和存储下载链接
-     * @param {number} width 
-     * @param {number} height 
      */
     function handleMirageResult(width, height) {
         // 1. 生成 DataURL
@@ -204,8 +224,9 @@ export function initMirageGenerator() {
             PREVIEW_CANVAS.height = height;
             PREVIEW_CTX.drawImage(CANVAS_ELEMENT, 0, 0, width, height, 0, 0, width, height);
             
-            // 3. 显示结果区域
-            RESULT_SECTION.style.display = 'block';
+            // 3. 显示结果区域，启用下载按钮
+            PREVIEW_SECTION.style.display = 'block';
+            setDownloadButtonState(true);
             
             showMessage("✅ 制作完成！请点击下载按钮。\n请在白底和黑底背景下测试。", false);
         }, 50);
@@ -241,6 +262,7 @@ export function initMirageGenerator() {
      * @param {HTMLInputElement} fileInputElement 对应的 file input
      */
     function activateDropzone(dropzoneElement, fileInputElement) {
+        // ... (Dropzone 逻辑保持不变)
         // 1. 点击激活
         dropzoneElement.addEventListener('click', () => {
             fileInputElement.click();
@@ -267,12 +289,9 @@ export function initMirageGenerator() {
             dropzoneElement.style.borderColor = 'var(--border)';
 
             if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-                // 将拖放的文件设置给 input 元素
                 fileInputElement.files = e.dataTransfer.files;
-                // 可选：触发一个 change 事件来更新 UI 或启动处理
                 fileInputElement.dispatchEvent(new Event('change'));
                 
-                // 提示用户文件已上传（可选：更改 dropzone 标题）
                 const title = dropzoneElement.querySelector('.dropzone-title');
                 if (title) {
                     title.textContent = `已选择: ${e.dataTransfer.files[0].name}`;
@@ -280,7 +299,7 @@ export function initMirageGenerator() {
             }
         });
         
-        // 5. 监听 input 变化，用于更新 dropzone 标题（用户点击上传或拖拽后）
+        // 5. 监听 input 变化
         fileInputElement.addEventListener('change', () => {
             const title = dropzoneElement.querySelector('.dropzone-title');
             if (title && fileInputElement.files.length > 0) {
@@ -291,14 +310,17 @@ export function initMirageGenerator() {
         });
     }
 
-    // 激活两个 Dropzone
+    // 激活 Dropzone
     activateDropzone(WHITE_DROPZONE, WHITE_FILE_INPUT);
     activateDropzone(BLACK_DROPZONE, BLACK_FILE_INPUT);
     
-    // 绑定开始按钮事件
-    document.getElementById('startMirageBtn').onclick = makeMirageEnhanced;
-    // ⭐ NEW: 绑定下载按钮事件
+    // ⭐ NEW: 绑定新的按钮事件
+    GENERATE_BUTTON.onclick = makeMirageEnhanced;
     DOWNLOAD_BUTTON.onclick = downloadMirage; 
+    
+    // 首次运行时确保下载按钮是禁用的，日志框是空的
+    setDownloadButtonState(false);
+    showMessage("");
 }
 
 // 在模块加载时自动运行初始化函数
