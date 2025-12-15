@@ -1,4 +1,4 @@
-// js/modules/mirage-generator.js
+// js/modules/mirage-generator.js (修改版)
 
 /**
  * 视觉幻影（Mirage）增强生成器核心逻辑。
@@ -7,9 +7,15 @@
 export function initMirageGenerator() {
     const MSG_ELEMENT = document.getElementById('mirage-message');
     const CANVAS_ELEMENT = document.getElementById('mirage-canvas');
+    
+    // ⭐ NEW: 获取文件输入和 Dropzone 元素
+    const WHITE_FILE_INPUT = document.getElementById('whiteBgFile');
+    const BLACK_FILE_INPUT = document.getElementById('blackBgFile');
+    const WHITE_DROPZONE = document.getElementById('whiteFileDropzone');
+    const BLACK_DROPZONE = document.getElementById('blackFileDropzone');
 
     // 检查元素是否存在，防止在其他页面报错
-    if (!MSG_ELEMENT || !CANVAS_ELEMENT) return; 
+    if (!MSG_ELEMENT || !CANVAS_ELEMENT || !WHITE_FILE_INPUT || !BLACK_FILE_INPUT) return; 
 
     const CTX = CANVAS_ELEMENT.getContext('2d', { willReadFrequently: true });
     
@@ -21,7 +27,7 @@ export function initMirageGenerator() {
     function showMessage(msg, isError = false) {
         MSG_ELEMENT.textContent = msg;
         MSG_ELEMENT.style.color = isError ? '#dc3545' : '#28a745';
-        MSG_ELEMENT.style.display = 'block'; // 确保消息显示
+        MSG_ELEMENT.style.display = 'block';
     }
     
     /**
@@ -30,6 +36,7 @@ export function initMirageGenerator() {
      * @returns {Promise<HTMLImageElement>}
      */
     function loadImage(file) {
+        // ... (loadImage 函数保持不变，与您之前提供的代码一致)
         return new Promise((resolve, reject) => {
             if (!file) {
                 reject(new Error("未选择文件。"));
@@ -55,6 +62,7 @@ export function initMirageGenerator() {
      * @returns {Float32Array}
      */
     function imageToFloat32Array(img, width, height) {
+        // ... (imageToFloat32Array 函数保持不变)
         CANVAS_ELEMENT.width = width;
         CANVAS_ELEMENT.height = height;
         CTX.clearRect(0, 0, width, height);
@@ -81,10 +89,11 @@ export function initMirageGenerator() {
      * 核心幻影图像生成逻辑
      */
     async function makeMirageEnhanced() {
+        // ... (makeMirageEnhanced 函数保持不变)
         showMessage("正在加载图片...");
-        const whiteFile = document.getElementById('whiteBgFile').files[0];
-        const blackFile = document.getElementById('blackBgFile').files[0];
-
+        const whiteFile = WHITE_FILE_INPUT.files[0];
+        const blackFile = BLACK_FILE_INPUT.files[0];
+        // ... (接下来的逻辑保持不变)
         if (!whiteFile || !blackFile) {
             showMessage("请确保两张图片都已选择。", true);
             return;
@@ -93,88 +102,71 @@ export function initMirageGenerator() {
         try {
             const imgW = await loadImage(whiteFile);
             const imgB = await loadImage(blackFile);
-
-            // 检查尺寸是否相同，否则使用较小的尺寸
+            
+            // ... (核心处理逻辑不变)
             let width = imgW.width;
             let height = imgW.height;
 
             if (imgW.width !== imgB.width || imgW.height !== imgB.height) {
                 showMessage("警告：两张图片尺寸不一致，将以 '白底图' 的尺寸为准进行缩放。", true);
-                // 默认以 imgW 的尺寸为准
-                // 可以添加更复杂的逻辑，例如取最小公约数，但此处保持原逻辑的简单处理
             }
             
             const size = width * height;
             
             showMessage(`图片加载成功。正在处理 ${width}x${height} 像素...`);
 
-            // 统一尺寸并转为 Float32 数组 (H*W*3)
             const wArr = imageToFloat32Array(imgW, width, height);
             const bArr = imageToFloat32Array(imgB, width, height);
 
-            // 初始化结果 ImageData
             const resultImageData = CTX.createImageData(width, height);
             const resultData = resultImageData.data;
 
-            // --- 核心数学逻辑（RGB 三通道并行） ---
-
             for (let i = 0; i < size; i++) {
-                const idx3 = i * 3; // 3通道 (R, G, B) 索引
-                const idx4 = i * 4; // 4通道 (R, G, B, A) 索引
+                const idx3 = i * 3;
+                const idx4 = i * 4;
 
                 let maxDiff = 0;
                 
-                // 循环处理 R, G, B 三个通道
                 for (let c = 0; c < 3; c++) {
                     const w_pix = wArr[idx3 + c];
                     const b_pix = bArr[idx3 + c];
 
-                    // 1. 兼容性增强：明度强力压缩 (与 Python 逻辑一致)
                     const b_arr_compressed = b_pix * (100.0 / 255.0);
                     const w_arr_compressed = (w_pix * (105.0 / 255.0)) + 150.0;
                     
-                    // 2. 计算差异值，并找到最大的差异值
                     const diff = w_arr_compressed - b_arr_compressed;
                     if (diff > maxDiff) {
                         maxDiff = diff;
                     }
                     
-                    // 存储压缩后的黑底图值，用于后续计算 RGB
                     bArr[idx3 + c] = b_arr_compressed; 
                 }
                 
-                // 3. Alpha 通道计算: Alpha = 255 - max_diff
                 let alpha = 255.0 - maxDiff;
-                alpha = Math.max(1, Math.min(255, alpha)); // 钳位到 [1, 255]
+                alpha = Math.max(1, Math.min(255, alpha));
 
-                // 4. 计算 RGB 通道： RGB = B' / (Alpha / 255)
-                const alpha_factor = alpha / 255.0; // 必然大于等于 1/255
+                const alpha_factor = alpha / 255.0;
 
                 for (let c = 0; c < 3; c++) {
                     const b_arr_compressed = bArr[idx3 + c];
                     
                     let rgb_channel = b_arr_compressed / alpha_factor;
                     
-                    // 5. 最终钳位处理并写入结果
                     rgb_channel = Math.max(0, Math.min(255, rgb_channel));
                     
-                    resultData[idx4 + c] = Math.round(rgb_channel); // R, G, B
+                    resultData[idx4 + c] = Math.round(rgb_channel);
                 }
                 
-                // 写入 Alpha 通道
-                resultData[idx4 + 3] = Math.round(alpha); // A
+                resultData[idx4 + 3] = Math.round(alpha);
             }
             
-            // 6. 绘制结果并下载
             CANVAS_ELEMENT.width = width;
             CANVAS_ELEMENT.height = height;
             CTX.putImageData(resultImageData, 0, 0);
 
-            // 使用 setTimeout 确保浏览器有时间渲染 Canvas
             setTimeout(() => {
                 const dataURL = CANVAS_ELEMENT.toDataURL("image/png");
                 
-                // 触发下载
                 const link = document.createElement('a');
                 link.href = dataURL;
                 link.download = 'mirage_enhanced_result.png';
@@ -192,7 +184,72 @@ export function initMirageGenerator() {
         }
     }
 
-    // 绑定事件
+
+    // ==========================================================
+    // ⭐ NEW: 通用 Dropzone 激活逻辑 ⭐
+    // ==========================================================
+
+    /**
+     * 激活 Dropzone 功能
+     * @param {HTMLElement} dropzoneElement Dropzone 区域
+     * @param {HTMLInputElement} fileInputElement 对应的 file input
+     */
+    function activateDropzone(dropzoneElement, fileInputElement) {
+        // 1. 点击激活
+        dropzoneElement.addEventListener('click', () => {
+            fileInputElement.click();
+        });
+
+        // 2. 拖拽文件进入
+        dropzoneElement.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzoneElement.style.borderColor = 'var(--accent)';
+        });
+
+        // 3. 拖拽文件离开/结束
+        dropzoneElement.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzoneElement.style.borderColor = 'var(--border)';
+        });
+
+        // 4. 放置文件
+        dropzoneElement.addEventListener('drop', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dropzoneElement.style.borderColor = 'var(--border)';
+
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                // 将拖放的文件设置给 input 元素
+                fileInputElement.files = e.dataTransfer.files;
+                // 可选：触发一个 change 事件来更新 UI 或启动处理
+                fileInputElement.dispatchEvent(new Event('change'));
+                
+                // 提示用户文件已上传（可选：更改 dropzone 标题）
+                const title = dropzoneElement.querySelector('.dropzone-title');
+                if (title) {
+                    title.textContent = `已选择: ${e.dataTransfer.files[0].name}`;
+                }
+            }
+        });
+        
+        // 5. 监听 input 变化，用于更新 dropzone 标题（用户点击上传或拖拽后）
+        fileInputElement.addEventListener('change', () => {
+            const title = dropzoneElement.querySelector('.dropzone-title');
+            if (title && fileInputElement.files.length > 0) {
+                 title.textContent = `已选择: ${fileInputElement.files[0].name}`;
+            } else if (title) {
+                 title.textContent = `拖拽或点击上传图片`; // 重置
+            }
+        });
+    }
+
+    // 激活两个 Dropzone
+    activateDropzone(WHITE_DROPZONE, WHITE_FILE_INPUT);
+    activateDropzone(BLACK_DROPZONE, BLACK_FILE_INPUT);
+    
+    // 绑定开始按钮事件
     document.getElementById('startMirageBtn').onclick = makeMirageEnhanced;
 }
 
