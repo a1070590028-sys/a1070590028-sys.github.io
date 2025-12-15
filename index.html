@@ -439,6 +439,14 @@
                     <button class="btn" id="startMirageBtn" style="width:100%;margin-top:10px;">🚀 开始生成幻影图</button>
                     
                     <div class="small" style="margin-top:8px">处理日志：<div id="mirage-message" class="log-box" style="display:none;min-height:36px;"></div></div>
+
+                    <div id="mirage-result-section" style="margin-top:15px; padding-top:15px; border-top: 1px solid var(--border); display: none; text-align: center;">
+                        <h3 class="params-title" style="margin-bottom: 8px;">✅ 生成结果</h3>
+                        <div id="miragePreview" style="max-width: 100%; max-height: 200px; margin-bottom: 10px; border: 1px dashed var(--border); display: inline-block; padding: 5px;">
+                            <canvas id="miragePreviewCanvas" style="max-width: 190px; max-height: 190px; display: block; margin: auto;"></canvas>
+                        </div>
+                        <button class="btn" id="downloadMirageBtn" style="width:100%; margin-top: 5px;">📥 下载幻影 PNG 文件</button>
+                    </div>
                 </div>
 
                 <div class="controls post-card" style="padding:14px;height:fit-content">
