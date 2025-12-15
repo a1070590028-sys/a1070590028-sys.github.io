@@ -397,15 +397,15 @@
     </div>
 
 <div class="post-card">
-    <h2 class="card-title">🖼️ 视觉幻影生成器 <span class="toggle-icon">▾</span></h2>
-    <div class="card-content collapsed">
+    <h2 class="card-title">🖼️ 幻影图片 <span class="toggle-icon">▾</span></h2>
+    <div class="card-content">
         <p style="margin-top:8px">制作一个在**白底**上看到图 A，在**黑底**上看到图 B 的 PNG 图像。</p>
         
         <div id="mirage-panel" style="display:block;margin-top:16px;">
             <div class="compress-grid">
                 <div style="padding:12px">
                     <div class="compress-param" style="margin-top:0;">
-                        <label class="small">⚪ 步骤一：白底预览图 (图 A)</label>
+                        <label class="small">⚪ 步骤一：前景图 (图 A)</label>
                         <div id="whiteFileDropzone" class="dropzone" style="margin-bottom:15px;">
                             <div class="dropzone-title">拖拽或点击上传图片</div>
                             <input type="file" id="whiteBgFile" accept="image/*" style="display:none">
@@ -413,7 +413,7 @@
                     </div>
                     
                     <div class="compress-param">
-                        <label class="small">⚫ 步骤二：黑底隐藏图 (图 B)</label>
+                        <label class="small">⚫ 步骤二：背景图 (图 B)</label>
                         <div id="blackFileDropzone" class="dropzone">
                             <div class="dropzone-title">拖拽或点击上传图片</div>
                             <input type="file" id="blackBgFile" accept="image/*" style="display:none">
@@ -439,16 +439,40 @@
                 </div>
 
                 <div class="controls post-card" style="padding:14px;height:fit-content">
-                    <h3 class="params-title">工作原理说明</h3>
-                    <p class="small" style="margin-bottom:10px;">
-                        最终生成的 PNG 图片利用了 Alpha 通道和 RGB 通道之间的特殊关系：
-                    </p>
-                    <ul class="small" style="padding-left: 20px; margin: 0; line-height: 1.6;">
-                        <li>白色背景下，颜色 $C_{white}$ 由 $C_{png} \cdot A/255 + C_{bg} \cdot (1 - A/255)$ 决定。图 A 看起来清晰。</li>
-                        <li>黑色背景下，颜色 $C_{black}$ 由 $C_{png} \cdot A/255 + C_{bg} \cdot (1 - A/255)$ 决定。图 B 看起来清晰。</li>
-                    </ul>
+                    <h3 class="params-title">参数设置</h3>
+                    
+                    <div class="compress-param">
+                        <label class="small">尺寸基准</label>
+                        <select id="sizeBase">
+                            <option value="A">以前景图 A 尺寸为准</option>
+                            <option value="B" selected>以背景图 B 尺寸为准</option>
+                        </select>
+                        <label class="small small-text" style="font-size: 11px;">(最终输出图的尺寸)</label>
+                    </div>
+                    
+                    <div class="compress-param">
+                        <label class="small">尺寸不一致处理</label>
+                        <select id="sizeMismatchPolicy">
+                            <option value="stretch">拉伸/缩放 (可能变形)</option>
+                            <option value="fill">空白填充 (保持比例)</option>
+                        </select>
+                        <label class="small small-text" style="font-size: 11px;">(另一张图如何适应基准尺寸)</label>
+                    </div>
+
+                    <div class="compress-param">
+                        <label class="small">前景图 A 的模拟背景色 (R,G,B)</label>
+                        <input id="bgAColor" type="text" placeholder="默认: 255,255,255 (白色)" value="255,255,255">
+                        <label class="small small-text" style="font-size: 11px;">(以逗号分隔，如 255,255,255)</label>
+                    </div>
+
+                    <div class="compress-param">
+                        <label class="small">背景图 B 的模拟背景色 (R,G,B)</label>
+                        <input id="bgBColor" type="text" placeholder="默认: 0,0,0 (黑色)" value="0,0,0">
+                        <label class="small small-text" style="font-size: 11px;">(以逗号分隔，如 0,0,0)</label>
+                    </div>
+                    
                     <p class="small" style="margin-top:10px;">
-                        ⚠️ **重要提示：** 两张图的尺寸最好相同。如果不同，将以第一张图（白底预览图）的尺寸为准进行缩放。
+                        ⚠️ **提示：** 如果选择“空白填充”，额外区域的颜色将由上方设置的“模拟背景色”决定。
                     </p>
                 </div>
 
