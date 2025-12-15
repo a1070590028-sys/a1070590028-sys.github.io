@@ -572,6 +572,10 @@ document.querySelectorAll('[data-dog-tab]').forEach(b => b.onclick = () => {
 document.getElementById('pageSize').onchange = e => {
     document.getElementById('customSizeRow').style.display = e.target.value === 'custom' ? 'block' : 'none';
 };
+
 </script>
+    <canvas id="mirage-canvas" style="display:none;"></canvas>
+
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
