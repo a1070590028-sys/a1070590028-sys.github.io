@@ -21,8 +21,15 @@ export function initMirageGenerator() {
     const GENERATE_BUTTON = document.getElementById('generateMirageBtn');
     const DOWNLOAD_BUTTON = document.getElementById('downloadMirageBtn');
 
+    // ⭐ 新增参数元素
+    const SIZE_BASE_SELECT = document.getElementById('sizeBase');
+    const MISMATCH_POLICY_SELECT = document.getElementById('sizeMismatchPolicy');
+    const BGA_COLOR_INPUT = document.getElementById('bgAColor');
+    const BGB_COLOR_INPUT = document.getElementById('bgBColor');
+
+
     // 检查元素是否存在
-    if (!MSG_ELEMENT || !CANVAS_ELEMENT || !WHITE_FILE_INPUT || !BLACK_FILE_INPUT || !PREVIEW_CANVAS || !DOWNLOAD_BUTTON || !GENERATE_BUTTON) return; 
+    if (!MSG_ELEMENT || !CANVAS_ELEMENT || !WHITE_FILE_INPUT || !BLACK_FILE_INPUT || !PREVIEW_CANVAS || !DOWNLOAD_BUTTON || !GENERATE_BUTTON || !SIZE_BASE_SELECT || !MISMATCH_POLICY_SELECT || !BGA_COLOR_INPUT || !BGB_COLOR_INPUT) return; 
 
     const CTX = CANVAS_ELEMENT.getContext('2d', { willReadFrequently: true });
     const PREVIEW_CTX = PREVIEW_CANVAS.getContext('2d');
@@ -49,7 +56,19 @@ export function initMirageGenerator() {
         // 如果您的 CSS 中有针对 disabled 按钮的样式，它会自动应用
     }
 
-    // ... (loadImage, imageToFloat32Array 函数保持不变)
+    /**
+     * 解析 RGB 颜色输入
+     * @param {string} input 
+     * @returns {[number, number, number]} [R, G, B]
+     */
+    function parseRgbColor(input) {
+        const parts = input.split(',').map(s => parseInt(s.trim(), 10));
+        if (parts.length === 3 && parts.every(n => !isNaN(n) && n >= 0 && n <= 255)) {
+            return parts;
+        }
+        // 默认返回白色 (255,255,255) 以防解析失败
+        return [255, 255, 255]; 
+    }
     
     /**
      * 加载并返回 Image 对象
@@ -75,22 +94,52 @@ export function initMirageGenerator() {
     }
 
     /**
-     * 将图片像素数据转为 Float32 数组 (H*W*3)
+     * 将图片像素数据转为 Float32 数组 (H*W*3)，并应用尺寸策略
      * @param {HTMLImageElement} img 
-     * @param {number} width 
-     * @param {number} height 
+     * @param {number} targetWidth 目标宽度
+     * @param {number} targetHeight 目标高度
+     * @param {string} policy 尺寸不一致处理策略 ('stretch' 或 'fill')
+     * @param {[number, number, number]} bgColor 空白填充时的背景色 [R, G, B]
      * @returns {Float32Array}
      */
-    function imageToFloat32Array(img, width, height) {
-        CANVAS_ELEMENT.width = width;
-        CANVAS_ELEMENT.height = height;
-        CTX.clearRect(0, 0, width, height);
-        // 强制裁剪/缩放图片到目标尺寸
-        CTX.drawImage(img, 0, 0, width, height);
+    function imageToFloat32Array(img, targetWidth, targetHeight, policy, bgColor) {
+        CANVAS_ELEMENT.width = targetWidth;
+        CANVAS_ELEMENT.height = targetHeight;
 
-        const imageData = CTX.getImageData(0, 0, width, height);
+        // 1. 清空画布，填充背景色 (用于 'fill' 策略的空白区域)
+        CTX.fillStyle = `rgb(${bgColor[0]}, ${bgColor[1]}, ${bgColor[2]})`;
+        CTX.fillRect(0, 0, targetWidth, targetHeight);
+
+        let drawX = 0;
+        let drawY = 0;
+        let drawW = targetWidth;
+        let drawH = targetHeight;
+
+        if (policy === 'fill') {
+            const imgRatio = img.width / img.height;
+            const targetRatio = targetWidth / targetHeight;
+
+            if (imgRatio > targetRatio) { // 图片更宽，按宽度缩放
+                drawH = targetWidth / imgRatio;
+                drawW = targetWidth;
+                drawY = (targetHeight - drawH) / 2; // 垂直居中
+                drawX = 0;
+            } else { // 图片更高，按高度缩放
+                drawW = targetHeight * imgRatio;
+                drawH = targetHeight;
+                drawX = (targetWidth - drawW) / 2; // 水平居中
+                drawY = 0;
+            }
+        }
+        // 如果 policy 是 'stretch'，则 drawW=targetWidth, drawH=targetHeight，覆盖整个画布
+
+        // 2. 绘制图片 (根据策略缩放/居中)
+        CTX.drawImage(img, drawX, drawY, drawW, drawH);
+
+        // 3. 读取像素数据
+        const imageData = CTX.getImageData(0, 0, targetWidth, targetHeight);
         const data = imageData.data;
-        const size = width * height;
+        const size = targetWidth * targetHeight;
         const floatArray = new Float32Array(size * 3); // R, G, B
 
         for (let i = 0; i < size; i++) {
@@ -117,6 +166,11 @@ export function initMirageGenerator() {
         
         const whiteFile = WHITE_FILE_INPUT.files[0];
         const blackFile = BLACK_FILE_INPUT.files[0];
+        const sizeBase = SIZE_BASE_SELECT.value;
+        const policy = MISMATCH_POLICY_SELECT.value;
+        const bgA = parseRgbColor(BGA_COLOR_INPUT.value);
+        const bgB = parseRgbColor(BGB_COLOR_INPUT.value);
+
 
         if (!whiteFile || !blackFile) {
             showMessage("请确保两张图片都已选择。", true);
@@ -124,14 +178,21 @@ export function initMirageGenerator() {
         }
 
         try {
-            const imgW = await loadImage(whiteFile);
+            const imgA = await loadImage(whiteFile);
             const imgB = await loadImage(blackFile);
             
-            let width = imgW.width;
-            let height = imgW.height;
+            // 确定最终输出的尺寸
+            let width, height;
+            if (sizeBase === 'A') {
+                width = imgA.width;
+                height = imgA.height;
+            } else { // sizeBase === 'B' (默认)
+                width = imgB.width;
+                height = imgB.height;
+            }
 
-            if (imgW.width !== imgB.width || imgW.height !== imgB.height) {
-                showMessage("警告：两张图片尺寸不一致，将以 '白底图' 的尺寸为准进行缩放。", true);
+            if (imgA.width !== imgB.width || imgA.height !== imgB.height) {
+                showMessage(`警告：两张图片尺寸不一致，将以 '图 ${sizeBase}' 的尺寸 (${width}x${height}) 为基准，并使用 '${policy === 'stretch' ? '拉伸' : '空白填充'}' 策略处理另一张图。`, true);
             }
             
             CANVAS_ELEMENT.width = width;
@@ -141,43 +202,95 @@ export function initMirageGenerator() {
             
             showMessage(`图片加载成功。正在处理 ${width}x${height} 像素...`);
 
-            const wArr = imageToFloat32Array(imgW, width, height);
-            const bArr = imageToFloat32Array(imgB, width, height);
+            // 根据尺寸基准和策略，确定每张图的加载参数
+            const wArr = imageToFloat32Array(imgA, width, height, policy, bgA);
+            const bArr = imageToFloat32Array(imgB, width, height, policy, bgB);
+
 
             const resultImageData = CTX.createImageData(width, height);
             const resultData = resultImageData.data;
 
-            // 核心像素处理逻辑
+            // 核心像素处理逻辑（使用自定义背景色）
+            // C_png = (C_bg * (1 - A/255) + C_img * A/255)
+            // 目标:
+            // 1. 白底 (BG_A) 上显示 W_img (图A)
+            //    W_img = BG_A * (1 - A/255) + C_png * A/255
+            //    => C_png = (W_img - BG_A) / (A/255) + BG_A
+            // 2. 黑底 (BG_B) 上显示 B_img (图B)
+            //    B_img = BG_B * (1 - A/255) + C_png * A/255
+            //    => C_png = (B_img - BG_B) / (A/255) + BG_B
+
+            // 简化计算，避免浮点数除法，使用近似算法：
+            // A/255 接近 1 时，W_img 接近 C_png。A/255 接近 0 时，W_img 接近 BG_A。
+            // W_img 和 B_img 之间的差异，主要由 Alpha 通道控制。
+            
             for (let i = 0; i < size; i++) {
                 const idx3 = i * 3;
                 const idx4 = i * 4;
 
-                let maxDiff = 0;
+                let minAlpha = 255;
                 
                 for (let c = 0; c < 3; c++) {
-                    const w_pix = wArr[idx3 + c];
-                    const b_pix = bArr[idx3 + c];
+                    const W_pix = wArr[idx3 + c]; // 图 A 像素
+                    const B_pix = bArr[idx3 + c]; // 图 B 像素
+                    const BG_A_c = bgA[c]; // 图 A 模拟背景色
+                    const BG_B_c = bgB[c]; // 图 B 模拟背景色
 
-                    const b_arr_compressed = b_pix * (100.0 / 255.0);
-                    const w_arr_compressed = (w_pix * (105.0 / 255.0)) + 150.0;
+                    // 为了使结果更清晰，我们通常要求 alpha 因子 (A/255) 在 0.1 到 0.9 之间
+                    // A/255 = (W_pix - BG_A_c) / (C_png - BG_A_c) 
+                    // A/255 = (B_pix - BG_B_c) / (C_png - BG_B_c) 
+
+                    // 基于 W_pix 和 B_pix 差异计算 Alpha (简化模型)
+                    // 使用 B_pix 减去 W_pix 在白底下的“残影”来估计 Alpha
+                    // 这里我们继续使用原版优化后的经验公式，确保效果，但替换固定值
                     
-                    const diff = w_arr_compressed - b_arr_compressed;
-                    if (diff > maxDiff) {
-                        maxDiff = diff;
+                    // 经验公式简化：假设 C_png 约等于 B_pix
+                    // W_img ≈ BG_A * (1 - A/255) + B_pix * A/255 
+                    // 目标 Alpha (A/255) 越大，W_img 越接近 B_pix (黑底图)
+
+                    // 为了让两图都能清晰显示，需要计算一个能同时满足两个条件的 Alpha
+                    // Alpha 越小，越偏向白底图 (W_pix)
+                    // Alpha 越大，越偏向黑底图 (B_pix)
+                    
+                    // 新经验公式（调整以支持自定义背景色）：
+                    // 计算出 C_png 使其在 BG_A 下产生 W_pix，在 BG_B 下产生 B_pix
+                    // C_png * a/255 - C_png * a/255 * (BG_A_c + BG_B_c) + BG_A_c * (1 - a/255) = W_pix * (BG_B_c) + B_pix * (BG_A_c)
+                    
+                    // 简单粗暴方法：C_png = B_pix；计算出满足 W_pix 的 Alpha 值
+                    
+                    let targetAlpha;
+                    // 避免除以 0，确保 B_pix 和 BG_A_c 不相等
+                    if (Math.abs(B_pix - BG_A_c) > 1) { 
+                        // A/255 ≈ (W_pix - BG_A_c) / (B_pix - BG_A_c)
+                        targetAlpha = (W_pix - BG_A_c) / (B_pix - BG_A_c) * 255.0;
+                    } else {
+                        targetAlpha = 0; // 无法计算，设为 0（完全透明）
                     }
                     
-                    bArr[idx3 + c] = b_arr_compressed; 
+                    targetAlpha = Math.max(0, Math.min(255, targetAlpha));
+                    
+                    // 取三个通道中 Alpha 最小的值，确保所有通道都满足白底图 (W_pix) 的要求
+                    if (targetAlpha < minAlpha) {
+                        minAlpha = targetAlpha;
+                    }
                 }
                 
-                let alpha = 255.0 - maxDiff;
+                // 最终 Alpha 值
+                let alpha = minAlpha;
+                
+                // 强制 Alpha 在 [1, 255] 之间，避免完全透明或溢出
                 alpha = Math.max(1, Math.min(255, alpha));
 
                 const alpha_factor = alpha / 255.0;
 
                 for (let c = 0; c < 3; c++) {
-                    const b_arr_compressed = bArr[idx3 + c];
-                    
-                    let rgb_channel = b_arr_compressed / alpha_factor;
+                    const B_pix = bArr[idx3 + c]; // 图 B 像素
+                    const BG_B_c = bgB[c]; // 图 B 模拟背景色
+
+                    // 反推出 C_png (PNG 图的 RGB 通道值)
+                    // B_pix = BG_B * (1 - A/255) + C_png * A/255
+                    // C_png * A/255 = B_pix - BG_B * (1 - A/255)
+                    let rgb_channel = (B_pix - BG_B_c * (1.0 - alpha_factor)) / alpha_factor;
                     
                     rgb_channel = Math.max(0, Math.min(255, rgb_channel));
                     
@@ -206,19 +319,33 @@ export function initMirageGenerator() {
      */
     function handleMirageResult(width, height) {
         // 1. 生成 DataURL
+        // 延时是为了确保 putImageData 渲染完成
         setTimeout(() => {
             generatedDataURL = CANVAS_ELEMENT.toDataURL("image/png");
             
             // 2. 预览：调整预览画布尺寸，并复制图像数据
-            PREVIEW_CANVAS.width = width;
-            PREVIEW_CANVAS.height = height;
-            PREVIEW_CTX.drawImage(CANVAS_ELEMENT, 0, 0, width, height, 0, 0, width, height);
+            // 限制预览图的最大尺寸，保持美观
+            const maxPreviewSize = 190;
+            let previewW = width;
+            let previewH = height;
+            
+            if (width > maxPreviewSize || height > maxPreviewSize) {
+                 const scale = Math.min(maxPreviewSize / width, maxPreviewSize / height);
+                 previewW = width * scale;
+                 previewH = height * scale;
+            }
+            
+            PREVIEW_CANVAS.width = previewW;
+            PREVIEW_CANVAS.height = previewH;
+            
+            // 绘制到预览画布，实现缩放
+            PREVIEW_CTX.drawImage(CANVAS_ELEMENT, 0, 0, width, height, 0, 0, previewW, previewH);
             
             // 3. 显示结果区域，启用下载按钮
             PREVIEW_SECTION.style.display = 'block';
             setDownloadButtonState(true);
             
-            showMessage("✅ 制作完成！请点击下载按钮。\n请在白底和黑底背景下测试。", false);
+            showMessage("✅ 制作完成！请点击下载按钮。\n请在前景图 A 模拟底色和背景图 B 模拟底色下测试。", false);
         }, 50);
     }
     
