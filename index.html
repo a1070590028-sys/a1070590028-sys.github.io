@@ -436,17 +436,21 @@
                         </div>
                     </div>
                     
-                    <button class="btn" id="startMirageBtn" style="width:100%;margin-top:10px;">🚀 开始生成幻影图</button>
-                    
-                    <div class="small" style="margin-top:8px">处理日志：
-                        <div id="mirage-message" class="log-box" style="display:none;min-height:36px;"></div></div>
-
-                    <div id="mirage-result-section" style="margin-top:15px; padding-top:15px; border-top: 1px solid var(--border); display: none; text-align: center;">
-                        <h3 class="params-title" style="margin-bottom: 8px;">✅ 生成结果</h3>
+                    <div id="mirage-result-preview" style="margin-top:15px; text-align: center; display: none;">
+                        <h3 class="params-title" style="margin-bottom: 8px;">预览</h3>
                         <div id="miragePreview" style="max-width: 100%; max-height: 200px; margin-bottom: 10px; border: 1px dashed var(--border); display: inline-block; padding: 5px;">
                             <canvas id="miragePreviewCanvas" style="max-width: 190px; max-height: 190px; display: block; margin: auto;"></canvas>
                         </div>
-                        <button class="btn" id="downloadMirageBtn" style="width:100%; margin-top: 5px;">📥 下载幻影 PNG 文件</button>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                        <button class="btn" id="generateMirageBtn" style="width:100%;">⚙️ 生成幻影图</button>
+                        <button class="btn btn-disabled" id="downloadMirageBtn" style="width:100%;" disabled>📥 下载文件</button>
+                    </div>
+
+                    <div class="small" style="margin-top:8px">
+                        处理日志：
+                        <div id="mirage-message" class="log-box" style="display:block; min-height:36px;">&nbsp;</div>
                     </div>
                 </div>
 
@@ -460,7 +464,7 @@
                         <li>黑色背景下，颜色 $C_{black}$ 由 $C_{png} \cdot A/255 + C_{bg} \cdot (1 - A/255)$ 决定。图 B 看起来清晰。</li>
                     </ul>
                     <p class="small" style="margin-top:10px;">
-                        ⚠️ **重要提示：** 两张图的尺寸最好相同。如果不同，将以第一张图（白底预览图）的尺寸为准对第二张图进行缩放。
+                        ⚠️ **重要提示：** 两张图的尺寸最好相同。如果不同，将以第一张图（白底预览图）的尺寸为准进行缩放。
                     </p>
                 </div>
 
@@ -469,6 +473,7 @@
         
     </div>
 </div>
+<canvas id="mirage-canvas" style="display:none;"></canvas>
     
     <div class="post-card">
         <h2 class="card-title">✨ 未来内容 <span class="toggle-icon">▾</span></h2>
