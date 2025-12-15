@@ -7,7 +7,6 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="css/style.css">
 
-    <!-- 额外小样式：确保输入框/压缩参数样式统一（不会限制数字，允许任意字符） -->
     <style>
         /* 通用参数行：标题 + 控件 对齐 */
         .compress-param {
@@ -99,7 +98,7 @@
 <div class="container">
     <div class="post-card">
         <h2 class="card-title">🚃 图片压缩&格式转换 <span class="toggle-icon">▾</span></h2>
-        <div class="card-content">
+        <div class="card-content collapsed">
             <p style="margin-top:8px">在浏览器内压缩图片并转换格式：上传 → 设置参数 → 压缩 → 单张或打包下载。</p>
             <div style="margin-top:12px" class="compress-grid">
                 <div style="padding:12px">
@@ -151,19 +150,16 @@
     
 <div class="post-card">
     <h2 class="card-title">🛡️文件加密与伪装 <span class="toggle-icon">▾</span></h2>
-    <div class="card-content">
+    <div class="card-content collapsed">
             <p style="margin-top:8px">使用AES技术进行文件加密，支持自选加密图。</p>
-        <!-- 顶部切换按钮 -->
         <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn active" data-enc-tab="encrypt">加密文件</button>
             <button class="btn" data-enc-tab="decrypt">解密文件</button>
         </div>
 
-<!-- ===================== 加密面板（两列布局） ===================== -->
 <div id="encrypt-panel" style="display:block;margin-top:16px;">
     <div class="compress-grid">
 
-        <!-- 左侧：上传与日志 -->
         <div style="padding:12px">
             <div id="dropzoneEnc" class="dropzone" style="margin-bottom:15px;">
                 <div class="dropzone-title">上传文件（任意格式）</div>
@@ -175,17 +171,14 @@
             <div id="encLog"></div>
         </div>
 
-        <!-- 右侧：参数卡片 -->
         <div class="controls post-card" style="padding:14px">
             <h3 class="params-title">参数设置</h3>
 
-            <!-- 输出文件名 -->
             <div class="compress-param">
                 <label class="small">输出文件名（无需扩展名）</label>
                 <input id="encFilename" type="text" placeholder="例如：secret_file">
             </div>
 
-            <!-- 加密级别 -->
             <div class="compress-param">
                 <label class="small">加密级别</label>
                 <select id="encLevel">
@@ -194,17 +187,14 @@
                 </select>
             </div>
 
-            <!-- 密码 -->
             <div class="compress-param">
                 <label class="small">加密密码（Level 2 必填）</label>
                 <input id="encPasswordInput" type="password" placeholder="请输入密码">
             </div>
 
-            <!-- 载体选择（已优化为“上传本地图片”） -->
             <div class="compress-param">
                 <label class="small">选择图片载体</label>
 
-                <!-- 新版 UI：上传本地图片（拖拽或点击） -->
                 <div id="localCarrierDropzone" class="dropzone" style="margin-bottom:10px;">
                     <div class="dropzone-title">上传本地图片（拖拽或点击）</div>
                     <input type="file" id="localCarrierInput" accept="image/*" style="display:none">
@@ -227,32 +217,26 @@
 </div>
 
 
-        <!-- ===================== 解密面板（单列布局） ===================== -->
         <div id="decrypt-panel" style="display:none;margin-top:16px;">
 
-            <!-- 上传区 -->
             <div id="dropzoneDec" class="dropzone" style="margin-bottom:15px;">
                 <div class="dropzone-title">上传加密后的文件</div>
                 <input type="file" id="decInput" style="display:none">
             </div>
 
-            <!-- 文件信息 -->
             <div id="decFileDetail" style="margin-bottom:15px;padding:10px 0;border-bottom:1px solid var(--border);display:none;">
                 <div class="small">文件名：<span id="decFileName">--</span></div>
                 <div class="small">大小：<span id="decFileSize">--</span></div>
                 <div class="small">加密级别：<span id="decLevelDisplay" style="color:var(--accent)">解析中...</span></div>
             </div>
 
-            <!-- 解密密码 -->
             <div class="compress-param">
                 <label class="small">解密密码（Level 2 必填）</label>
                 <input id="decPasswordInput" type="password" placeholder="请输入密码">
             </div>
 
-            <!-- 按钮 -->
             <button class="btn" id="startDecrypt" style="width:100%;margin-top:10px;">开始解密</button>
 
-            <!-- 日志 -->
             <div class="small" style="margin-top:10px;">处理日志：</div>
             <div id="decLog"></div>
         </div>
@@ -262,7 +246,7 @@
 
 <div class="post-card">
     <h2 class="card-title">🐾 兽语密文 <span class="toggle-icon">▾</span></h2>
-    <div class="card-content">
+    <div class="card-content collapsed">
         <p style="margin-top:8px">将普通文字转换成“兽语密文”，并使用密钥进行加密/解密。</p>
         
         <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
@@ -352,7 +336,7 @@
     
     <div class="post-card">
         <h2 class="card-title">🚡 图片PDF 互转 <span class="toggle-icon">▾</span></h2>
-        <div class="card-content">
+        <div class="card-content collapsed">
             <p style="margin-top:8px">纯前端实现：多图转 PDF、PDF 转图片，全部离线处理，支持拖拽与批量下载。</p>
             <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
                 <button class="btn active" data-tab="img2pdf">图片 → PDF</button>
@@ -414,7 +398,7 @@
 
 <div class="post-card">
     <h2 class="card-title">🖼️ 视觉幻影生成器 <span class="toggle-icon">▾</span></h2>
-    <div class="card-content">
+    <div class="card-content collapsed">
         <p style="margin-top:8px">制作一个在**白底**上看到图 A，在**黑底**上看到图 B 的 PNG 图像。</p>
         
         <div id="mirage-panel" style="display:block;margin-top:16px;">
@@ -477,7 +461,7 @@
     
     <div class="post-card">
         <h2 class="card-title">✨ 未来内容 <span class="toggle-icon">▾</span></h2>
-        <div class="card-content"><p>敬请期待！</p></div>
+        <div class="card-content collapsed"><p>敬请期待！</p></div>
     </div>
 </div>
 
@@ -537,7 +521,6 @@
     </div>
 </div>
 
-<!-- libs -->
 <script src="js/lib/three.min.js"></script>
 <script src="js/lib/vanta.net.min.js"></script>
 <script src="js/lib/vanta.birds.min.js"></script>
@@ -552,7 +535,6 @@
     Object.assign(window.VANTA, window.VANTA || {});
 </script>
 
-<!-- 你的主逻辑文件 -->
 <script type="module" src="js/main.js"></script>
 
 <script>
