@@ -15,10 +15,10 @@ export function initMirageGenerator() {
     const WHITE_DROPZONE = document.getElementById('whiteFileDropzone');
     const BLACK_DROPZONE = document.getElementById('blackFileDropzone');
     
-    // ⭐ NEW: 按钮和预览区域
+    // ⭐ 按钮和预览区域
     const PREVIEW_SECTION = document.getElementById('mirage-result-preview');
     const PREVIEW_CANVAS = document.getElementById('miragePreviewCanvas');
-    const GENERATE_BUTTON = document.getElementById('generateMirageBtn'); // NEW ID
+    const GENERATE_BUTTON = document.getElementById('generateMirageBtn');
     const DOWNLOAD_BUTTON = document.getElementById('downloadMirageBtn');
 
     // 检查元素是否存在
@@ -30,7 +30,7 @@ export function initMirageGenerator() {
     let generatedDataURL = null; 
     
     /**
-     * 消息提示 (调整：不再隐藏/显示 MSG_ELEMENT，它默认显示)
+     * 消息提示
      * @param {string} msg 
      * @param {boolean} isError 
      */
@@ -41,24 +41,16 @@ export function initMirageGenerator() {
     }
     
     /**
-     * 启用/禁用下载按钮
+     * 启用/禁用下载按钮 (仅使用 disabled 属性控制)
      * @param {boolean} enable 
      */
     function setDownloadButtonState(enable) {
-        if (enable) {
-            DOWNLOAD_BUTTON.disabled = false;
-            DOWNLOAD_BUTTON.classList.remove('btn-disabled');
-            DOWNLOAD_BUTTON.classList.add('btn');
-        } else {
-            DOWNLOAD_BUTTON.disabled = true;
-            DOWNLOAD_BUTTON.classList.add('btn-disabled');
-            DOWNLOAD_BUTTON.classList.remove('btn');
-        }
+        DOWNLOAD_BUTTON.disabled = !enable;
+        // 如果您的 CSS 中有针对 disabled 按钮的样式，它会自动应用
     }
 
     // ... (loadImage, imageToFloat32Array 函数保持不变)
     
-    // (这里插入 loadImage 和 imageToFloat32Array 函数的完整代码)
     /**
      * 加载并返回 Image 对象
      * @param {File} file 
@@ -110,7 +102,6 @@ export function initMirageGenerator() {
         }
         return floatArray;
     }
-    // ... (loadImage, imageToFloat32Array 函数结束)
 
 
     /**
@@ -199,13 +190,13 @@ export function initMirageGenerator() {
             // 将结果写入临时 CANVAS_ELEMENT
             CTX.putImageData(resultImageData, 0, 0);
 
-            // ⭐ NEW: 调用处理结果展示和下载的函数
+            // 调用处理结果展示和下载的函数
             handleMirageResult(width, height);
 
         } catch (e) {
             console.error(e);
             showMessage("❌ 处理失败: " + e.message, true);
-            // 失败时也禁用下载按钮
+            // 失败时禁用下载按钮
             setDownloadButtonState(false);
         }
     }
@@ -215,7 +206,6 @@ export function initMirageGenerator() {
      */
     function handleMirageResult(width, height) {
         // 1. 生成 DataURL
-        // 延迟生成以确保画布渲染完成
         setTimeout(() => {
             generatedDataURL = CANVAS_ELEMENT.toDataURL("image/png");
             
@@ -253,7 +243,7 @@ export function initMirageGenerator() {
 
 
     // ==========================================================
-    // 通用 Dropzone 激活逻辑
+    // 通用 Dropzone 激活逻辑 (保持不变)
     // ==========================================================
 
     /**
@@ -262,7 +252,6 @@ export function initMirageGenerator() {
      * @param {HTMLInputElement} fileInputElement 对应的 file input
      */
     function activateDropzone(dropzoneElement, fileInputElement) {
-        // ... (Dropzone 逻辑保持不变)
         // 1. 点击激活
         dropzoneElement.addEventListener('click', () => {
             fileInputElement.click();
@@ -314,7 +303,7 @@ export function initMirageGenerator() {
     activateDropzone(WHITE_DROPZONE, WHITE_FILE_INPUT);
     activateDropzone(BLACK_DROPZONE, BLACK_FILE_INPUT);
     
-    // ⭐ NEW: 绑定新的按钮事件
+    // 绑定按钮事件
     GENERATE_BUTTON.onclick = makeMirageEnhanced;
     DOWNLOAD_BUTTON.onclick = downloadMirage; 
     
