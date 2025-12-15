@@ -438,23 +438,10 @@
                     
                     <button class="btn" id="startMirageBtn" style="width:100%;margin-top:10px;">🚀 开始生成幻影图</button>
                     
-                    <div class="small" style="margin-top:8px">
-                        处理日志：
-                        <div id="mirage-message" class="log-box" style="min-height:36px;">
-                            等待图片上传并开始生成...
-                        </div>
-                    </div>
+                    <div class="small" style="margin-top:8px">处理日志：<div id="mirage-message" class="log-box" style="display:none;min-height:36px;"></div></div>
                 </div>
 
-                <div class="controls" style="
-                    padding:14px;
-                    height:fit-content;
-                    /* 使用卡片背景色或 slightly-darker-bg 颜色，以匹配其他参数区 */
-                    background: var(--card-bg); 
-                    border-radius: 8px;
-                    /* 仅保留轻微阴影 */
-                    box-shadow: 0 0 10px rgba(0,0,0,0.1); 
-                "> 
+                <div class="controls post-card" style="padding:14px;height:fit-content">
                     <h3 class="params-title">工作原理说明</h3>
                     <p class="small" style="margin-bottom:10px;">
                         最终生成的 PNG 图片利用了 Alpha 通道和 RGB 通道之间的特殊关系：
@@ -467,25 +454,7 @@
                         ⚠️ **重要提示：** 两张图的尺寸最好相同。如果不同，将以第一张图（白底预览图）的尺寸为准对第二张图进行缩放。
                     </p>
                 </div>
-            </div>
-        </div>
-        
-    </div>
-</div>
 
-                <div class="controls" style="padding:14px;height:fit-content; border-left: 1px solid var(--border);"> 
-                    <h3 class="params-title">工作原理说明</h3>
-                    <p class="small" style="margin-bottom:10px;">
-                        最终生成的 PNG 图片利用了 Alpha 通道和 RGB 通道之间的特殊关系：
-                    </p>
-                    <ul class="small" style="padding-left: 20px; margin: 0; line-height: 1.6;">
-                        <li>白色背景下，颜色 $C_{white}$ 由 $C_{png} \cdot A/255 + C_{bg} \cdot (1 - A/255)$ 决定。图 A 看起来清晰。</li>
-                        <li>黑色背景下，颜色 $C_{black}$ 由 $C_{png} \cdot A/255 + C_{bg} \cdot (1 - A/255)$ 决定。图 B 看起来清晰。</li>
-                    </ul>
-                    <p class="small" style="margin-top:10px;">
-                        ⚠️ **重要提示：** 两张图的尺寸最好相同。如果不同，将以第一张图（白底预览图）的尺寸为准对第二张图进行缩放。
-                    </p>
-                </div>
             </div>
         </div>
         
