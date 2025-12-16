@@ -21,8 +21,13 @@ export function initMirageGenerator() {
     const GENERATE_BUTTON = document.getElementById('generateMirageBtn');
     const DOWNLOAD_BUTTON = document.getElementById('downloadMirageBtn');
 
+    // ⭐ 新增参数元素
+    const SIZE_BASIS_SELECT = document.getElementById('mirageSizeBasis');
+    const SCALE_STRATEGY_SELECT = document.getElementById('mirageScaleStrategy');
+
+
     // 检查元素是否存在
-    if (!MSG_ELEMENT || !CANVAS_ELEMENT || !WHITE_FILE_INPUT || !BLACK_FILE_INPUT || !PREVIEW_CANVAS || !DOWNLOAD_BUTTON || !GENERATE_BUTTON) return; 
+    if (!MSG_ELEMENT || !CANVAS_ELEMENT || !WHITE_FILE_INPUT || !BLACK_FILE_INPUT || !PREVIEW_CANVAS || !DOWNLOAD_BUTTON || !GENERATE_BUTTON || !SIZE_BASIS_SELECT || !SCALE_STRATEGY_SELECT) return; 
 
     const CTX = CANVAS_ELEMENT.getContext('2d', { willReadFrequently: true });
     const PREVIEW_CTX = PREVIEW_CANVAS.getContext('2d');
@@ -49,7 +54,7 @@ export function initMirageGenerator() {
         // 如果您的 CSS 中有针对 disabled 按钮的样式，它会自动应用
     }
 
-    // ... (loadImage, imageToFloat32Array 函数保持不变)
+    // ... (loadImage 函数保持不变)
     
     /**
      * 加载并返回 Image 对象
@@ -79,14 +84,29 @@ export function initMirageGenerator() {
      * @param {HTMLImageElement} img 
      * @param {number} width 
      * @param {number} height 
+     * @param {string} scaleStrategy - 'stretch' 或 'fit' (新增参数)
      * @returns {Float32Array}
      */
-    function imageToFloat32Array(img, width, height) {
+    function imageToFloat32Array(img, width, height, scaleStrategy) {
         CANVAS_ELEMENT.width = width;
         CANVAS_ELEMENT.height = height;
         CTX.clearRect(0, 0, width, height);
-        // 强制裁剪/缩放图片到目标尺寸
-        CTX.drawImage(img, 0, 0, width, height);
+
+        if (scaleStrategy === 'fit') {
+            // 居中填充 (保持比例)
+            const scale = Math.min(width / img.width, height / img.height);
+            const w = img.width * scale;
+            const h = img.height * scale;
+            const x = (width - w) / 2;
+            const y = (height - h) / 2;
+            
+            // 居中绘制保持比例的图片
+            CTX.drawImage(img, 0, 0, img.width, img.height, x, y, w, h);
+        } else {
+            // 拉伸/缩放 (原有的行为，忽略比例)
+            // 强制裁剪/缩放图片到目标尺寸
+            CTX.drawImage(img, 0, 0, width, height);
+        }
 
         const imageData = CTX.getImageData(0, 0, width, height);
         const data = imageData.data;
@@ -127,11 +147,28 @@ export function initMirageGenerator() {
             const imgW = await loadImage(whiteFile);
             const imgB = await loadImage(blackFile);
             
-            let width = imgW.width;
-            let height = imgW.height;
+            // ⭐ 读取新参数
+            const sizeBasis = SIZE_BASIS_SELECT.value; // 'white' 或 'black'
+            const scaleStrategy = SCALE_STRATEGY_SELECT.value; // 'stretch' 或 'fit'
 
+            let width = 0;
+            let height = 0;
+            
+            // 1. 确定输出尺寸
+            let imgBaseName = '';
+            if (sizeBasis === 'white') {
+                width = imgW.width;
+                height = imgW.height;
+                imgBaseName = '白底图 (A)';
+            } else { // sizeBasis === 'black'
+                width = imgB.width;
+                height = imgB.height;
+                imgBaseName = '黑底图 (B)';
+            }
+
+            // 2. 检查并给出警告
             if (imgW.width !== imgB.width || imgW.height !== imgB.height) {
-                showMessage("警告：两张图片尺寸不一致，将以 '白底图' 的尺寸为准进行缩放。", true);
+                showMessage(`警告：两张图片尺寸不一致，将以 '${imgBaseName}' 的尺寸 ${width}x${height} 为准进行处理。`, true);
             }
             
             CANVAS_ELEMENT.width = width;
@@ -141,13 +178,26 @@ export function initMirageGenerator() {
             
             showMessage(`图片加载成功。正在处理 ${width}x${height} 像素...`);
 
-            const wArr = imageToFloat32Array(imgW, width, height);
-            const bArr = imageToFloat32Array(imgB, width, height);
+            let wArr, bArr;
+            
+            // 3. 根据尺寸基准，决定哪张图需要传入用户选择的 scaleStrategy 参数
+            if (sizeBasis === 'white') {
+                // imgW 是基准，直接拉伸（如果尺寸不匹配，它已经被确定为目标尺寸）
+                wArr = imageToFloat32Array(imgW, width, height, 'stretch'); 
+                // imgB 是被处理图，使用用户选择的策略
+                bArr = imageToFloat32Array(imgB, width, height, scaleStrategy); 
+            } else { // sizeBasis === 'black'
+                // imgW 是被处理图，使用用户选择的策略
+                wArr = imageToFloat32Array(imgW, width, height, scaleStrategy);
+                // imgB 是基准，直接拉伸
+                bArr = imageToFloat32Array(imgB, width, height, 'stretch'); 
+            }
+
 
             const resultImageData = CTX.createImageData(width, height);
             const resultData = resultImageData.data;
 
-            // 核心像素处理逻辑
+            // 核心像素处理逻辑 (保持不变)
             for (let i = 0; i < size; i++) {
                 const idx3 = i * 3;
                 const idx4 = i * 4;
