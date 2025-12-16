@@ -54,7 +54,6 @@ export function initMirageGenerator() {
         // 如果您的 CSS 中有针对 disabled 按钮的样式，它会自动应用
     }
 
-    // ... (loadImage 函数保持不变)
     
     /**
      * 加载并返回 Image 对象
@@ -362,5 +361,5 @@ export function initMirageGenerator() {
     showMessage("");
 }
 
-// 在模块加载时自动运行初始化函数
-document.addEventListener('DOMContentLoaded', initMirageGenerator);
+// 在模块加载时自动运行初始化函数 (代替 DOMContentLoaded)
+initMirageGenerator();
