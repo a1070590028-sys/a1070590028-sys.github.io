@@ -7,7 +7,6 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="css/style.css">
 
-    <!-- 额外小样式：确保输入框/压缩参数样式统一（不会限制数字，允许任意字符） -->
     <style>
         /* 通用参数行：标题 + 控件 对齐 */
         .compress-param {
@@ -153,17 +152,14 @@
     <h2 class="card-title">🛡️文件加密与伪装 <span class="toggle-icon">▾</span></h2>
     <div class="card-content">
             <p style="margin-top:8px">使用AES技术进行文件加密，支持自选加密图。</p>
-        <!-- 顶部切换按钮 -->
         <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn active" data-enc-tab="encrypt">加密文件</button>
             <button class="btn" data-enc-tab="decrypt">解密文件</button>
         </div>
 
-<!-- ===================== 加密面板（两列布局） ===================== -->
 <div id="encrypt-panel" style="display:block;margin-top:16px;">
     <div class="compress-grid">
 
-        <!-- 左侧：上传与日志 -->
         <div style="padding:12px">
             <div id="dropzoneEnc" class="dropzone" style="margin-bottom:15px;">
                 <div class="dropzone-title">上传文件（任意格式）</div>
@@ -175,17 +171,14 @@
             <div id="encLog"></div>
         </div>
 
-        <!-- 右侧：参数卡片 -->
         <div class="controls post-card" style="padding:14px">
             <h3 class="params-title">参数设置</h3>
 
-            <!-- 输出文件名 -->
             <div class="compress-param">
                 <label class="small">输出文件名（无需扩展名）</label>
                 <input id="encFilename" type="text" placeholder="例如：secret_file">
             </div>
 
-            <!-- 加密级别 -->
             <div class="compress-param">
                 <label class="small">加密级别</label>
                 <select id="encLevel">
@@ -194,17 +187,14 @@
                 </select>
             </div>
 
-            <!-- 密码 -->
             <div class="compress-param">
                 <label class="small">加密密码（Level 2 必填）</label>
                 <input id="encPasswordInput" type="password" placeholder="请输入密码">
             </div>
 
-            <!-- 载体选择（已优化为“上传本地图片”） -->
             <div class="compress-param">
                 <label class="small">选择图片载体</label>
 
-                <!-- 新版 UI：上传本地图片（拖拽或点击） -->
                 <div id="localCarrierDropzone" class="dropzone" style="margin-bottom:10px;">
                     <div class="dropzone-title">上传本地图片（拖拽或点击）</div>
                     <input type="file" id="localCarrierInput" accept="image/*" style="display:none">
@@ -227,32 +217,26 @@
 </div>
 
 
-        <!-- ===================== 解密面板（单列布局） ===================== -->
         <div id="decrypt-panel" style="display:none;margin-top:16px;">
 
-            <!-- 上传区 -->
             <div id="dropzoneDec" class="dropzone" style="margin-bottom:15px;">
                 <div class="dropzone-title">上传加密后的文件</div>
                 <input type="file" id="decInput" style="display:none">
             </div>
 
-            <!-- 文件信息 -->
             <div id="decFileDetail" style="margin-bottom:15px;padding:10px 0;border-bottom:1px solid var(--border);display:none;">
                 <div class="small">文件名：<span id="decFileName">--</span></div>
                 <div class="small">大小：<span id="decFileSize">--</span></div>
                 <div class="small">加密级别：<span id="decLevelDisplay" style="color:var(--accent)">解析中...</span></div>
             </div>
 
-            <!-- 解密密码 -->
             <div class="compress-param">
                 <label class="small">解密密码（Level 2 必填）</label>
                 <input id="decPasswordInput" type="password" placeholder="请输入密码">
             </div>
 
-            <!-- 按钮 -->
             <button class="btn" id="startDecrypt" style="width:100%;margin-top:10px;">开始解密</button>
 
-            <!-- 日志 -->
             <div class="small" style="margin-top:10px;">处理日志：</div>
             <div id="decLog"></div>
         </div>
@@ -455,17 +439,29 @@
                 </div>
 
                 <div class="controls post-card" style="padding:14px;height:fit-content">
-                    <h3 class="params-title">工作原理说明</h3>
-                    <p class="small" style="margin-bottom:10px;">
-                        最终生成的 PNG 图片利用了 Alpha 通道和 RGB 通道之间的特殊关系：
-                    </p>
-                    <ul class="small" style="padding-left: 20px; margin: 0; line-height: 1.6;">
-                        <li>白色背景下，颜色 $C_{white}$ 由 $C_{png} \cdot A/255 + C_{bg} \cdot (1 - A/255)$ 决定。图 A 看起来清晰。</li>
-                        <li>黑色背景下，颜色 $C_{black}$ 由 $C_{png} \cdot A/255 + C_{bg} \cdot (1 - A/255)$ 决定。图 B 看起来清晰。</li>
-                    </ul>
-                    <p class="small" style="margin-top:10px;">
-                        ⚠️ **重要提示：** 两张图的尺寸最好相同。如果不同，将以第一张图（白底预览图）的尺寸为准进行缩放。
-                    </p>
+                    <h3 class="params-title">参数设置</h3>
+                    
+                    <div class="compress-param">
+                        <label class="small">尺寸标准 (若尺寸不同)</label>
+                        <select id="mirageSizeBasis">
+                            <option value="white">以白底预览图 (图 A) 为准</option>
+                            <option value="black">以黑底隐藏图 (图 B) 为准</option>
+                        </select>
+                        <label class="small">以选中图片的尺寸作为最终输出的尺寸。</label>
+                    </div>
+
+                    <div class="compress-param" style="margin-top: 15px;">
+                        <label class="small">另一张图的缩放策略</label>
+                        <select id="mirageScaleStrategy">
+                            <option value="stretch">拉伸/缩放 (默认)</option>
+                            <option value="fit">居中填充 (保持比例)</option>
+                        </select>
+                        <label class="small">如果尺寸不一致，另一张图如何适应目标尺寸。</label>
+                    </div>
+                    
+                    <div style="margin-top:15px;" class="small">
+                        💡 **提示：** 保持两图尺寸一致可以获得最佳效果。
+                    </div>
                 </div>
 
             </div>
@@ -537,7 +533,6 @@
     </div>
 </div>
 
-<!-- libs -->
 <script src="js/lib/three.min.js"></script>
 <script src="js/lib/vanta.net.min.js"></script>
 <script src="js/lib/vanta.birds.min.js"></script>
@@ -552,7 +547,6 @@
     Object.assign(window.VANTA, window.VANTA || {});
 </script>
 
-<!-- 你的主逻辑文件 -->
 <script type="module" src="js/main.js"></script>
 
 <script>
