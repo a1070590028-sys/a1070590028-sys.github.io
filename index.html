@@ -147,6 +147,143 @@
             </div>
         </div>
     </div>
+
+    <div class="post-card" id="pdf-convert-card">
+        <h2 class="card-title">🚡 图片PDF 互转 <span class="toggle-icon">▾</span></h2>
+        <div class="card-content">
+            <p style="margin-top:8px">纯前端实现：多图转 PDF、PDF 转图片，全部离线处理，支持拖拽与批量下载。</p>
+            <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+                <button class="btn active" data-tab="img2pdf">图片 → PDF</button>
+                <button class="btn" data-tab="pdf2img">PDF → 图片</button>
+            </div>
+            <div id="img2pdf" class="compress-grid" style="margin-top:12px;gap:18px">
+                <div style="padding:12px">
+                    <div id="dropzoneImg" class="dropzone">
+                        <div class="dropzone-title">上传本地图片(拖拽/点击)</div>
+                        <div class="small" style="margin-top:6px">支持 JPG / PNG / WebP / GIF（静帧）</div>
+                        <input type="file" id="imgInput" accept="image/*" multiple style="display:none">
+                    </div>
+                    <div class="thumbs" id="imgThumbs"></div>
+                    <div class="file-row" style="margin-top:12px">
+                        <div class="small">已选：<span id="imgCount">0</span> 张</div>
+                        <div>
+                            <button class="btn" id="clearImgList">清空列表</button>
+                            <button class="btn" id="generatePdf">生成 PDF</button>
+                        </div>
+                    </div>
+                    <div class="small" style="margin-top:8px">处理日志：<div id="imgLog"></div></div>
+                </div>
+                <div class="controls post-card" style="padding:14px;height:fit-content">
+                    <h3 class="params-title">参数设置</h3>
+                    <div class="compress-param"><label class="small">页面尺寸</label>
+                        <select id="pageSize">
+                            <option value="a4">A4（竖版）</option>
+                            <option value="a4l">A4（横版）</option>
+                            <option value="letter">Letter</option>
+                            <option value="custom">自定义尺寸</option>
+                        </select>
+                    </div>
+                    <div class="compress-param" id="customSizeRow" style="display:none">
+                        <input type="number" id="customW" placeholder="宽 px" value="1920" style="width:48%">
+                        <input type="number" id="customH" placeholder="高 px" value="1080" style="width:48%;margin-left:4%">
+                    </div>
+                    <div class="compress-param"><label class="small">边距（px）</label><input id="margin" type="number" value="20" min="0"></div>
+                </div>
+            </div>
+            <div id="pdf2img" style="display:none;padding:12px">
+                <div id="dropzonePdf" class="dropzone">
+                    <div style="font-weight:600;">拖拽 PDF 文件到这里，或点击选择</div>
+                    <div class="small" style="margin-top:6px">一次只支持单个 PDF</div>
+                    <input type="file" id="pdfInput" accept=".pdf" style="display:none">
+                </div>
+                <div class="thumbs" id="pdfThumbs"></div>
+                <div class="file-row" style="margin-top:12px">
+                    <div class="small">共 <span id="pdfPageCount">0</span> 页</div>
+                    <div>
+                        <button class="btn" id="clearPdfList">清空页面</button>
+                        <button class="btn" id="extractImages">提取图片</button>
+                        <button class="btn" id="downloadAllImages">打包下载</button>
+                    </div>
+                </div>
+                <div class="small" style="margin-top:8px">处理日志：<div id="pdfLog"></div></div>
+            </div>
+        </div>
+    </div>
+    
+<div class="post-card">
+    <h2 class="card-title">🖼️ 视觉坦克 <span class="toggle-icon">▾</span></h2>
+    <div class="card-content">
+        <p style="margin-top:8px">制作一个在**白底**上看到图 A，在**黑底**上看到图 B 的 PNG 图像。</p>
+        
+        <div id="mirage-panel" style="display:block;margin-top:16px;">
+            <div class="compress-grid">
+                <div style="padding:12px">
+                    <div class="compress-param" style="margin-top:0;">
+                        <label class="small">⚪ 步骤一：白底预览图 (图 A)</label>
+                        <div id="whiteFileDropzone" class="dropzone" style="margin-bottom:15px;">
+                            <div class="dropzone-title">拖拽或点击上传图片</div>
+                            <input type="file" id="whiteBgFile" accept="image/*" style="display:none">
+                        </div>
+                    </div>
+                    
+                    <div class="compress-param">
+                        <label class="small">⚫ 步骤二：黑底隐藏图 (图 B)</label>
+                        <div id="blackFileDropzone" class="dropzone">
+                            <div class="dropzone-title">拖拽或点击上传图片</div>
+                            <input type="file" id="blackBgFile" accept="image/*" style="display:none">
+                        </div>
+                    </div>
+                    
+                    <div id="mirage-result-preview" style="margin-top:15px; text-align: center; display: none;">
+                        <h3 class="params-title" style="margin-bottom: 8px;">预览</h3>
+                        <div id="miragePreview" style="max-width: 100%; max-height: 200px; margin-bottom: 10px; border: 1px dashed var(--border); display: inline-block; padding: 5px;">
+                            <canvas id="miragePreviewCanvas" style="max-width: 190px; max-height: 190px; display: block; margin: auto;"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
+                        <button class="btn" id="generateMirageBtn" style="width:100%;">生成幻影图</button>
+                        <button class="btn" id="downloadMirageBtn" style="width:100%;" disabled>下载文件</button>
+                    </div>
+
+                    <div class="small" style="margin-top:8px">
+                        处理日志：
+                        <div id="mirage-message" class="log-box" style="display:block; min-height:36px;">&nbsp;</div>
+                    </div>
+                </div>
+
+                <div class="controls post-card" style="padding:14px;height:fit-content">
+                    <h3 class="params-title">参数设置</h3>
+                    
+                    <div class="compress-param">
+                        <label class="small">尺寸标准 (若尺寸不同)</label>
+                        <select id="mirageSizeBasis">
+                            <option value="white">以白底预览图 (图 A) 为准</option>
+                            <option value="black">以黑底隐藏图 (图 B) 为准</option>
+                        </select>
+                        <label class="small">以选中图片的尺寸作为最终输出的尺寸。</label>
+                    </div>
+
+                    <div class="compress-param" style="margin-top: 15px;">
+                        <label class="small">另一张图的缩放策略</label>
+                        <select id="mirageScaleStrategy">
+                            <option value="stretch">拉伸/缩放 (默认)</option>
+                            <option value="fit">居中填充 (保持比例)</option>
+                        </select>
+                        <label class="small">如果尺寸不一致，另一张图如何适应目标尺寸。</label>
+                    </div>
+                    
+                    <div style="margin-top:15px;" class="small">
+                        💡 **提示：** 保持两图尺寸一致可以获得最佳效果。
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+    </div>
+</div>
+<canvas id="mirage-canvas" style="display:none;"></canvas>
     
 <div class="post-card">
     <h2 class="card-title">🛡️文件加密与伪装 <span class="toggle-icon">▾</span></h2>
@@ -399,143 +536,6 @@
         </div>
     </div>
 </div>
-    
-    <div class="post-card" id="pdf-convert-card">
-        <h2 class="card-title">🚡 图片PDF 互转 <span class="toggle-icon">▾</span></h2>
-        <div class="card-content">
-            <p style="margin-top:8px">纯前端实现：多图转 PDF、PDF 转图片，全部离线处理，支持拖拽与批量下载。</p>
-            <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
-                <button class="btn active" data-tab="img2pdf">图片 → PDF</button>
-                <button class="btn" data-tab="pdf2img">PDF → 图片</button>
-            </div>
-            <div id="img2pdf" class="compress-grid" style="margin-top:12px;gap:18px">
-                <div style="padding:12px">
-                    <div id="dropzoneImg" class="dropzone">
-                        <div class="dropzone-title">上传本地图片(拖拽/点击)</div>
-                        <div class="small" style="margin-top:6px">支持 JPG / PNG / WebP / GIF（静帧）</div>
-                        <input type="file" id="imgInput" accept="image/*" multiple style="display:none">
-                    </div>
-                    <div class="thumbs" id="imgThumbs"></div>
-                    <div class="file-row" style="margin-top:12px">
-                        <div class="small">已选：<span id="imgCount">0</span> 张</div>
-                        <div>
-                            <button class="btn" id="clearImgList">清空列表</button>
-                            <button class="btn" id="generatePdf">生成 PDF</button>
-                        </div>
-                    </div>
-                    <div class="small" style="margin-top:8px">处理日志：<div id="imgLog"></div></div>
-                </div>
-                <div class="controls post-card" style="padding:14px;height:fit-content">
-                    <h3 class="params-title">参数设置</h3>
-                    <div class="compress-param"><label class="small">页面尺寸</label>
-                        <select id="pageSize">
-                            <option value="a4">A4（竖版）</option>
-                            <option value="a4l">A4（横版）</option>
-                            <option value="letter">Letter</option>
-                            <option value="custom">自定义尺寸</option>
-                        </select>
-                    </div>
-                    <div class="compress-param" id="customSizeRow" style="display:none">
-                        <input type="number" id="customW" placeholder="宽 px" value="1920" style="width:48%">
-                        <input type="number" id="customH" placeholder="高 px" value="1080" style="width:48%;margin-left:4%">
-                    </div>
-                    <div class="compress-param"><label class="small">边距（px）</label><input id="margin" type="number" value="20" min="0"></div>
-                </div>
-            </div>
-            <div id="pdf2img" style="display:none;padding:12px">
-                <div id="dropzonePdf" class="dropzone">
-                    <div style="font-weight:600;">拖拽 PDF 文件到这里，或点击选择</div>
-                    <div class="small" style="margin-top:6px">一次只支持单个 PDF</div>
-                    <input type="file" id="pdfInput" accept=".pdf" style="display:none">
-                </div>
-                <div class="thumbs" id="pdfThumbs"></div>
-                <div class="file-row" style="margin-top:12px">
-                    <div class="small">共 <span id="pdfPageCount">0</span> 页</div>
-                    <div>
-                        <button class="btn" id="clearPdfList">清空页面</button>
-                        <button class="btn" id="extractImages">提取图片</button>
-                        <button class="btn" id="downloadAllImages">打包下载</button>
-                    </div>
-                </div>
-                <div class="small" style="margin-top:8px">处理日志：<div id="pdfLog"></div></div>
-            </div>
-        </div>
-    </div>
-
-<div class="post-card">
-    <h2 class="card-title">🖼️ 视觉幻影生成器 <span class="toggle-icon">▾</span></h2>
-    <div class="card-content">
-        <p style="margin-top:8px">制作一个在**白底**上看到图 A，在**黑底**上看到图 B 的 PNG 图像。</p>
-        
-        <div id="mirage-panel" style="display:block;margin-top:16px;">
-            <div class="compress-grid">
-                <div style="padding:12px">
-                    <div class="compress-param" style="margin-top:0;">
-                        <label class="small">⚪ 步骤一：白底预览图 (图 A)</label>
-                        <div id="whiteFileDropzone" class="dropzone" style="margin-bottom:15px;">
-                            <div class="dropzone-title">拖拽或点击上传图片</div>
-                            <input type="file" id="whiteBgFile" accept="image/*" style="display:none">
-                        </div>
-                    </div>
-                    
-                    <div class="compress-param">
-                        <label class="small">⚫ 步骤二：黑底隐藏图 (图 B)</label>
-                        <div id="blackFileDropzone" class="dropzone">
-                            <div class="dropzone-title">拖拽或点击上传图片</div>
-                            <input type="file" id="blackBgFile" accept="image/*" style="display:none">
-                        </div>
-                    </div>
-                    
-                    <div id="mirage-result-preview" style="margin-top:15px; text-align: center; display: none;">
-                        <h3 class="params-title" style="margin-bottom: 8px;">预览</h3>
-                        <div id="miragePreview" style="max-width: 100%; max-height: 200px; margin-bottom: 10px; border: 1px dashed var(--border); display: inline-block; padding: 5px;">
-                            <canvas id="miragePreviewCanvas" style="max-width: 190px; max-height: 190px; display: block; margin: auto;"></canvas>
-                        </div>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;">
-                        <button class="btn" id="generateMirageBtn" style="width:100%;">生成幻影图</button>
-                        <button class="btn" id="downloadMirageBtn" style="width:100%;" disabled>下载文件</button>
-                    </div>
-
-                    <div class="small" style="margin-top:8px">
-                        处理日志：
-                        <div id="mirage-message" class="log-box" style="display:block; min-height:36px;">&nbsp;</div>
-                    </div>
-                </div>
-
-                <div class="controls post-card" style="padding:14px;height:fit-content">
-                    <h3 class="params-title">参数设置</h3>
-                    
-                    <div class="compress-param">
-                        <label class="small">尺寸标准 (若尺寸不同)</label>
-                        <select id="mirageSizeBasis">
-                            <option value="white">以白底预览图 (图 A) 为准</option>
-                            <option value="black">以黑底隐藏图 (图 B) 为准</option>
-                        </select>
-                        <label class="small">以选中图片的尺寸作为最终输出的尺寸。</label>
-                    </div>
-
-                    <div class="compress-param" style="margin-top: 15px;">
-                        <label class="small">另一张图的缩放策略</label>
-                        <select id="mirageScaleStrategy">
-                            <option value="stretch">拉伸/缩放 (默认)</option>
-                            <option value="fit">居中填充 (保持比例)</option>
-                        </select>
-                        <label class="small">如果尺寸不一致，另一张图如何适应目标尺寸。</label>
-                    </div>
-                    
-                    <div style="margin-top:15px;" class="small">
-                        💡 **提示：** 保持两图尺寸一致可以获得最佳效果。
-                    </div>
-                </div>
-
-            </div>
-        </div>
-        
-    </div>
-</div>
-<canvas id="mirage-canvas" style="display:none;"></canvas>
     
     <div class="post-card">
         <h2 class="card-title">✨ 未来内容 <span class="toggle-icon">▾</span></h2>
