@@ -337,7 +337,7 @@
 <div class="post-card">
     <h2 class="card-title">👻 幽灵文本 (隐写) <span class="toggle-icon">▾</span></h2>
     <div class="card-content">
-        <p style="margin-top:8px">在普通文字中隐藏一段加密信息。秘密内容将以“零宽字符”形式附着在文本后。</p>
+        <p style="margin-top:8px">在普通文字中隐藏一段加密信息。秘密内容将以不可见的“零宽字符”形式附着在普通文字后。</p>
         
         <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn active" data-ghost-tab="encode">隐藏信息</button>
@@ -364,7 +364,7 @@
                 <h3 class="params-title">安全设置</h3>
                 <div class="compress-param">
                     <label class="small">加密密钥</label>
-                    <input id="ghostEncKey" type="password" placeholder="设置密码" value="123456">
+                    <input id="ghostEncKey" type="password" placeholder="请输入密码">
                 </div>
             </div>
         </div>
@@ -385,14 +385,17 @@
                 <h3 class="params-title">解密验证</h3>
                 <div class="compress-param">
                     <label class="small">提取密钥</label>
-                    <input id="ghostDecKey" type="password" placeholder="输入密码">
+                    <input id="ghostDecKey" type="password" placeholder="请输入密码">
                 </div>
                 <button class="btn" id="ghostParseBtn" style="width:100%;margin-top:10px;">提取信息</button>
             </div>
         </div>
 
-        <div id="ghostLog" class="log-box" style="margin-top:12px;">
-            等待操作...
+        <div style="margin-top:16px;">
+            <div class="small" style="margin-bottom:8px; color: var(--text-muted);">处理日志：</div>
+            <div id="ghostLog" class="log-box">
+                等待操作...
+            </div>
         </div>
     </div>
 </div>
