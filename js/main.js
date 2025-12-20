@@ -10,3 +10,4 @@ import './modules/music-player.js';
 import './modules/dog-speak.js';
 import './modules/encryption.js';
 import './modules/mirage-generator.js';
+import './modules/ghost-text.js';
