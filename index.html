@@ -335,23 +335,19 @@
 </div>
 
 <div class="post-card">
-    <h2 class="card-title">👻 幽灵文本 <span class="toggle-icon">▾</span></h2>
+    <h2 class="card-title">👻 幽灵文本 (隐写) <span class="toggle-icon">▾</span></h2>
     <div class="card-content">
-        <p style="margin-top:8px">在普通文字中隐藏一段加密信息。秘密内容将以“零宽字符”形式附着在普通文字后。</p>
+        <p style="margin-top:8px">在普通文字中隐藏一段加密信息。秘密内容将以“零宽字符”形式附着在文本后。</p>
         
         <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn active" data-ghost-tab="encode">隐藏信息</button>
             <button class="btn" data-ghost-tab="decode">提取信息</button>
         </div>
 
-        <div id="ghostLog" class="log-box" style="margin-top:16px; min-height:60px;">
-            
-        </div>
-
         <div id="ghost-encode-panel" style="display:grid;margin-top:16px;" class="compress-grid">
-            <div style="padding:0 12px">
+            <div style="padding:12px">
                 <div class="compress-param" style="margin-top:0;">
-                    <label class="small">显示的普通文字：</label>
+                    <label class="small">可见的普通文字：</label>
                     <textarea id="ghostVisibleText" placeholder="对方直接看到的文字..." rows="3"></textarea>
                 </div>
                 <div class="compress-param">
@@ -359,41 +355,44 @@
                     <textarea id="ghostHiddenText" placeholder="只有通过密钥解析才能看到的秘密..." rows="3"></textarea>
                 </div>
                 <div style="margin-top: 10px; display: flex; gap: 8px;">
-                    <button class="btn" id="ghostGenBtn" style="flex: 2; background: var(--accent); color: white;">生成幽灵文本</button>
-                    <button class="btn" id="ghostCopyBtn" style="flex: 1;">复制结果</button>
+                    <button class="btn" id="ghostGenBtn" style="flex: 1;">生成并复制</button>
+                    <button class="btn" id="ghostDownloadBtn" style="flex: 1;">下载 TXT</button>
                 </div>
             </div>
 
-            <div class="controls post-card" style="padding:14px;height:fit-content; background: rgba(255,255,255,0.02);">
-                <h3 class="params-title">参数设置</h3>
+            <div class="controls post-card" style="padding:14px;height:fit-content">
+                <h3 class="params-title">安全设置</h3>
                 <div class="compress-param">
                     <label class="small">加密密钥</label>
-                    <input id="ghostEncKey" type="password" placeholder="设置提取密码" value="123456">
+                    <input id="ghostEncKey" type="password" placeholder="设置密码" value="123456">
                 </div>
-                <button class="btn" id="ghostDownloadBtn" style="width:100%;margin-top:10px;">下载为 .txt</button>
             </div>
         </div>
         
         <div id="ghost-decode-panel" style="display:none;margin-top:16px;" class="compress-grid">
-            <div style="padding:0 12px">
+            <div style="padding:12px">
                 <div id="ghostReadDropzone" class="dropzone" style="margin-bottom:15px;">
                     <div class="dropzone-title">拖拽或点击上传 TXT 文件</div>
                     <input type="file" id="ghostFileInput" accept=".txt" style="display:none">
                 </div>
                 <div class="compress-param">
-                    <label class="small">或在此粘贴包含隐写的文本：</label>
-                    <textarea id="ghostInputPaste" placeholder="粘贴含有幽灵字符的文本..." rows="5"></textarea>
+                    <label class="small">包含隐写的文本：</label>
+                    <textarea id="ghostInputPaste" placeholder="粘贴含有幽灵字符的文本..." rows="4"></textarea>
                 </div>
             </div>
 
-            <div class="controls post-card" style="padding:14px;height:fit-content; background: rgba(255,255,255,0.02);">
-                <h3 class="params-title">身份验证</h3>
+            <div class="controls post-card" style="padding:14px;height:fit-content">
+                <h3 class="params-title">解密验证</h3>
                 <div class="compress-param">
                     <label class="small">提取密钥</label>
-                    <input id="ghostDecKey" type="password" placeholder="输入预设密码">
+                    <input id="ghostDecKey" type="password" placeholder="输入密码">
                 </div>
-                <button class="btn" id="ghostParseBtn" style="width:100%;margin-top:10px; background: var(--accent); color: white;">立即提取秘密</button>
+                <button class="btn" id="ghostParseBtn" style="width:100%;margin-top:10px;">提取信息</button>
             </div>
+        </div>
+
+        <div id="ghostLog" class="log-box" style="margin-top:12px;">
+            等待操作...
         </div>
     </div>
 </div>
