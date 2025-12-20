@@ -123,7 +123,7 @@ export function initGhostText() {
 
             try {
                 const secret = await decryptText(input.slice(idx + 1), key);
-                log.innerText = '提取成功：' + secret;
+                log.innerText = secret;
                 log.style.color = '#10b981'; // 成功绿
             } catch (err) {
                 log.innerText = '提取失败：密钥不正确';
