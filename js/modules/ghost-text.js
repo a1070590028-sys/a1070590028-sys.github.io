@@ -43,6 +43,7 @@ async function decrypt(zwStr, password) {
 
 function initGhostText() {
     const log = document.getElementById('ghostLog');
+    const resultDisplay = document.getElementById('ghostResultText');
 
     // Tab 切换
     document.querySelectorAll('[data-ghost-tab]').forEach(b => b.onclick = () => {
@@ -51,7 +52,7 @@ function initGhostText() {
         document.getElementById('ghost-decode-panel').style.display = 'none';
         b.classList.add('active');
         document.getElementById('ghost-' + b.dataset.ghostTab + '-panel').style.display = 'grid';
-        log.innerText = `已切换到 ${b.innerText} 模式`;
+        log.innerText = `模式：${b.innerText}`;
     });
 
     // 生成
@@ -60,45 +61,49 @@ function initGhostText() {
         const hidden = document.getElementById('ghostHiddenText').value;
         const key = document.getElementById('ghostEncKey').value;
         
-        if (!hidden) return log.innerText = '错误：秘密内容不能为空';
-        if (!key) return log.innerText = '错误：请输入加密密码';
+        if (!hidden) return log.innerText = '错误：请填写要隐藏的内容';
+        if (!key) return log.innerText = '错误：请设置加密密码';
 
         try {
             const zw = await encrypt(hidden, key);
             const result = visible + SEP + zw;
             await navigator.clipboard.writeText(result);
-            log.innerText = '生成成功！包含隐写信息的文本已复制到剪贴板。';
+            log.innerText = '生成成功！包含隐写信息的文本已复制。';
             log.dataset.lastResult = result;
-        } catch (e) { log.innerText = '加密过程中出现错误'; }
+        } catch (e) { log.innerText = '加密失败'; }
     };
 
-    // 提取
+    // 提取 (逻辑仿照兽语)
     document.getElementById('ghostParseBtn').onclick = async () => {
         const input = document.getElementById('ghostInputPaste').value;
         const key = document.getElementById('ghostDecKey').value;
         const idx = input.indexOf(SEP);
 
+        resultDisplay.value = ''; // 清空上次结果
         if (!key) return log.innerText = '错误：请输入提取密码';
-        if (idx === -1) return log.innerText = '解析失败：文本中不含幽灵信息';
+        if (idx === -1) return log.innerText = '解析失败：文本中不含隐写信息';
 
         try {
             const res = await decrypt(input.slice(idx + 1), key);
-            log.innerText = '提取秘密成功：' + res;
-        } catch (e) { log.innerText = '提取失败：密码不正确或数据已损坏'; }
+            resultDisplay.value = res; // 填入结果框
+            log.innerText = '提取完成。';
+        } catch (e) { 
+            log.innerText = '提取失败：密码不正确'; 
+        }
     };
 
     // 下载
     document.getElementById('ghostDownloadBtn').onclick = () => {
         const content = log.dataset.lastResult;
-        if (!content) return log.innerText = '请先生成隐写文本再下载';
+        if (!content) return log.innerText = '请先生成隐写文本';
         const blob = new Blob([content], { type: 'text/plain' });
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = 'ghost_message.txt';
+        a.download = 'ghost_msg.txt';
         a.click();
     };
 
-    // 文件拖拽加载
+    // 文件上传
     const fileInput = document.getElementById('ghostFileInput');
     const dropzone = document.getElementById('ghostReadDropzone');
     if (dropzone) {
@@ -109,16 +114,11 @@ function initGhostText() {
             const reader = new FileReader();
             reader.onload = (ev) => {
                 document.getElementById('ghostInputPaste').value = ev.target.result;
-                log.innerText = `已加载文件: ${file.name}`;
+                log.innerText = `加载成功: ${file.name}`;
             };
             reader.readAsText(file);
         };
     }
 }
 
-// 自动执行
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initGhostText);
-} else {
-    initGhostText();
-}
+initGhostText();
