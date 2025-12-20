@@ -472,9 +472,9 @@
 </div>
 
 <div class="post-card">
-    <h2 class="card-title">👻 幽灵文本<span class="toggle-icon">▾</span></h2>
+    <h2 class="card-title">👻 幽灵文本 <span class="toggle-icon">▾</span></h2>
     <div class="card-content">
-        <p style="margin-top:8px">在普通文字中隐藏一段加密信息。秘密内容将以不可见的“零宽字符”形式附着在普通文字后。</p>
+        <p style="margin-top:8px">在普通文字中隐藏加密信息。秘密内容将以不可见的“零宽字符”形式附着在普通文字后。</p>
         
         <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
             <button class="btn active" data-ghost-tab="encode">隐藏信息</button>
@@ -514,7 +514,11 @@
                 </div>
                 <div class="compress-param">
                     <label class="small">包含隐写的文本：</label>
-                    <textarea id="ghostInputPaste" placeholder="粘贴含有幽灵字符的文本..." rows="4"></textarea>
+                    <textarea id="ghostInputPaste" placeholder="粘贴含有幽灵字符的文本..." rows="3"></textarea>
+                </div>
+                <div class="compress-param">
+                    <label class="small">提取的秘密文字：</label>
+                    <textarea id="ghostResultText" readonly placeholder="解析后的秘密将显示在这里..." rows="3" style="background: rgba(16,185,129,0.05); color: var(--accent);"></textarea>
                 </div>
             </div>
 
@@ -524,7 +528,7 @@
                     <label class="small">提取密钥</label>
                     <input id="ghostDecKey" type="password" placeholder="请输入密码">
                 </div>
-                <button class="btn" id="ghostParseBtn" style="width:100%;margin-top:10px;">提取信息</button>
+                <button class="btn" id="ghostParseBtn" style="width:100%;margin-top:10px;">立即提取</button>
             </div>
         </div>
 
