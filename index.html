@@ -334,7 +334,7 @@
     </div>
 </div>
     
-    <div class="post-card">
+    <div class="post-card" id="pdf-convert-card">
         <h2 class="card-title">🚡 图片PDF 互转 <span class="toggle-icon">▾</span></h2>
         <div class="card-content">
             <p style="margin-top:8px">纯前端实现：多图转 PDF、PDF 转图片，全部离线处理，支持拖拽与批量下载。</p>
@@ -551,11 +551,15 @@
 
 <script>
 /* 小脚本：Tab 切换（图片/PDF互转）与加密/解密 tab */
-document.querySelectorAll('.post-card:nth-child(4) [data-tab]').forEach(b => b.onclick = () => {
-    document.querySelectorAll('.post-card:nth-child(4) [data-tab]').forEach(x => x.classList.remove('active'));
-    document.querySelectorAll('#img2pdf, #pdf2img').forEach(x => x.style.display = 'none');
+document.querySelectorAll('#pdf-convert-card [data-tab]').forEach(b => b.onclick = () => {
+    // 仅在当前卡片范围内寻找按钮和面板
+    const card = b.closest('.post-card');
+    card.querySelectorAll('[data-tab]').forEach(x => x.classList.remove('active'));
+    card.querySelectorAll('#img2pdf, #pdf2img').forEach(x => x.style.display = 'none');
+    
     b.classList.add('active');
-    document.getElementById(b.dataset.tab).style.display = b.dataset.tab === 'img2pdf' ? 'grid' : 'block';
+    const targetId = b.dataset.tab;
+    document.getElementById(targetId).style.display = targetId === 'img2pdf' ? 'grid' : 'block';
 });
 
 // 加密 / 解密 tab 切换（使用 data-enc-tab）
