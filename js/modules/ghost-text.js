@@ -43,37 +43,35 @@ async function decrypt(zwStr, password) {
 
 function initGhostText() {
     const log = document.getElementById('ghostLog');
-    const updateLog = (msg, isError = false) => {
-        log.innerText = msg;
-        log.style.color = isError ? '#ef4444' : 'var(--accent)';
-    };
 
-    // Tab 切换逻辑
+    // Tab 切换
     document.querySelectorAll('[data-ghost-tab]').forEach(b => b.onclick = () => {
         document.querySelectorAll('[data-ghost-tab]').forEach(x => x.classList.remove('active'));
         document.getElementById('ghost-encode-panel').style.display = 'none';
         document.getElementById('ghost-decode-panel').style.display = 'none';
         b.classList.add('active');
-        document.getElementById('ghost-' + b.dataset.ghostTab + '-panel').style.display = 'grid';
-        updateLog(`已切换至${b.innerText}模式`);
+        const target = document.getElementById('ghost-' + b.dataset.ghostTab + '-panel');
+        target.style.display = b.dataset.ghostTab === 'encode' ? 'grid' : 'grid';
+        log.innerText = `已切换到 ${b.innerText} 模式`;
     });
 
-    // 生成
+    // 生成并自动复制
     document.getElementById('ghostGenBtn').onclick = async () => {
         const visible = document.getElementById('ghostVisibleText').value;
         const hidden = document.getElementById('ghostHiddenText').value;
         const key = document.getElementById('ghostEncKey').value;
-        if (!hidden || !key) return updateLog('错误：秘密内容和密钥不能为空', true);
+        if (!hidden || !key) {
+            log.innerText = '错误：请填写秘密内容和密钥';
+            return;
+        }
 
-        updateLog('正在进行 AES 加密并注入幽灵字符...');
         try {
             const zw = await encrypt(hidden, key);
             const result = visible + SEP + zw;
-            document.getElementById('ghostInputPaste').value = result; // 自动填充到解密框方便测试
-            updateLog('生成成功！隐写字符已附着在可见文字后。');
-            // 将结果暂存到一个自定义属性，方便复制和下载
+            await navigator.clipboard.writeText(result);
+            log.innerText = '生成成功！内容已自动复制到剪贴板。';
             log.dataset.lastResult = result;
-        } catch (e) { updateLog('生成失败：' + e.message, true); }
+        } catch (e) { log.innerText = '加密失败'; }
     };
 
     // 提取
@@ -81,55 +79,29 @@ function initGhostText() {
         const input = document.getElementById('ghostInputPaste').value;
         const key = document.getElementById('ghostDecKey').value;
         const idx = input.indexOf(SEP);
-        if (idx === -1) return updateLog('解析失败：未发现隐藏的幽灵文本', true);
-
-        updateLog('密钥验证中...');
+        if (idx === -1) {
+            log.innerText = '解析失败：未发现隐藏信息';
+            return;
+        }
         try {
             const res = await decrypt(input.slice(idx + 1), key);
-            updateLog('提取成功：' + res);
-            log.style.color = '#10b981';
-        } catch (e) { updateLog('解析失败：密钥错误或数据损坏', true); }
+            log.innerText = '提取结果：' + res;
+        } catch (e) { log.innerText = '提取失败：密钥错误'; }
     };
 
-    // 复制
-    document.getElementById('ghostCopyBtn').onclick = () => {
-        const content = log.dataset.lastResult;
-        if (!content) return updateLog('请先生成幽灵文本', true);
-        navigator.clipboard.writeText(content).then(() => {
-            updateLog('已成功复制到剪贴板（含不可见字符）');
-        });
-    };
-
-    // 下载 TXT
+    // 下载
     document.getElementById('ghostDownloadBtn').onclick = () => {
         const content = log.dataset.lastResult;
-        if (!content) return updateLog('请先生成幽灵文本', true);
-        const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
+        if (!content) { log.innerText = '请先生成内容'; return; }
+        const blob = new Blob([content], { type: 'text/plain' });
         const a = document.createElement('a');
-        a.href = url;
-        a.download = `ghost_msg_${Date.now()}.txt`;
+        a.href = URL.createObjectURL(blob);
+        a.download = 'ghost_text.txt';
         a.click();
-        updateLog('文件已准备好下载');
-    };
-
-    // 文件读取
-    const fileInput = document.getElementById('ghostFileInput');
-    const dropzone = document.getElementById('ghostReadDropzone');
-    dropzone.onclick = () => fileInput.click();
-    fileInput.onchange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            document.getElementById('ghostInputPaste').value = ev.target.result;
-            updateLog(`已加载文件: ${file.name}，点击“立即提取”进行解密`);
-        };
-        reader.readAsText(file);
     };
 }
 
-// 适配主程序加载
+// 初始化
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initGhostText);
 } else {
