@@ -33,7 +33,7 @@ export function initMusicPlayer() {
             renderPlaylist();
             if (playlist.length > 0) {
                 currentIndex = 0;
-                loadAndPlayIndex(0);            // 使用新函数加载第一首
+                loadAndPlayIndex(0, false);            // 使用新函数加载第一首
             }
         })
         .catch(() => {});
@@ -197,3 +197,4 @@ export function initMusicPlayer() {
 }
 
 document.addEventListener('DOMContentLoaded', initMusicPlayer);
+
