@@ -51,11 +51,14 @@ function handleMergeFiles(files) {
     updateMergeUI();
 }
 
-// ⭐ 核心升级：动态生成可操作的排序列表
+// ⭐ 核心升级：动态生成可操作的排序列表 (带有防挤压横向滚动)
 function updateMergeUI() {
     if (!mergeCountEl || !mergeListContainer) return;
     mergeCountEl.innerText = mergeFiles.length;
     mergeListContainer.innerHTML = '';
+    
+    // 给外层容器加上横向滚动允许
+    mergeListContainer.style.overflowX = 'auto';
     
     if (mergeFiles.length === 0) {
         mergeListContainer.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:10px;">列表为空，请上传 PDF 文件</div>';
@@ -74,21 +77,22 @@ function updateMergeUI() {
         item.style.border = '1px solid var(--border)';
         item.style.borderRadius = '8px';
         item.style.transition = 'all 0.2s';
+        
+        // 强制元素最小宽度为内容的实际宽度，撑出横向滚动条
+        item.style.minWidth = 'max-content';
 
         // 文件信息文本
         const infoSpan = document.createElement('span');
         infoSpan.innerText = `${index + 1}. ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
-        infoSpan.style.flex = '1';
-        infoSpan.style.overflow = 'hidden';
-        infoSpan.style.textOverflow = 'ellipsis';
-        infoSpan.style.whiteSpace = 'nowrap';
-        infoSpan.style.marginRight = '10px';
+        infoSpan.style.marginRight = '20px'; 
         infoSpan.style.fontSize = '13px';
+        infoSpan.style.whiteSpace = 'nowrap'; // 取消换行，保持单行显示
 
         // 按钮容器
         const actionsDiv = document.createElement('div');
         actionsDiv.style.display = 'flex';
         actionsDiv.style.gap = '6px';
+        actionsDiv.style.flexShrink = '0'; // 禁止按钮容器在空间不足时被压缩
 
         // 通用按钮生成函数
         const createBtn = (text, onClick, disabled = false, isDanger = false) => {
