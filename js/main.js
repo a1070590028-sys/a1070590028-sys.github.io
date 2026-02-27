@@ -11,3 +11,4 @@ import './modules/dog-speak.js';
 import './modules/encryption.js';
 import './modules/mirage-generator.js';
 import './modules/ghost-text.js';
+import './modules/pdf-merge-split.js'; 
