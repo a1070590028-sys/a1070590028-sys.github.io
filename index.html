@@ -36,21 +36,13 @@
         .compress-param input[type="range"] {
             width: 100%;
         }
-        /* 显示为和其它卡片一致的按钮样式（若外部 style.css 已有则使用外部样式） */
         .post-card .params-title { margin-top: 0; margin-bottom: 8px; font-size: 15px; color: var(--accent); }
-        /* 日志块小调整 */
         #encLog, #decLog { min-height: 36px; max-height:160px; overflow:auto; padding:10px; border-radius:8px; background: rgba(0,0,0,0.03); color:var(--text-muted); }
-        /* 载体预览 */
         #carrierPreview img { display:block; margin:6px auto; max-height:140px; width:auto; border-radius:6px; }
-        /* 控制面板内一致的内边距 */
         #encrypt-panel .post-card, #decrypt-panel .post-card { padding:12px; box-sizing:border-box; }
-        /* 修复狗叫密语输出区域的换行和滚动条问题 */
         #dogDecodeLog, #dogOutputLog {
-            /* 确保内容超出时出现垂直滚动条 */
             overflow-y: auto !important; 
-            /* 强制在任何字符处打断长单词，确保不会横向溢出 */
             word-break: break-all !important; 
-            /* 确保日志框有足够的最小高度 */
             min-height: 100px !important;
         }
     </style>
@@ -210,7 +202,86 @@
         </div>
     </div>
     
-<div class="post-card">
+    <div class="post-card" id="pdf-merge-split-card">
+        <h2 class="card-title">📄 PDF 合并与拆分 <span class="toggle-icon">▾</span></h2>
+        <div class="card-content">
+            <p style="margin-top:8px">在浏览器内直接处理 PDF 文件，支持多文件顺序合并以及按页码拆分，完全离线运行。</p>
+            
+            <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+                <button class="btn active" data-pdfms-tab="merge">合并 PDF</button>
+                <button class="btn" data-pdfms-tab="split">拆分 PDF</button>
+            </div>
+    
+            <div id="pdfms-merge-panel" style="display:block;margin-top:16px;">
+                <div class="compress-grid">
+                    <div style="padding:12px">
+                        <div id="dropzonePdfMerge" class="dropzone" style="margin-bottom:15px;">
+                            <div class="dropzone-title">上传多个 PDF 文件(拖拽/点击)</div>
+                            <div class="small" style="margin-top:6px">将按列表顺序进行合并</div>
+                            <input type="file" id="pdfMergeInput" accept=".pdf" multiple style="display:none">
+                        </div>
+                        <div class="file-row" style="margin-top:12px">
+                            <div class="small">已选：<span id="pdfMergeCount">0</span> 个文件</div>
+                            <div>
+                                <button class="btn" id="clearPdfMergeBtn">清空列表</button>
+                                <button class="btn" id="startPdfMergeBtn">开始合并</button>
+                            </div>
+                        </div>
+                        <div id="pdfMergeList" style="margin-top:10px; font-size:13px; color:var(--text); max-height:120px; overflow-y:auto;">
+                            </div>
+                        <div class="small" style="margin-top:8px">处理日志：<div id="pdfMergeLog" class="log-box" style="min-height: 36px;"></div></div>
+                    </div>
+                    <div class="controls post-card" style="padding:14px;height:fit-content">
+                        <h3 class="params-title">合并设置</h3>
+                        <div class="compress-param">
+                            <label class="small">输出文件名 (.pdf)</label>
+                            <input id="pdfMergeFilename" type="text" value="merged_document.pdf">
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <div id="pdfms-split-panel" style="display:none;margin-top:16px;">
+                <div class="compress-grid">
+                    <div style="padding:12px">
+                        <div id="dropzonePdfSplit" class="dropzone" style="margin-bottom:15px;">
+                            <div class="dropzone-title">上传单个 PDF 文件(拖拽/点击)</div>
+                            <input type="file" id="pdfSplitInput" accept=".pdf" style="display:none">
+                        </div>
+                        <div id="pdfSplitDetail" style="margin-bottom:15px;padding:10px 0;border-bottom:1px solid var(--border);display:none;">
+                            <div class="small">文件名：<span id="pdfSplitName">--</span></div>
+                            <div class="small" style="margin-top:4px;">总页数：<span id="pdfSplitPageCount" style="color:var(--accent);font-weight:bold;">0</span> 页</div>
+                        </div>
+                        <div class="file-row" style="margin-top:12px">
+                            <div>
+                                <button class="btn" id="startPdfSplitBtn" disabled>开始拆分并下载</button>
+                            </div>
+                        </div>
+                        <div class="small" style="margin-top:8px">处理日志：<div id="pdfSplitLog" class="log-box" style="min-height: 36px;"></div></div>
+                    </div>
+                    <div class="controls post-card" style="padding:14px;height:fit-content">
+                        <h3 class="params-title">拆分设置</h3>
+                        <div class="compress-param">
+                            <label class="small">拆分模式</label>
+                            <select id="pdfSplitMode">
+                                <option value="all">每一页提取为一个单页 PDF (打包ZIP)</option>
+                                <option value="range">按页码范围提取并组合为一个新 PDF</option>
+                            </select>
+                        </div>
+                        <div class="compress-param" id="pdfSplitRangeContainer" style="display:none;">
+                            <label class="small">页码范围 (如: 1-3,5,7-9)</label>
+                            <input id="pdfSplitRange" type="text" placeholder="1-3,5">
+                        </div>
+                        <div class="compress-param">
+                            <label class="small">输出命名前缀</label>
+                            <input id="pdfSplitFilename" type="text" value="split_document">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="post-card">
     <h2 class="card-title">🖼️ 幻影坦克 <span class="toggle-icon">▾</span></h2>
     <div class="card-content">
         <p style="margin-top:8px">制作一个在**白底**上看到图 A，在**黑底**上看到图 B 的 PNG 图像。</p>
@@ -611,13 +682,12 @@
 <script src="js/lib/jszip.min.js"></script>
 <script src="js/lib/jspdf.umd.min.js"></script>
 <script src="js/lib/pdf.min.js"></script>
+<script src="js/lib/pdf-lib.min.js"></script>
 
 <script>
     window.VANTA = window.VANTA || {};
     Object.assign(window.VANTA, window.VANTA || {});
 </script>
-
-<script type="module" src="js/main.js"></script>
 
 <script>
 // 幽灵文本 Tab 切换
@@ -649,7 +719,7 @@ document.querySelectorAll('[data-enc-tab]').forEach(b => b.onclick = () => {
     document.getElementById(b.dataset.encTab + '-panel').style.display = 'block';
 });
 
-// 新增：狗叫密语 Tab 切换（使用 data-dog-tab）
+// 狗叫密语 Tab 切换（使用 data-dog-tab）
 document.querySelectorAll('[data-dog-tab]').forEach(b => b.onclick = () => {
     document.querySelectorAll('[data-dog-tab]').forEach(x => x.classList.remove('active'));
     document.getElementById('dog-encode-panel').style.display = 'none';
@@ -657,15 +727,30 @@ document.querySelectorAll('[data-dog-tab]').forEach(b => b.onclick = () => {
     b.classList.add('active');
     document.getElementById('dog-' + b.dataset.dogTab + '-panel').style.display = 'grid'; // 注意这里是 grid
 });
+
+// ====== 新增：PDF 合并与拆分 Tab 切换 ======
+document.querySelectorAll('[data-pdfms-tab]').forEach(b => b.onclick = () => {
+    document.querySelectorAll('[data-pdfms-tab]').forEach(x => x.classList.remove('active'));
+    document.getElementById('pdfms-merge-panel').style.display = 'none';
+    document.getElementById('pdfms-split-panel').style.display = 'none';
+    b.classList.add('active');
+    document.getElementById('pdfms-' + b.dataset.pdfmsTab + '-panel').style.display = 'block';
+});
+
+// ====== 新增：拆分模式显隐联动 ======
+const splitModeSelect = document.getElementById('pdfSplitMode');
+if(splitModeSelect) {
+    splitModeSelect.onchange = e => {
+        document.getElementById('pdfSplitRangeContainer').style.display = e.target.value === 'range' ? 'flex' : 'none';
+    };
+}
     
 // 自定义尺寸显隐
 document.getElementById('pageSize').onchange = e => {
     document.getElementById('customSizeRow').style.display = e.target.value === 'custom' ? 'block' : 'none';
 };
-
 </script>
-    <canvas id="mirage-canvas" style="display:none;"></canvas>
 
-    <script type="module" src="js/main.js"></script>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>
