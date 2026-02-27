@@ -51,15 +51,35 @@ function handleMergeFiles(files) {
     updateMergeUI();
 }
 
-// ⭐ 核心升级：优雅截断防挤压版本 (语法安全版)
+// ⭐ 核心升级：严格对齐的横向拖动条版本
 function updateMergeUI() {
     if (!mergeCountEl || !mergeListContainer) return;
+
+    // 【魔法修复 1】强制锁定父级网格的最小宽度为 0，绝对禁止长文本撑破 UI 挤压右侧面板！
+    if (mergeListContainer.parentElement) {
+        mergeListContainer.parentElement.style.minWidth = '0';
+    }
+
+    // 【魔法修复 2】自动注入与网站风格一致的精美滚动条样式，替换掉丑陋的原生滚动条
+    if (!document.getElementById('pdf-merge-scrollbar-style')) {
+        const style = document.createElement('style');
+        style.id = 'pdf-merge-scrollbar-style';
+        style.innerHTML = `
+            #pdfMergeList::-webkit-scrollbar { height: 8px; width: 8px; background: transparent; }
+            #pdfMergeList::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
+            #pdfMergeList::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
+        `;
+        document.head.appendChild(style);
+    }
+
     mergeCountEl.innerText = mergeFiles.length;
     mergeListContainer.innerHTML = '';
     
-    // 恢复垂直滚动，关闭横向滚动
+    // 开启容器的双向滚动，并稍微调大高度防止横向滚动条遮挡文字
+    mergeListContainer.style.overflowX = 'auto';
     mergeListContainer.style.overflowY = 'auto';
-    mergeListContainer.style.overflowX = 'hidden';
+    mergeListContainer.style.maxHeight = '180px'; 
+    mergeListContainer.style.paddingBottom = '4px'; 
     
     if (mergeFiles.length === 0) {
         mergeListContainer.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:10px;">列表为空，请上传 PDF 文件</div>';
@@ -77,29 +97,22 @@ function updateMergeUI() {
         item.style.border = '1px solid var(--border)';
         item.style.borderRadius = '8px';
         item.style.transition = 'all 0.2s';
-        item.style.width = '100%'; 
-        item.style.boxSizing = 'border-box';
+        
+        // 【关键】强制列表项为内容的最大宽度，这会触发外部容器的横向滚动条，而不是换行或截断
+        item.style.minWidth = 'max-content';
 
-        // 语法安全：将数学运算提取到模板字符串外部
         const sizeMb = (file.size / 1024 / 1024).toFixed(2);
         const fullText = `${index + 1}. ${file.name} (${sizeMb} MB)`;
         
         const infoSpan = document.createElement('span');
         infoSpan.innerText = fullText;
-        infoSpan.title = fullText; 
-
-        infoSpan.style.flex = '1 1 0%'; 
-        infoSpan.style.minWidth = '0';  
-        infoSpan.style.whiteSpace = 'nowrap'; 
-        infoSpan.style.overflow = 'hidden'; 
-        infoSpan.style.textOverflow = 'ellipsis'; 
-        infoSpan.style.marginRight = '12px'; 
+        infoSpan.style.marginRight = '20px'; 
         infoSpan.style.fontSize = '13px';
+        infoSpan.style.whiteSpace = 'nowrap'; // 保持单行显示不换行
 
         const actionsDiv = document.createElement('div');
         actionsDiv.style.display = 'flex';
         actionsDiv.style.gap = '6px';
-        actionsDiv.style.flex = '0 0 auto'; 
 
         const createBtn = (text, onClick, disabled = false, isDanger = false) => {
             const btn = document.createElement('button');
@@ -128,7 +141,6 @@ function updateMergeUI() {
             return btn;
         };
 
-        // 语法安全：弃用容易触发 ASI(自动分号补全) 错误的数组解构，改用传统 temp 变量交换
         const upBtn = createBtn('↑', () => {
             const temp = mergeFiles[index - 1];
             mergeFiles[index - 1] = mergeFiles[index];
@@ -281,7 +293,6 @@ if (splitBtn) {
                 const targetIndices = parseRange(rangeStr, totalPages);
                 if (targetIndices.length === 0) throw new Error("页码范围无效或为空。");
                 
-                // 语法安全：将 map 逻辑提取到外面，避免模板解析器出现括号闭合混淆
                 const rangeText = targetIndices.map(n => n + 1).join(', ');
                 logMsg('pdfSplitLog', `模式：按范围提取 (${rangeText})`);
                 
