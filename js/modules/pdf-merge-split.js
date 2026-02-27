@@ -51,7 +51,7 @@ function handleMergeFiles(files) {
     updateMergeUI();
 }
 
-// ⭐ 核心升级：优雅截断防挤压版本 (修复长文件名破坏 UI 问题)
+// ⭐ 核心升级：优雅截断防挤压版本 (语法安全版)
 function updateMergeUI() {
     if (!mergeCountEl || !mergeListContainer) return;
     mergeCountEl.innerText = mergeFiles.length;
@@ -67,7 +67,6 @@ function updateMergeUI() {
     }
 
     mergeFiles.forEach((file, index) => {
-        // 创建列表项容器
         const item = document.createElement('div');
         item.style.display = 'flex';
         item.style.justifyContent = 'space-between';
@@ -78,32 +77,30 @@ function updateMergeUI() {
         item.style.border = '1px solid var(--border)';
         item.style.borderRadius = '8px';
         item.style.transition = 'all 0.2s';
-        item.style.width = '100%'; // 限制最大宽度
+        item.style.width = '100%'; 
         item.style.boxSizing = 'border-box';
 
-        // 文件信息文本
+        // 语法安全：将数学运算提取到模板字符串外部
+        const sizeMb = (file.size / 1024 / 1024).toFixed(2);
+        const fullText = `${index + 1}. ${file.name} (${sizeMb} MB)`;
+        
         const infoSpan = document.createElement('span');
-        const fullText = `${index + 1}. ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
         infoSpan.innerText = fullText;
-        infoSpan.title = fullText; // 鼠标悬浮时显示完整文本
+        infoSpan.title = fullText; 
 
-        // 【关键修复核心】让文本容器在空间不足时优雅截断
-        infoSpan.style.flex = '1 1 0%'; // 允许收缩
-        infoSpan.style.minWidth = '0';  // 打破 flex 子元素的最小宽度限制（关键！）
-        infoSpan.style.whiteSpace = 'nowrap'; // 不换行
-        infoSpan.style.overflow = 'hidden'; // 隐藏超出部分
-        infoSpan.style.textOverflow = 'ellipsis'; // 显示省略号
-        infoSpan.style.marginRight = '12px'; // 和右侧按钮保持距离
+        infoSpan.style.flex = '1 1 0%'; 
+        infoSpan.style.minWidth = '0';  
+        infoSpan.style.whiteSpace = 'nowrap'; 
+        infoSpan.style.overflow = 'hidden'; 
+        infoSpan.style.textOverflow = 'ellipsis'; 
+        infoSpan.style.marginRight = '12px'; 
         infoSpan.style.fontSize = '13px';
 
-        // 按钮容器
         const actionsDiv = document.createElement('div');
         actionsDiv.style.display = 'flex';
         actionsDiv.style.gap = '6px';
-        // 【关键修复核心】死保按钮容器不被压缩
         actionsDiv.style.flex = '0 0 auto'; 
 
-        // 通用按钮生成函数
         const createBtn = (text, onClick, disabled = false, isDanger = false) => {
             const btn = document.createElement('button');
             btn.innerHTML = text;
@@ -131,25 +128,26 @@ function updateMergeUI() {
             return btn;
         };
 
-        // 上移按钮 (如果是第一个则禁用)
+        // 语法安全：弃用容易触发 ASI(自动分号补全) 错误的数组解构，改用传统 temp 变量交换
         const upBtn = createBtn('↑', () => {
-            [mergeFiles[index - 1], mergeFiles[index]] = [mergeFiles[index], mergeFiles[index - 1]];
+            const temp = mergeFiles[index - 1];
+            mergeFiles[index - 1] = mergeFiles[index];
+            mergeFiles[index] = temp;
             updateMergeUI();
         }, index === 0);
 
-        // 下移按钮 (如果是最后一个则禁用)
         const downBtn = createBtn('↓', () => {
-            [mergeFiles[index], mergeFiles[index + 1]] = [mergeFiles[index + 1], mergeFiles[index]];
+            const temp = mergeFiles[index + 1];
+            mergeFiles[index + 1] = mergeFiles[index];
+            mergeFiles[index] = temp;
             updateMergeUI();
-        }, index === mergeFiles.length - 1);
+        }, index === (mergeFiles.length - 1));
 
-        // 删除按钮
         const delBtn = createBtn('✕', () => {
             mergeFiles.splice(index, 1);
             updateMergeUI();
         }, false, true);
 
-        // 组装节点
         actionsDiv.appendChild(upBtn);
         actionsDiv.appendChild(downBtn);
         actionsDiv.appendChild(delBtn);
@@ -218,7 +216,7 @@ const splitBtn = document.getElementById('startPdfSplitBtn');
 if (dropzoneSplit && splitInput) {
     dropzoneSplit.addEventListener('click', () => splitInput.click());
     dropzoneSplit.addEventListener('dragover', e => { e.preventDefault(); dropzoneSplit.style.borderColor = 'var(--accent)'; });
-    dropzoneSplit.addEventListener('dragleave', () => dropzoneSplit.style.borderColor = 'var(--border)';
+    dropzoneSplit.addEventListener('dragleave', () => dropzoneSplit.style.borderColor = 'var(--border)');
     dropzoneSplit.addEventListener('drop', e => {
         e.preventDefault();
         dropzoneSplit.style.borderColor = 'var(--border)';
@@ -283,7 +281,10 @@ if (splitBtn) {
                 const targetIndices = parseRange(rangeStr, totalPages);
                 if (targetIndices.length === 0) throw new Error("页码范围无效或为空。");
                 
-                logMsg('pdfSplitLog', `模式：按范围提取 (${targetIndices.map(n=>n+1).join(', ')})`);
+                // 语法安全：将 map 逻辑提取到外面，避免模板解析器出现括号闭合混淆
+                const rangeText = targetIndices.map(n => n + 1).join(', ');
+                logMsg('pdfSplitLog', `模式：按范围提取 (${rangeText})`);
+                
                 const newPdf = await PDFDocument.create();
                 const copiedPages = await newPdf.copyPages(splitDocInfo, targetIndices);
                 copiedPages.forEach(page => newPdf.addPage(page));
