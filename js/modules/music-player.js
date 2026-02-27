@@ -33,7 +33,8 @@ export function initMusicPlayer() {
             renderPlaylist();
             if (playlist.length > 0) {
                 currentIndex = 0;
-                loadAndPlayIndex(0, false);            // 使用新函数加载第一首
+                // 修改点 1：初始加载时传入 false，禁止自动播放
+                loadAndPlayIndex(0, false);             
             }
         })
         .catch(() => {});
@@ -72,7 +73,8 @@ export function initMusicPlayer() {
     }
 
     // 核心：等整首歌缓冲完成再播放（拖进度条丝滑）
-    function loadAndPlayIndex(i) {
+    // 修改点 2：增加 autoPlay 参数，默认值为 true
+    function loadAndPlayIndex(i, autoPlay = true) {
         if (i < 0 || i >= playlist.length) return;
 
         // 释放上一个本地文件
@@ -97,13 +99,21 @@ export function initMusicPlayer() {
 
         audio.load();   // 开始缓冲
 
-        // 成功：整首歌缓冲完成 → 自动播放
+        // 成功：整首歌缓冲完成
         const onCanPlayThrough = () => {
             cleanup();
-            audio.play().then(() => {
-                document.getElementById('playBtn').textContent = '⏸';
+            
+            // 修改点 3：根据 autoPlay 决定是否自动播放
+            if (autoPlay) {
+                audio.play().then(() => {
+                    document.getElementById('playBtn').textContent = '⏸';
+                    document.getElementById('songTitle').textContent = song.name;
+                }).catch(() => {});
+            } else {
+                // 初始加载不播放时，只恢复 UI 状态为暂停
                 document.getElementById('songTitle').textContent = song.name;
-            }).catch(() => {});
+                document.getElementById('playBtn').textContent = '▶';
+            }
         };
 
         // 失败处理
@@ -191,10 +201,9 @@ export function initMusicPlayer() {
         }
         renderPlaylist();
         if (currentIndex < 0 && playlist.length > 0) {
-            loadAndPlayIndex(playlist.length - 1);
+            loadAndPlayIndex(playlist.length - 1); // 拖拽进入时默认保持自动播放
         }
     };
 }
 
 document.addEventListener('DOMContentLoaded', initMusicPlayer);
-
