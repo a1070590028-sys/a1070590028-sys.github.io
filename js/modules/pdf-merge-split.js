@@ -51,14 +51,15 @@ function handleMergeFiles(files) {
     updateMergeUI();
 }
 
-// ⭐ 核心升级：动态生成可操作的排序列表 (带有防挤压横向滚动)
+// ⭐ 核心升级：优雅截断防挤压版本 (修复长文件名破坏 UI 问题)
 function updateMergeUI() {
     if (!mergeCountEl || !mergeListContainer) return;
     mergeCountEl.innerText = mergeFiles.length;
     mergeListContainer.innerHTML = '';
     
-    // 给外层容器加上横向滚动允许
-    mergeListContainer.style.overflowX = 'auto';
+    // 恢复垂直滚动，关闭横向滚动
+    mergeListContainer.style.overflowY = 'auto';
+    mergeListContainer.style.overflowX = 'hidden';
     
     if (mergeFiles.length === 0) {
         mergeListContainer.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:10px;">列表为空，请上传 PDF 文件</div>';
@@ -77,22 +78,30 @@ function updateMergeUI() {
         item.style.border = '1px solid var(--border)';
         item.style.borderRadius = '8px';
         item.style.transition = 'all 0.2s';
-        
-        // 强制元素最小宽度为内容的实际宽度，撑出横向滚动条
-        item.style.minWidth = 'max-content';
+        item.style.width = '100%'; // 限制最大宽度
+        item.style.boxSizing = 'border-box';
 
         // 文件信息文本
         const infoSpan = document.createElement('span');
-        infoSpan.innerText = `${index + 1}. ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
-        infoSpan.style.marginRight = '20px'; 
+        const fullText = `${index + 1}. ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
+        infoSpan.innerText = fullText;
+        infoSpan.title = fullText; // 鼠标悬浮时显示完整文本
+
+        // 【关键修复核心】让文本容器在空间不足时优雅截断
+        infoSpan.style.flex = '1 1 0%'; // 允许收缩
+        infoSpan.style.minWidth = '0';  // 打破 flex 子元素的最小宽度限制（关键！）
+        infoSpan.style.whiteSpace = 'nowrap'; // 不换行
+        infoSpan.style.overflow = 'hidden'; // 隐藏超出部分
+        infoSpan.style.textOverflow = 'ellipsis'; // 显示省略号
+        infoSpan.style.marginRight = '12px'; // 和右侧按钮保持距离
         infoSpan.style.fontSize = '13px';
-        infoSpan.style.whiteSpace = 'nowrap'; // 取消换行，保持单行显示
 
         // 按钮容器
         const actionsDiv = document.createElement('div');
         actionsDiv.style.display = 'flex';
         actionsDiv.style.gap = '6px';
-        actionsDiv.style.flexShrink = '0'; // 禁止按钮容器在空间不足时被压缩
+        // 【关键修复核心】死保按钮容器不被压缩
+        actionsDiv.style.flex = '0 0 auto'; 
 
         // 通用按钮生成函数
         const createBtn = (text, onClick, disabled = false, isDanger = false) => {
@@ -209,7 +218,7 @@ const splitBtn = document.getElementById('startPdfSplitBtn');
 if (dropzoneSplit && splitInput) {
     dropzoneSplit.addEventListener('click', () => splitInput.click());
     dropzoneSplit.addEventListener('dragover', e => { e.preventDefault(); dropzoneSplit.style.borderColor = 'var(--accent)'; });
-    dropzoneSplit.addEventListener('dragleave', () => dropzoneSplit.style.borderColor = 'var(--border)');
+    dropzoneSplit.addEventListener('dragleave', () => dropzoneSplit.style.borderColor = 'var(--border)';
     dropzoneSplit.addEventListener('drop', e => {
         e.preventDefault();
         dropzoneSplit.style.borderColor = 'var(--border)';
