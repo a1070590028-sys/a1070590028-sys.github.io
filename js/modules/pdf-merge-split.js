@@ -51,15 +51,98 @@ function handleMergeFiles(files) {
     updateMergeUI();
 }
 
+// ⭐ 核心升级：动态生成可操作的排序列表
 function updateMergeUI() {
     if (!mergeCountEl || !mergeListContainer) return;
     mergeCountEl.innerText = mergeFiles.length;
     mergeListContainer.innerHTML = '';
+    
+    if (mergeFiles.length === 0) {
+        mergeListContainer.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:10px;">列表为空，请上传 PDF 文件</div>';
+        return;
+    }
+
     mergeFiles.forEach((file, index) => {
+        // 创建列表项容器
         const item = document.createElement('div');
-        item.style.padding = '4px 8px';
-        item.style.borderBottom = '1px dashed rgba(255,255,255,0.1)';
-        item.innerText = `${index + 1}. ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.style.alignItems = 'center';
+        item.style.padding = '8px 10px';
+        item.style.marginBottom = '6px';
+        item.style.background = 'rgba(255,255,255,0.03)';
+        item.style.border = '1px solid var(--border)';
+        item.style.borderRadius = '8px';
+        item.style.transition = 'all 0.2s';
+
+        // 文件信息文本
+        const infoSpan = document.createElement('span');
+        infoSpan.innerText = `${index + 1}. ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
+        infoSpan.style.flex = '1';
+        infoSpan.style.overflow = 'hidden';
+        infoSpan.style.textOverflow = 'ellipsis';
+        infoSpan.style.whiteSpace = 'nowrap';
+        infoSpan.style.marginRight = '10px';
+        infoSpan.style.fontSize = '13px';
+
+        // 按钮容器
+        const actionsDiv = document.createElement('div');
+        actionsDiv.style.display = 'flex';
+        actionsDiv.style.gap = '6px';
+
+        // 通用按钮生成函数
+        const createBtn = (text, onClick, disabled = false, isDanger = false) => {
+            const btn = document.createElement('button');
+            btn.innerHTML = text;
+            btn.style.padding = '2px 8px';
+            btn.style.fontSize = '12px';
+            btn.style.border = isDanger ? '1px solid rgba(239,68,68,0.4)' : '1px solid var(--border)';
+            btn.style.background = isDanger ? 'rgba(239,68,68,0.1)' : 'transparent';
+            btn.style.color = isDanger ? '#fca5a5' : 'var(--text)';
+            btn.style.borderRadius = '4px';
+            btn.style.cursor = disabled ? 'not-allowed' : 'pointer';
+            btn.style.opacity = disabled ? '0.3' : '1';
+            btn.style.transition = 'all 0.2s';
+            
+            if (!disabled) {
+                btn.onclick = onClick;
+                btn.onmouseover = () => {
+                    btn.style.background = isDanger ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.1)';
+                    btn.style.borderColor = isDanger ? 'rgba(239,68,68,0.6)' : 'var(--accent)';
+                };
+                btn.onmouseout = () => {
+                    btn.style.background = isDanger ? 'rgba(239,68,68,0.1)' : 'transparent';
+                    btn.style.borderColor = isDanger ? 'rgba(239,68,68,0.4)' : 'var(--border)';
+                };
+            }
+            return btn;
+        };
+
+        // 上移按钮 (如果是第一个则禁用)
+        const upBtn = createBtn('↑', () => {
+            [mergeFiles[index - 1], mergeFiles[index]] = [mergeFiles[index], mergeFiles[index - 1]];
+            updateMergeUI();
+        }, index === 0);
+
+        // 下移按钮 (如果是最后一个则禁用)
+        const downBtn = createBtn('↓', () => {
+            [mergeFiles[index], mergeFiles[index + 1]] = [mergeFiles[index + 1], mergeFiles[index]];
+            updateMergeUI();
+        }, index === mergeFiles.length - 1);
+
+        // 删除按钮
+        const delBtn = createBtn('✕', () => {
+            mergeFiles.splice(index, 1);
+            updateMergeUI();
+        }, false, true);
+
+        // 组装节点
+        actionsDiv.appendChild(upBtn);
+        actionsDiv.appendChild(downBtn);
+        actionsDiv.appendChild(delBtn);
+
+        item.appendChild(infoSpan);
+        item.appendChild(actionsDiv);
         mergeListContainer.appendChild(item);
     });
 }
