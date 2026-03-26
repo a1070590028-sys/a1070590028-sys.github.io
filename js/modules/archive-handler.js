@@ -1,11 +1,14 @@
 /**
  * 压缩包处理模块 (支持 RAR, 7z, ZIP)
- * 依赖: js/lib/libarchive/
+ * 依赖: js/lib/libarchive/wasm-gen/
  */
-import { Archive } from '../lib/libarchive/libarchive.js';
-// 1. 初始化引擎路径 (相对于 index.html)
+
+// 1. 从正确的相对路径引入 Archive (从 modules 退回上一级进入 lib/...)
+import { Archive } from '../lib/libarchive/wasm-gen/libarchive.js';
+
+// 2. 初始化引擎路径 (相对于 index.html 的执行路径，加上 wasm-gen)
 Archive.init({
-    workerUrl: 'js/lib/libarchive/worker-bundle.js'
+    workerUrl: 'js/lib/libarchive/wasm-gen/worker-bundle.js'
 });
 
 const arcInput = document.getElementById('arcInput');
