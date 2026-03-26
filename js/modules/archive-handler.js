@@ -2,7 +2,7 @@
  * 压缩包处理模块 (支持 RAR, 7z, ZIP)
  * 依赖: js/lib/libarchive/
  */
-
+import { Archive } from '../lib/libarchive/libarchive.js';
 // 1. 初始化引擎路径 (相对于 index.html)
 Archive.init({
     workerUrl: 'js/lib/libarchive/worker-bundle.js'
