@@ -273,7 +273,7 @@
                             <input id="pdfSplitRange" type="text" placeholder="1-3,5">
                         </div>
                         <div class="compress-param">
-                            <label class="small">输出命名前缀</label>
+                            <label class="small">输出命命名前缀</label>
                             <input id="pdfSplitFilename" type="text" value="split_document">
                         </div>
                     </div>
@@ -281,6 +281,39 @@
             </div>
         </div>
     </div>
+
+    <div class="post-card" id="archive-preview-card">
+        <h2 class="card-title">📦 压缩包预览解压 <span class="toggle-icon">▾</span></h2>
+        <div class="card-content">
+            <p style="margin-top:8px">支持查看并解压 ZIP, 7z, RAR (含RAR5), TAR 等。纯本地处理，保护隐私。</p>
+            
+            <div class="compress-grid" style="margin-top:16px;">
+                <div style="padding:12px">
+                    <div id="dropzoneArc" class="dropzone">
+                        <div class="dropzone-title">点击或拖拽上传压缩包</div>
+                        <div class="small" style="margin-top:6px">支持 .rar / .7z / .zip / .tar</div>
+                        <input type="file" id="arcInput" style="display:none">
+                    </div>
+                    
+                    <div id="arcFileList" class="log-box" style="margin-top:15px; min-height:220px; max-height:400px; background: rgba(255,255,255,0.02) !important; overflow-y: auto;">
+                        <div style="text-align:center; padding:50px; color:var(--text-muted); font-size:14px;">等待解析文件...</div>
+                    </div>
+                </div>
+
+                <div class="controls post-card" style="padding:14px; height:fit-content">
+                    <h3 class="params-title">档案详情</h3>
+                    <div class="small">名称：<span id="arcInfoName" style="color:var(--accent)">--</span></div>
+                    <div class="small">状态：<span id="arcStatus">待机</span></div>
+                    <hr style="border:0; border-top:1px solid var(--border); margin:12px 0;">
+                    <div class="small" style="color:var(--text-muted); font-style:italic; line-height:1.5;">
+                        💡 <b>提示：</b><br>在移动端，直接点击列表中的单个文件名，即可提取并下载该文件。大文件需要等待 Wasm 引擎解压。
+                    </div>
+                </div>
+            </div>
+            <div class="small" style="margin-top:8px">运行日志：<div id="arcLog" class="log-box" style="min-height:36px;"></div></div>
+        </div>
+    </div>
+
     <div class="post-card">
     <h2 class="card-title">🖼️ 幻影坦克 <span class="toggle-icon">▾</span></h2>
     <div class="card-content">
@@ -683,6 +716,7 @@
 <script src="js/lib/jspdf.umd.min.js"></script>
 <script src="js/lib/pdf.min.js"></script>
 <script src="js/lib/pdf-lib.min.js"></script>
+<script src="js/lib/libarchive/libarchive.js"></script>
 
 <script>
     window.VANTA = window.VANTA || {};
@@ -700,7 +734,6 @@ document.querySelectorAll('[data-ghost-tab]').forEach(b => b.onclick = () => {
 });
 /* 小脚本：Tab 切换（图片/PDF互转）与加密/解密 tab */
 document.querySelectorAll('#pdf-convert-card [data-tab]').forEach(b => b.onclick = () => {
-    // 仅在当前卡片范围内寻找按钮和面板
     const card = b.closest('.post-card');
     card.querySelectorAll('[data-tab]').forEach(x => x.classList.remove('active'));
     card.querySelectorAll('#img2pdf, #pdf2img').forEach(x => x.style.display = 'none');
@@ -710,7 +743,7 @@ document.querySelectorAll('#pdf-convert-card [data-tab]').forEach(b => b.onclick
     document.getElementById(targetId).style.display = targetId === 'img2pdf' ? 'grid' : 'block';
 });
 
-// 加密 / 解密 tab 切换（使用 data-enc-tab）
+// 加密 / 解密 tab 切换
 document.querySelectorAll('[data-enc-tab]').forEach(b => b.onclick = () => {
     document.querySelectorAll('[data-enc-tab]').forEach(x => x.classList.remove('active'));
     document.getElementById('encrypt-panel').style.display = 'none';
@@ -719,16 +752,16 @@ document.querySelectorAll('[data-enc-tab]').forEach(b => b.onclick = () => {
     document.getElementById(b.dataset.encTab + '-panel').style.display = 'block';
 });
 
-// 狗叫密语 Tab 切换（使用 data-dog-tab）
+// 狗叫密语 Tab 切换
 document.querySelectorAll('[data-dog-tab]').forEach(b => b.onclick = () => {
     document.querySelectorAll('[data-dog-tab]').forEach(x => x.classList.remove('active'));
     document.getElementById('dog-encode-panel').style.display = 'none';
     document.getElementById('dog-decode-panel').style.display = 'none';
     b.classList.add('active');
-    document.getElementById('dog-' + b.dataset.dogTab + '-panel').style.display = 'grid'; // 注意这里是 grid
+    document.getElementById('dog-' + b.dataset.dogTab + '-panel').style.display = 'grid'; 
 });
 
-// ====== 新增：PDF 合并与拆分 Tab 切换 ======
+// PDF 合并与拆分 Tab 切换
 document.querySelectorAll('[data-pdfms-tab]').forEach(b => b.onclick = () => {
     document.querySelectorAll('[data-pdfms-tab]').forEach(x => x.classList.remove('active'));
     document.getElementById('pdfms-merge-panel').style.display = 'none';
@@ -737,7 +770,7 @@ document.querySelectorAll('[data-pdfms-tab]').forEach(b => b.onclick = () => {
     document.getElementById('pdfms-' + b.dataset.pdfmsTab + '-panel').style.display = 'block';
 });
 
-// ====== 新增：拆分模式显隐联动 ======
+// 拆分模式显隐联动
 const splitModeSelect = document.getElementById('pdfSplitMode');
 if(splitModeSelect) {
     splitModeSelect.onchange = e => {
