@@ -1,28 +1,19 @@
 /**
  * 压缩包处理模块 (支持 RAR, 7z, ZIP)
+ * 依赖: js/lib/libarchive/
  */
 
-// 1. 导入整个模块对象
-import * as LibArchiveModule from '/js/lib/libarchive/libarchive.js';
+// 关键点：必须使用 { Archive } 这种解构赋值的方式引入
+import { Archive } from '../lib/libarchive/libarchive.js';
 
-// 2. 自动识别 Archive 类所在的层级
-// 有些版本是 LibArchiveModule.Archive，有些是 LibArchiveModule.default
-const Archive = LibArchiveModule.Archive || LibArchiveModule.default || LibArchiveModule;
-
-// 3. 防御性初始化
-if (Archive && typeof Archive.init === 'function') {
-    Archive.init({
-        workerUrl: '/js/lib/libarchive/worker-bundle.js'
-    });
-    console.log('Archive 引擎初始化成功');
-} else if (Archive) {
-    console.warn('该版本的 libarchive 可能不需要 init，或者 init 方法不在静态属性上。');
-    // 如果没有 init 方法，我们将在 Archive.open 时尝试传入 workerUrl
-} else {
-    console.error('无法从模块中提取 Archive 对象，请检查 libarchive.js 是否加载正确。');
-}
+// 初始化
+// 确保 worker-bundle.js 也在这个文件夹下
+Archive.init({
+    workerUrl: '/js/lib/libarchive/worker-bundle.js'
+});
 
 const arcInput = document.getElementById('arcInput');
+// ... 后面的 handleArchive 逻辑保持不变 ...
 // ... 剩下的逻辑保持不变 ...
 const dropzoneArc = document.getElementById('dropzoneArc');
 const arcFileList = document.getElementById('arcFileList');
