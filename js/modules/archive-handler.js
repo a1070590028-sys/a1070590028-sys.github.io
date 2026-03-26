@@ -27,8 +27,6 @@ const getWorkerUrl = () => {
 Archive.init({
     // 使用动态计算的路径
     workerUrl: getWorkerUrl(),
-    // 关键：强制指定 worker 类型为 'classic' 而不是 'module'
-    workerType: 'classic' 
 });
 
 const arcInput = document.getElementById('arcInput');
