@@ -1,17 +1,18 @@
 /**
  * 压缩包处理模块 (支持 RAR, 7z, ZIP)
- * 依赖: js/lib/libarchive/wasm-gen/
+ * 依赖: js/lib/libarchive/
  */
 
-// 1. 从正确的相对路径引入 Archive (从 modules 退回上一级进入 lib/...)
-import { Archive } from '../lib/libarchive/libarchive.js'; 
+// 正确的默认引入方式（去掉之前建议的 { Archive }）
+import Archive from '../lib/libarchive/libarchive.js'; 
 
-// 2. 修正初始化路径：worker-bundle.js 现在也在 libarchive 目录下
+// 初始化引擎路径 (相对于 index.html 所在的根目录)
 Archive.init({
     workerUrl: 'js/lib/libarchive/worker-bundle.js'
 });
 
 const arcInput = document.getElementById('arcInput');
+// ... 后面代码保持原样 ...
 const dropzoneArc = document.getElementById('dropzoneArc');
 const arcFileList = document.getElementById('arcFileList');
 const arcLog = document.getElementById('arcLog');
