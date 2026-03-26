@@ -3,8 +3,24 @@
  * 依赖: js/lib/libarchive/
  */
 
-// 使用绝对路径引入，确保在根域名下能精准找到文件
-import Archive from '/js/lib/libarchive/libarchive.js'; 
+// 1. 尝试直接引入整个模块对象
+import * as LibArchive from '/js/lib/libarchive/libarchive.js';
+
+// 2. 打印一下看看到底拿到了什么（按 F12 看控制台）
+console.log('加载到的模块内容:', LibArchive);
+
+// 3. 根据库的导出习惯，尝试初始化
+// 如果 LibArchive 本身就是类，就用 LibArchive.init
+// 如果 LibArchive.Archive 才是类，就用 LibArchive.Archive.init
+const Archive = LibArchive.Archive || LibArchive.default || LibArchive;
+
+if (Archive && typeof Archive.init === 'function') {
+    Archive.init({
+        workerUrl: '/js/lib/libarchive/worker-bundle.js' // 确保路径是绝对路径
+    });
+} else {
+    console.error('在加载的模块中找不到 Archive.init 方法，请检查控制台打印的对象结构');
+}
 
 // 1. 初始化引擎路径 (使用绝对路径避免 404)
 Archive.init({
