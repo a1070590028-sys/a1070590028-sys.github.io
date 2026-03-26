@@ -9,7 +9,11 @@ import { Archive } from '../lib/libarchive/libarchive.js';
 // 初始化
 // 确保 worker-bundle.js 也在这个文件夹下
 Archive.init({
-    workerUrl: '/js/lib/libarchive/worker-bundle.js'
+    // 确保路径正确
+    workerUrl: '/js/lib/libarchive/worker-bundle.js',
+    // 关键：强制指定 worker 类型为 'classic' 而不是 'module'
+    // 这样浏览器就不会去检查那个严格的 MIME 类型了
+    workerType: 'classic' 
 });
 
 const arcInput = document.getElementById('arcInput');
