@@ -3,19 +3,20 @@
  * 依赖: js/lib/libarchive/
  */
 
-// 正确的默认引入方式（去掉之前建议的 { Archive }）
-import Archive from '../lib/libarchive/libarchive.js'; 
+// 使用绝对路径引入，确保在根域名下能精准找到文件
+import Archive from '/js/lib/libarchive/libarchive.js'; 
 
-// 初始化引擎路径 (相对于 index.html 所在的根目录)
+// 1. 初始化引擎路径 (使用绝对路径避免 404)
 Archive.init({
-    workerUrl: 'js/lib/libarchive/worker-bundle.js'
+    workerUrl: '/js/lib/libarchive/worker-bundle.js'
 });
 
 const arcInput = document.getElementById('arcInput');
-// ... 后面代码保持原样 ...
 const dropzoneArc = document.getElementById('dropzoneArc');
 const arcFileList = document.getElementById('arcFileList');
 const arcLog = document.getElementById('arcLog');
+
+// ... 后面的 handleArchive 和 renderFiles 函数保持不变 ...
 
 // 绑定上传事件
 dropzoneArc.onclick = () => arcInput.click();
