@@ -1,33 +1,29 @@
 /**
  * 压缩包处理模块 (支持 RAR, 7z, ZIP)
- * 依赖: js/lib/libarchive/
  */
 
-// 1. 尝试直接引入整个模块对象
-import * as LibArchive from '/js/lib/libarchive/libarchive.js';
+// 1. 导入整个模块对象
+import * as LibArchiveModule from '/js/lib/libarchive/libarchive.js';
 
-// 2. 打印一下看看到底拿到了什么（按 F12 看控制台）
-console.log('加载到的模块内容:', LibArchive);
+// 2. 自动识别 Archive 类所在的层级
+// 有些版本是 LibArchiveModule.Archive，有些是 LibArchiveModule.default
+const Archive = LibArchiveModule.Archive || LibArchiveModule.default || LibArchiveModule;
 
-// 3. 根据库的导出习惯，尝试初始化
-// 如果 LibArchive 本身就是类，就用 LibArchive.init
-// 如果 LibArchive.Archive 才是类，就用 LibArchive.Archive.init
-const Archive = LibArchive.Archive || LibArchive.default || LibArchive;
-
+// 3. 防御性初始化
 if (Archive && typeof Archive.init === 'function') {
     Archive.init({
-        workerUrl: '/js/lib/libarchive/worker-bundle.js' // 确保路径是绝对路径
+        workerUrl: '/js/lib/libarchive/worker-bundle.js'
     });
+    console.log('Archive 引擎初始化成功');
+} else if (Archive) {
+    console.warn('该版本的 libarchive 可能不需要 init，或者 init 方法不在静态属性上。');
+    // 如果没有 init 方法，我们将在 Archive.open 时尝试传入 workerUrl
 } else {
-    console.error('在加载的模块中找不到 Archive.init 方法，请检查控制台打印的对象结构');
+    console.error('无法从模块中提取 Archive 对象，请检查 libarchive.js 是否加载正确。');
 }
 
-// 1. 初始化引擎路径 (使用绝对路径避免 404)
-Archive.init({
-    workerUrl: '/js/lib/libarchive/worker-bundle.js'
-});
-
 const arcInput = document.getElementById('arcInput');
+// ... 剩下的逻辑保持不变 ...
 const dropzoneArc = document.getElementById('dropzoneArc');
 const arcFileList = document.getElementById('arcFileList');
 const arcLog = document.getElementById('arcLog');
