@@ -6,19 +6,35 @@
 // 关键点：必须使用 { Archive } 这种解构赋值的方式引入
 import { Archive } from '../lib/libarchive/libarchive.js';
 
+// 动态获取当前项目正确的根路径（兼容本地和 GitHub Pages 子目录）
+const getWorkerUrl = () => {
+    let path = window.location.pathname;
+    
+    // 情况1：如果当前 URL 带有 index.html，把它去掉，保留前面的目录
+    if (path.endsWith('.html')) {
+        path = path.substring(0, path.lastIndexOf('/') + 1);
+    } 
+    // 情况2：如果是 GitHub Pages 且末尾没有 '/'（例如 ...github.io/my-repo）
+    else if (!path.endsWith('/')) {
+        path += '/';
+    }
+    
+    // 拼出完整的绝对 URL: https://你的用户名.github.io/你的仓库名/js/lib/libarchive/worker-bundle.js
+    return window.location.origin + path + 'js/lib/libarchive/worker-bundle.js';
+};
+
+// 初始化
 Archive.init({
-    workerUrl: 'js/lib/libarchive/worker-bundle.js', 
+    // 使用动态计算的路径
+    workerUrl: getWorkerUrl(),
+    // 关键：强制指定 worker 类型为 'classic' 而不是 'module'
     workerType: 'classic' 
 });
 
 const arcInput = document.getElementById('arcInput');
-// ... 后面的 handleArchive 逻辑保持不变 ...
-// ... 剩下的逻辑保持不变 ...
 const dropzoneArc = document.getElementById('dropzoneArc');
 const arcFileList = document.getElementById('arcFileList');
 const arcLog = document.getElementById('arcLog');
-
-// ... 后面的 handleArchive 和 renderFiles 函数保持不变 ...
 
 // 绑定上传事件
 dropzoneArc.onclick = () => arcInput.click();
